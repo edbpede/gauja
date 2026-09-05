@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Seerr v3.4.1: MediaInfo.status values match the upstream MediaStatus enum.
+# Evidence: https://github.com/seerr-team/seerr/blob/69f73a6f1486fdb51b8ddae9a94a8dfb629f461c/server/constants/media.ts
+overlay: 1.0.0
+info:
+  title: MediaInfo.status values match the upstream MediaStatus enum.
+  version: 1.0.0
+actions:
+- target: $.components.schemas.MediaInfo.properties.status
+  update:
+    type: integer
+    description: 1 = UNKNOWN, 2 = PENDING, 3 = PROCESSING, 4 = PARTIALLY_AVAILABLE, 5 = AVAILABLE, 6 =
+      BLOCKLISTED, 7 = DELETED

@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+generate: [types, client]
+accessModifier: public
+namingStrategy: defensive
+additionalFileComments:
+  - 'SPDX-FileCopyrightText: 2026 Gauja contributors'
+  - >-
+    SPDX-License-Identifier: AGPL-3.0-or-later
+  - 'GENERATED — do not edit. Run tools/codegen/generate.sh.'

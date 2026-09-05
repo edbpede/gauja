@@ -16,9 +16,12 @@ allow = [
   "MPL-2.0",
 ]
 
-# EPL-2.0 is accepted only for Gradle build plugins (build-time, never shipped).
+# EPL-2.0 is accepted only for Gradle build plugins. EPL-1.0 is accepted only
+# for the mandated JUnit 4 test runner. Neither is shipped in an app.
 allow-build-only = [
+  "PSF-2.0", # typing-extensions, contract tooling only
   "EPL-2.0",
+  "EPL-1.0",
 ]
 
 deny = [

@@ -119,39 +119,39 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 ### 2.1 Vendored API contract (`api/`)
 
-- [ ] Copy upstream `seerr-api.yml` verbatim (OpenAPI 3.0.2; 167 paths / 187 operations at the time of writing, `info.version: 1.0.0`, served under `/api/v1`).
-- [ ] Write `api/UPSTREAM_COMMIT` with the exact upstream commit SHA and the fetch date.
-- [ ] Add `api/LICENSE.upstream` (Seerr's MIT text).
-- [ ] Make `tools/api-drift/check-local.sh` real: fail when `seerr-api.yml` changes without `UPSTREAM_COMMIT` changing or vice versa (compare staged paths).
-- [ ] Create `api/overlays/README.md` describing the OpenAPI Overlay format and the rule that every entry cites an upstream issue or observed server behaviour.
-- [ ] Record the first overlays while generating clients: missing `required` arrays, wrong integer/string types, the two operation tags not declared in the spec header (`tmdb`, `overriderule`), and any `nullable` gaps the generators choke on.
-- [ ] Create `api/compat.json` with a JSON Schema (`api/compat.schema.json`): `{ featureId: { min: "x.y.z", max?: "x.y.z", note } }`. Seed with `blocklist` (prefer `/blocklist`; `/blacklist` is deprecated with `Sunset: 2026-06-01`), `discover.sliders`, `quickconnect`, `metadata.providers`.
-- [ ] Create `api/fixtures/README.md` and the `api/fixtures/<seerr-version>/<tag>/<operationId>.json` layout; record nothing yet (recording happens against the CI container in Phase 11).
-- [ ] Document the endpoint families Gauja will call, grouped by spec tag with path counts (settings 62, users 24, search 18, auth 8, tmdb 7, issue 6, other 6, blocklist 5, request 5, movies 5, tv 5, media 5, service 5, watchlist 3, public 2, person 2, overriderule 2, collection 1) in `api/ENDPOINTS.md` as the checklist Phases 5–10 tick off.
+- [x] Copy upstream `seerr-api.yml` verbatim (OpenAPI 3.0.2; 163 paths / 212 operations, `info.version: 1.0.0`, served under `/api/v1`).
+- [x] Write `api/UPSTREAM_COMMIT` with the exact upstream commit SHA and the fetch date.
+- [x] Add `api/LICENSE.upstream` (Seerr's MIT text).
+- [x] Make `tools/api-drift/check-local.sh` real: fail when `seerr-api.yml` changes without `UPSTREAM_COMMIT` changing or vice versa (compare staged paths).
+- [x] Create `api/overlays/README.md` describing the OpenAPI Overlay format and the rule that every entry cites an upstream issue or observed server behaviour.
+- [x] Record the first overlays while generating clients: missing `required` arrays, wrong integer/string types, the two operation tags not declared in the spec header (`tmdb`, `overriderule`), and any `nullable` gaps the generators choke on.
+- [x] Create `api/compat.json` with a JSON Schema (`api/compat.schema.json`): `{ featureId: { min: "x.y.z", max?: "x.y.z", note } }`. Seed with `blocklist` (prefer `/blocklist`; `/blacklist` is deprecated with `Sunset: 2026-06-01`), `discover.sliders`, `quickconnect`, `metadata.providers`.
+- [x] Create `api/fixtures/README.md` and the `api/fixtures/<seerr-version>/<tag>/<operationId>.json` layout; record nothing yet (recording happens against the CI container in Phase 11).
+- [x] Document the endpoint families Gauja will call, grouped by spec tag with path counts (settings 62, users 24, search 18, auth 8, tmdb 7, issue 6, other 6, blocklist 5, request 5, movies 5, tv 5, media 5, service 5, watchlist 3, public 2, person 2, overriderule 2, collection 1) in `api/ENDPOINTS.md` as the checklist Phases 5–10 tick off.
 
 ### 2.2 Code generation wrappers (`tools/codegen/`)
 
-- [ ] The output directories named in the two tasks below are created here; §3.2 and §3.3 build their `core/api` module and `SeerrAPI` package around them rather than choosing new paths.
-- [ ] `tools/codegen/android/` — openapi-generator config (`kotlin` generator, `jvm-retrofit2` library, kotlinx-serialization, `useCoroutines`), overlay application step, output to `apps/android/core/api/src/main/kotlin/` with a `GENERATED — do not edit` banner. Pinned generator version.
-- [ ] `tools/codegen/ios/` — `swift-openapi-generator` config (`types`, `client`, `URLSession` transport), overlay application step, output to `apps/ios/Packages/SeerrAPI/Sources/SeerrAPI/Generated/`. Pinned version via `Package.swift` plugin dependency.
-- [ ] `tools/codegen/generate.sh` — runs both, then diffs against the committed output; used by the CI generated-code drift check.
-- [ ] Decide and document the wrapper boundary in `.agents/rules/api-contract.md`: generated DTOs never leave `core/api` / `SeerrAPI`; `core/data` / `Data` map them to `core/model` / `Model` types, one mapper file per aggregate.
+- [x] The output directories named in the two tasks below are created here; §3.2 and §3.3 build their `core/api` module and `SeerrAPI` package around them rather than choosing new paths.
+- [x] `tools/codegen/android/` — openapi-generator config (`kotlin` generator, `jvm-retrofit2` library, kotlinx-serialization, `useCoroutines`), overlay application step, output to `apps/android/core/api/src/main/kotlin/` with a `GENERATED — do not edit` banner. Pinned generator version.
+- [x] `tools/codegen/ios/` — `swift-openapi-generator` config (`types`, `client`, `URLSession` transport), overlay application step, output to `apps/ios/Packages/SeerrAPI/Generated/`. Pinned version via `Package.swift` plugin dependency.
+- [x] `tools/codegen/generate.sh` — runs both, then diffs against the committed output; used by the CI generated-code drift check.
+- [x] Decide and document the wrapper boundary in `.agents/rules/api-contract.md`: generated DTOs never leave `core/api` / `SeerrAPI`; `core/data` / `Data` map them to `core/model` / `Model` types, one mapper file per aggregate.
 
 ### 2.3 Design tokens (`design/tokens.json`, `tools/tokens/`)
 
-- [ ] Author `design/tokens.json` in the W3C Design Tokens format: colour (gray-900/800/700 surfaces, indigo-600 accent, indigo-400→purple-400 hero gradient, request-status badge semantics), spacing, radii, elevation, typography scale, motion durations.
-- [ ] Note in the file header that Seerr's `tailwind.config.js` defines **no** custom palette; token values come from stock Tailwind indigo/gray plus the classes used in `src/components/StatusBadge/`, `src/components/Common/Badge/` and `src/components/Common/Button/`. Record which class each token was derived from.
-- [ ] Add a light theme derived from the same tokens (dark is the default, PRD §8).
-- [ ] `tools/tokens/generate-compose.py` → `apps/android/core/designsystem/src/main/kotlin/**/generated/` (`ColorScheme`, `Typography`, `Shapes`, spacing object, motion durations).
-- [ ] `tools/tokens/generate-swiftui.py` → `apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/` (`Color` extensions, `Font` scale, spacing, radii, motion).
-- [ ] Make `tools/tokens/check.sh` real: regenerate both and fail on diff. Wire `tokens-check.yml`.
+- [x] Author `design/tokens.json` in the W3C Design Tokens format: colour (gray-900/800/700 surfaces, indigo-600 accent, indigo-400→purple-400 hero gradient, request-status badge semantics), spacing, radii, elevation, typography scale, motion durations.
+- [x] Note in the file header that Seerr's `tailwind.config.js` defines **no** custom palette; token values come from stock Tailwind indigo/gray plus the classes used in `src/components/StatusBadge/`, `src/components/Common/Badge/` and `src/components/Common/Button/`. Record which class each token was derived from.
+- [x] Add a light theme derived from the same tokens (dark is the default, PRD §8).
+- [x] `tools/tokens/generate-compose.py` → `apps/android/core/designsystem/src/main/kotlin/**/generated/` (`ColorScheme`, `Typography`, `Shapes`, spacing object, motion durations).
+- [x] `tools/tokens/generate-swiftui.py` → `apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/` (`Color` extensions, `Font` scale, spacing, radii, motion).
+- [x] Make `tools/tokens/check.sh` real: regenerate both and fail on diff. Wire `tokens-check.yml`.
 
 ### 2.4 Screen specifications (`design/screens/`)
 
-- [ ] *(can start early: after §1.3)* `design/screens/TEMPLATE.md` — content, states (loading, empty, error, offline, permission-denied), actions, adaptive behaviour (compact / medium / expanded), acceptance criteria, endpoints used, permissions required, content components used.
-- [ ] *(can start early: after §1.3)* Screen inventory (`design/screens/INVENTORY.md`) listing every screen by area with a size estimate (S/M/L), so PRD §18 risk 1 is quantified before Phase 5 begins. Areas: auth, servers, discover, search, media (movie, tv, season, person, collection), requests, issues, watchlist, profile, users, settings (one folder per Seerr sidebar section), about.
-- [ ] Content-component inventory (`design/screens/components/INVENTORY.md`): `TitleCard`, `MediaSlider`, `RequestCard`, `RequestBlock`, `RequestButton`, `IssueBlock`, `StatusBadge`, `AirDateBadge`, `PersonCard`, `CompanyCard`, `GenreCard`, `GenreTag`, `KeywordTag`, `DownloadBlock`, `ExternalLinkBlock`, `BlocklistedTagsBadge`, `PermissionEdit`, `PermissionOption`, `QuotaSelector`, `NotificationTypeSelector`, `JSONEditor` — each with a one-page spec before it is implemented in Phase 4.
-- [ ] *(can start early: after §1.3)* Write the auth specs first (`design/screens/auth/*.md`) including the test matrix from PRD §18 risk 5: reverse proxy with basic auth, self-signed TLS, plain HTTP, Plex token expiry, Quick Connect timing.
+- [x] *(can start early: after §1.3)* `design/screens/TEMPLATE.md` — content, states (loading, empty, error, offline, permission-denied), actions, adaptive behaviour (compact / medium / expanded), acceptance criteria, endpoints used, permissions required, content components used.
+- [x] *(can start early: after §1.3)* Screen inventory (`design/screens/INVENTORY.md`) listing every screen by area with a size estimate (S/M/L), so PRD §18 risk 1 is quantified before Phase 5 begins. Areas: auth, servers, discover, search, media (movie, tv, season, person, collection), requests, issues, watchlist, profile, users, settings (one folder per Seerr sidebar section), about.
+- [x] Content-component inventory (`design/screens/components/INVENTORY.md`): `TitleCard`, `MediaSlider`, `RequestCard`, `RequestBlock`, `RequestButton`, `IssueBlock`, `StatusBadge`, `AirDateBadge`, `PersonCard`, `CompanyCard`, `GenreCard`, `GenreTag`, `KeywordTag`, `DownloadBlock`, `ExternalLinkBlock`, `BlocklistedTagsBadge`, `PermissionEdit`, `PermissionOption`, `QuotaSelector`, `NotificationTypeSelector`, `JSONEditor` — each with a one-page spec before it is implemented in Phase 4.
+- [x] *(can start early: after §1.3)* Write the auth specs first (`design/screens/auth/*.md`) including the test matrix from PRD §18 risk 5: reverse proxy with basic auth, self-signed TLS, plain HTTP, Plex token expiry, Quick Connect timing.
 
 ---
 

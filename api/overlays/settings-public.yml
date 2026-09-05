@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Seerr v3.4.1 GET /settings/public returns fullPublicSettings, including auth/image flags.
+# Evidence: https://github.com/seerr-team/seerr/blob/69f73a6f1486fdb51b8ddae9a94a8dfb629f461c/server/lib/settings/index.ts
+overlay: 1.0.0
+info:
+  title: Public settings returned by the pinned getter
+  version: 1.0.0
+actions:
+- target: $.components.schemas.PublicSettings.properties
+  update:
+    applicationTitle:
+      type: string
+    applicationUrl:
+      type: string
+    hideAvailable:
+      type: boolean
+    hideBlocklisted:
+      type: boolean
+    localLogin:
+      type: boolean
+    mediaServerLogin:
+      type: boolean
+    movie4kEnabled:
+      type: boolean
+    series4kEnabled:
+      type: boolean
+    discoverRegion:
+      type: string
+    streamingRegion:
+      type: string
+    originalLanguage:
+      type: string
+    mediaServerType:
+      type: number
+    jellyfinExternalHost:
+      type: string
+    jellyfinForgotPasswordUrl:
+      type: string
+    partialRequestsEnabled:
+      type: boolean
+    enableSpecialEpisodes:
+      type: boolean
+    cacheImages:
+      type: boolean
+    vapidPublic:
+      type: string
+    enablePushRegistration:
+      type: boolean
+    locale:
+      type: string
+    emailEnabled:
+      type: boolean
+    userEmailRequired:
+      type: boolean
+    newPlexLogin:
+      type: boolean
+    youtubeUrl:
+      type: string
+    versionCheck:
+      type: boolean
+    plexClientIdentifier:
+      type: string

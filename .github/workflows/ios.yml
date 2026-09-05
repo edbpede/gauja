@@ -12,6 +12,7 @@ on:
       - "api/**"
       - "design/**"
       - "tools/codegen/**"
+      - "tools/contract/**"
       - "tools/tokens/**"
       - ".github/workflows/ios.yml"
   push:
@@ -21,6 +22,7 @@ on:
       - "api/**"
       - "design/**"
       - "tools/codegen/**"
+      - "tools/contract/**"
       - "tools/tokens/**"
 
 permissions:

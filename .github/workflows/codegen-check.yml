@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: codegen-check
+
+on:
+  pull_request:
+    paths: ['api/**', 'tools/contract/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
+  push:
+    branches: [main]
+    paths: ['api/**', 'tools/contract/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - run: tools/contract/python.sh --install
+      - name: Validate each commit and the current contract
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: tools/api-drift/check-local.sh --range "$BASE" "$HEAD"
+      - name: Verify vendored bytes at the pin
+        run: tools/contract/python.sh tools/api-drift/check-upstream.py
+  android:
+    name: codegen-android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+        with:
+          gradle-version: '9.7.1'
+      - run: tools/contract/python.sh --install
+      - run: tools/codegen/generate.sh --check --platform android
+      - run: python3 tools/codegen/smoke.py --platform android
+  ios:
+    name: codegen-ios
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: '26.6'
+      - name: Install pinned SwiftLint
+        run: |
+          source tools/codegen/versions.env
+          mkdir -p .cache/swiftlint
+          curl --fail --location --retry 3 "https://github.com/realm/SwiftLint/releases/download/$SWIFTLINT_VERSION/portable_swiftlint.zip" -o .cache/swiftlint.zip
+          printf '%s  %s\n' "$SWIFTLINT_ARCHIVE_SHA256" .cache/swiftlint.zip | shasum -a 256 --check
+          unzip -q .cache/swiftlint.zip -d .cache/swiftlint
+      - run: tools/contract/python.sh --install
+      - run: tools/codegen/generate.sh --check --platform ios
+      - run: python3 tools/codegen/smoke.py --platform ios
+      - name: Handwritten Swift tooling checks
+        run: |
+          swift format lint --strict --configuration tools/codegen/ios/.swift-format tools/codegen/ios/Package.swift tools/tests/codegen/ios/WireTests.swift
+          .cache/swiftlint/swiftlint lint --strict --config tools/codegen/ios/.swiftlint.yml
+      - name: Typecheck generated SwiftUI primitives at iOS 18 floor
+        run: |
+          xcrun swiftc -typecheck -swift-version 6 -default-isolation MainActor \
+            -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)" -target arm64-apple-ios18.0-simulator \
+            apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/*.swift

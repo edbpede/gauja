@@ -38,6 +38,7 @@ A change under `apps/android/` needs no iOS reviewer and vice versa. A change un
 | `ios.yml` | `apps/ios/**`, `api/**`, `design/**`, `tools/codegen/**`, `tools/tokens/**` | XcodeGen, build, Swift Testing, swift-format lint, SwiftLint strict, package-graph check, generated-code drift, simulator smoke, egress test |
 | `contract.yml` | `api/**`, `tools/codegen/**`; weekly | Seerr container, seeded fixtures, recorded contract tests for both generated clients, imminent-`Sunset` check |
 | `api-sync.yml` | weekly schedule | Upstream diff, PR with new spec, pin and regenerated clients |
+| `codegen-check.yml` | contract, codegen, generated API paths | Separate JDK and Swift generator drift/compile checks; no app skeleton required |
 | `tokens-check.yml` | `design/**`, `tools/tokens/**` | Regenerate both themes, fail on diff |
 | `release.yml` | tags `android/v*`, `ios/v*` | Reproducible build, SBOM, F-Droid metadata, store upload |
 
@@ -62,4 +63,4 @@ Rules:
 | A `shared/` directory with Kotlin and Swift side by side | Runtime sharing by the back door (PRD Appendix C decision 1) | Put the fact in `api/` or `design/`; generate per platform |
 | Hand-copying a token value into a Swift theme | Drifts from `design/tokens.json` | Run `tools/tokens/`; the theme is generated |
 | `uses: actions/checkout@v7` | Unpinned; supply-chain risk (PRD §10) | `uses: actions/checkout@<sha> # v7.x.y` |
-| Installing Xcode in the Android lane to run a shared script | Breaks build-one-platform independence | Keep shared scripts in `tools/` and dependency-free (bash, python3 stdlib) |
+| Installing Xcode in the Android lane to run a shared script | Breaks build-one-platform independence | Keep orchestration in `tools/`; token generation is bash/Python stdlib. Contract tooling may use hash-pinned YAML, JSON Schema and JSONPath dependencies in an isolated Python environment, plus the selected platform generator. These are build-time only; neither lane needs the other platform’s toolchain. |
