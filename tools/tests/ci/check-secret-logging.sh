@@ -74,3 +74,39 @@ cat > "$src/Documented.kt" <<'KT'
 fun fine() { Log.d(TAG, redact(value)) }
 KT
 assert_exit 0 "full-line comments are not scanned" "$script" "$TEST_TMP/apps"
+rm "$src/Documented.kt"
+
+cat > "$src/Block.kt" <<'KT'
+/*
+Log.d(TAG, apiKey)
+*/
+fun fine() { Log.d(TAG, redact(value)) }
+KT
+assert_exit 0 "unstarred lines of a block comment are not scanned" "$script" "$TEST_TMP/apps"
+rm "$src/Block.kt"
+
+cat > "$src/ParenInString.kt" <<'KT'
+fun leak() {
+    Log.d(TAG, "done :)",
+        apiKey)
+}
+KT
+assert_exit 1 "a parenthesis inside a string does not end the call" "$script" "$TEST_TMP/apps"
+rm "$src/ParenInString.kt"
+
+{
+  printf 'fun leak() {\n    Log.d(TAG,\n'
+  for i in $(seq 1 12); do printf '        "line %d",\n' "$i"; done
+  printf '        apiKey)\n}\n'
+} > "$src/Long.kt"
+assert_exit 1 "a call spanning many lines is scanned to its end" "$script" "$TEST_TMP/apps"
+rm "$src/Long.kt"
+
+cat > "$ios/Chained.swift" <<'SWIFT'
+func leak() {
+    Logger(subsystem: Bundle.main.bundleIdentifier ?? id(),
+           category: "net")
+        .debug("cookie \(sessionCookie)")
+}
+SWIFT
+assert_exit 1 "multiline Logger initializer with a chained call is scanned" "$script" "$TEST_TMP/apps"
