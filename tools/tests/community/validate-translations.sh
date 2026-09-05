@@ -38,7 +38,8 @@ XML
 assert_exit 1 "locale key missing from default catalog fails" python3 "$script" --root "$TEST_TMP"
 printf '<resources><string name="discover_title">Opdag</string></resources>\n' > "$android/values-da/strings.xml"
 
-printf '<resources><string name="a">1</string><string name="a">2</string></resources>\n' > "$android/values/strings.xml"
+# Only the duplicate is wrong here: values-da still references discover_title, which stays defined.
+printf '<resources><string name="discover_title">1</string><string name="discover_title">2</string></resources>\n' > "$android/values/strings.xml"
 assert_exit 1 "duplicate key fails" python3 "$script" --root "$TEST_TMP" --no-parity
 printf '<resources><string name="discover_title">Discover</string><string name="requests_title">Requests</string></resources>\n' > "$android/values/strings.xml"
 
