@@ -30,3 +30,13 @@ All components are native implementations of a shared behavior contract. They ac
 | [QuotaSelector](QuotaSelector.md) | Movie/TV quota amount and rolling window editor or read-only usage summary. |
 | [NotificationTypeSelector](NotificationTypeSelector.md) | Server notification-type matrix for user preferences or an agent form. |
 | [JSONEditor](JSONEditor.md) | Native editor for Seerr’s webhook payload template. |
+
+## Shared behavior baseline
+
+Components accept immutable domain values and emit events. Data and screen state owners handle I/O, pagination, navigation, permissions and persistence. Components do not own services or global state. Write detailed specifications with the consuming feature; record only applicable states and acceptance criteria, plus deviations from this baseline.
+
+- Screens own initial loading, empty, error, offline and permission-denied behavior where applicable. Preserve valid content/drafts during refresh or failure; show actionable errors without retry loops. Cached reads remain available with screen-owned staleness information; mutations require connectivity. Re-evaluate permissions on profile/permission changes and handle server rejection visibly.
+- Adapt wrapping, columns and form width to window/size classes. Preserve stable identities and scroll state for lists. Owning screens provide native list/detail navigation; components do not branch on raw screen width.
+- Expose identity, value, selection and actions through TalkBack/VoiceOver, including status beyond color. Support largest text without fixed text heights, native 48 dp/44 pt interactive targets, logical focus order and reduced motion. Use generated theme tokens in both themes.
+- Image-bearing components request rendered sizes, cancel obsolete loads, retain layout during loading/failure and use neutral missing-art placeholders. This requirement does not apply to text-only chips or controls.
+- Verify applicable component behavior on both platforms. Offline rendering and scroll budgets belong to the containing screen’s performance tests (PRD §9, Phase 11), rather than an acceptance paragraph on each component.

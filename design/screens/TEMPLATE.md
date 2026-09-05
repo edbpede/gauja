@@ -15,6 +15,8 @@ Ordered information, source of each value, shared content components and stalene
 
 ## States
 
+Document only applicable states and their observable behavior. The list below is a review prompt, not a required set of variants for every renderer. Components inherit the [shared baseline](components/INVENTORY.md#shared-behavior-baseline) and record their specific behavior.
+
 - **Loading:** initial load and refresh behavior, preserving existing content where useful.
 - **Empty:** meaningful explanation and the available next action.
 - **Error:** actionable message, retry behavior and preservation of user input.
@@ -35,7 +37,7 @@ Labels and logical focus order, native minimum targets (48 dp Android / 44 pt iO
 
 ## Endpoints
 
-Exact method/path from `api/ENDPOINTS.md`, relative to `/api/v1`; distinguish server endpoints from approved Plex sign-in endpoints. No guessed paths. Specify pagination and stable keys for lists.
+Exact method/path from the effective contract (see [API usage and endpoint renderer](../../api/README.md)), relative to `/api/v1`; distinguish server endpoints from approved Plex sign-in endpoints. No guessed paths. Specify pagination and stable keys for lists.
 
 ## Permissions
 
@@ -47,4 +49,4 @@ List components from `components/INVENTORY.md`; link their specs. Keep platform 
 
 ## Acceptance criteria
 
-Observable Given/When/Then cases for all states/actions, permission/config gates, resize, accessibility, offline behavior and per-profile isolation. Link corresponding auth matrix rows where relevant. Cached aggregates render in ≤300 ms offline; apply PRD §9 budgets without claiming they were measured in this documentation phase.
+Observable Given/When/Then cases for applicable states/actions, permission/config gates, resize, accessibility, offline behavior and per-profile isolation. Link corresponding auth matrix rows where relevant. Cached aggregates render in ≤300 ms offline; apply PRD §9 budgets without claiming they were measured in this documentation phase.

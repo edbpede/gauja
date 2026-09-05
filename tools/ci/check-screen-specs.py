@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 Gauja contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Check Phase 2 inventory sizing, component contracts and auth acceptance links."""
+"""Check inventory consistency, existing specifications and auth acceptance links."""
 import argparse
 from pathlib import Path
 import re
 
-COMPONENTS = "TitleCard MediaSlider RequestCard RequestBlock RequestButton IssueBlock StatusBadge AirDateBadge PersonCard CompanyCard GenreCard GenreTag KeywordTag DownloadBlock ExternalLinkBlock BlocklistedTagsBadge PermissionEdit PermissionOption QuotaSelector NotificationTypeSelector JSONEditor".split()
-SECTIONS = ["Contract", "Content", "States", "Actions", "Adaptive behavior", "Accessibility", "Endpoints", "Permissions", "Acceptance criteria"]
+SECTIONS = ["Contract", "Content", "Actions", "Endpoints", "Permissions", "Acceptance criteria"]
+
+
+def check_links(path):
+    for link in re.findall(r"\[[^\]]+\]\(([^)]+)\)", path.read_text()):
+        if "://" in link or link.startswith("mailto:"):
+            continue
+        target, _, anchor = link.partition("#")
+        destination = path.parent / target if target else path
+        if not destination.is_file():
+            raise ValueError(f"{path.name}: broken link {link}")
+        if anchor and destination.suffix == ".md":
+            headings = re.findall(r"^#+ (.+)$", destination.read_text(), re.M)
+            anchors = {re.sub(r"[^\w\- ]", "", heading.lower()).replace(" ", "-") for heading in headings}
+            if anchor not in anchors:
+                raise ValueError(f"{path.name}: broken anchor {link}")
 
 
 def check(root):
@@ -20,8 +34,6 @@ def check(root):
     if not {"auth", "servers", "discover", "search", "media", "requests", "issues", "watchlist", "profile", "users", "settings", "about"} <= areas:
         raise ValueError("Inventory omits a required area")
     totals = [sum(row[2] == size for row in rows) for size in "SML"] + [len(rows)]
-    if totals != [14, 50, 31, 95]:
-        raise ValueError("Inventory sizing differs from Phase 2 contract")
     expected = "| **Total** | " + " | ".join(f"**{n}**" for n in totals) + " |"
     if expected not in inventory:
         raise ValueError("Inventory sizing totals differ from rows")
@@ -32,24 +44,31 @@ def check(root):
         raise ValueError("Duplicate auth matrix IDs")
     cases = set(case_ids)
     referenced = set()
-    paths = [screens / "components" / (name + ".md") for name in COMPONENTS]
-    paths += [screens / row[0] for row in rows if row[0].startswith(("auth/", "servers/"))]
-    for name in COMPONENTS:
-        if f"[{name}]({name}.md)" not in components:
-            raise ValueError(f"Missing component inventory link: {name}")
+    component_names = re.findall(r"^\| \[([^\]]+)\]\(([^)]+\.md)\) \|", components, re.M)
+    names, targets = zip(*component_names) if component_names else ((), ())
+    if not names or len(set(names)) != len(names) or len(set(targets)) != len(targets):
+        raise ValueError("Missing or duplicate component identities")
+    paths = [screens / "components" / target for target in targets]
+    screen_paths = [screens / row[0] for row in rows]
+    for path in screen_paths:
+        if path.is_file() or path.parent.name in {"auth", "servers"}:
+            paths.append(path)
+    detailed = set(screens.rglob("*.md")) - {screens / "TEMPLATE.md"}
+    for path in detailed:
+        check_links(path)
+        if path.name not in {"INVENTORY.md", "MATRIX.md"} and path not in paths:
+            raise ValueError(f"{path.name}: spec missing from inventory")
     for path in paths:
         text = path.read_text()
-        sections = SECTIONS + ([] if path.parent.name == "components" else ["Content components"])
+        sections = SECTIONS + ([] if path.parent.name == "components" else ["States", "Adaptive behavior", "Accessibility", "Content components"])
         for section in sections:
             if f"## {section}\n" not in text:
                 raise ValueError(f"{path.name}: missing {section}")
-        for state in ("Loading", "Empty", "Error", "Offline", "Permission-denied"):
-            if f"**{state}:**" not in text:
-                raise ValueError(f"{path.name}: missing state {state}")
         references = set(re.findall(r"\b[AS]\d{2}\b", text))
         if not references <= cases:
             raise ValueError(f"{path.name}: unknown matrix row")
-        referenced |= references
+        if path.parent.name != "components":
+            referenced |= references
     if referenced != cases:
         raise ValueError("An auth matrix row is not owned by a screen spec")
     return len(rows), len(paths), len(cases)
