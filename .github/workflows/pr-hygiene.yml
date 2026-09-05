@@ -4,7 +4,7 @@
 # Runs on every PR and on pushes to main (PRD §14.2): the same hooks as prek.toml,
 # REUSE lint, a full-history gitleaks scan, the commit-message mirror of the commit-msg
 # hooks, the tool-script tests and the apps/android ↔ apps/ios boundary check.
-# Required status checks on main: REUSE, DCO (GitHub app), prek, commit-messages.
+# Required status checks on main: REUSE, prek, commit-messages (the DCO check), gitleaks, tool-tests, boundary.
 name: pr-hygiene
 
 on:

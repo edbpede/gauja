@@ -23,6 +23,14 @@ git -C "$repo" commit -q --allow-empty -m "added stuff" -s
 assert_exit 1 "non-conventional subject fails" bash -c "cd '$repo' && '$script' $base HEAD"
 git -C "$repo" reset -q --hard HEAD~1
 
+git -C "$repo" commit -q --allow-empty -m "feat(auth): foreign sign-off" -m "Signed-off-by: Someone Else <else@example.com>"
+assert_exit 1 "sign-off email matching neither author nor committer fails" bash -c "cd '$repo' && '$script' $base HEAD"
+git -C "$repo" reset -q --hard HEAD~1
+
+git -C "$repo" -c user.email=committer@example.com commit -q --allow-empty -m "feat(auth): committer sign-off" --author="Author <author@example.com>" -m "Signed-off-by: Committer <committer@example.com>"
+assert_exit 0 "sign-off matching the committer passes" bash -c "cd '$repo' && '$script' $base HEAD"
+git -C "$repo" reset -q --hard HEAD~1
+
 assert_exit 0 "conventional PR title passes" "$script" --title "feat: phase 1 tooling"
 assert_exit 1 "non-conventional PR title fails" "$script" --title "Phase 1 tooling"
 assert_exit 0 "breaking-change marker is accepted" "$script" --title "refactor(core)!: drop legacy blacklist"

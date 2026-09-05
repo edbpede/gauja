@@ -476,7 +476,7 @@ Local, path-scoped:
 
 | Hook | Scope | Purpose |
 |---|---|---|
-| `dco-signoff` | commit-msg | Requires a `Signed-off-by:` trailer; fast mirror of the GitHub DCO check (§15.3) |
+| `dco-signoff` | commit-msg | Requires a `Signed-off-by:` trailer; fast mirror of the CI `commit-messages` check (§15.3) |
 | `ktfmt`, `detekt` | `apps/android/` Kotlin, excluding `core/api/` generated | Gradle-driven so detekt loads the Compose ruleset; ktfmt is the formatter named by the Kotlin rule file |
 | `swift-format`, `swiftlint --strict` | `apps/ios/` Swift, excluding `Packages/SeerrAPI/Generated/` | Toolchain swift-format; SwiftLint strict |
 | `api-drift` | `api/seerr-api.yml`, `api/UPSTREAM_COMMIT` | Fails if the spec changed without the commit file, or vice versa |
@@ -499,7 +499,7 @@ Complexity and length lints are **advisory** (warn) and are never wired as block
 | `tokens-check` | changes under `design/` | Regenerate both themes, fail on diff |
 | `release` | tag | Reproducible builds, SBOM, F-Droid metadata, App Store / Play upload via fastlane |
 
-The GitHub DCO check and the REUSE lint are required status checks on every PR. `main` is protected; squash-merge with the PR title as the conventional-commit subject.
+The `commit-messages` job (Conventional Commit subject and a DCO sign-off whose email matches the author or committer, on every commit) and the REUSE lint are required status checks on every PR; no GitHub app is involved. `main` is protected; squash-merge with the PR title as the conventional-commit subject.
 
 ---
 
@@ -523,7 +523,7 @@ To close the gap between the DCO's "license indicated in the file" and this exce
 
 ### 15.3 Contributions
 
-- Every commit is signed off (`git commit -s`) under the Developer Certificate of Origin 1.1; the GitHub DCO check is a required status.
+- Every commit is signed off (`git commit -s`) under the Developer Certificate of Origin 1.1; the `commit-messages` CI check (§14.2) is a required status.
 - No CLA. Contributors retain copyright; the DCO plus §15.2 is the whole grant.
 - Conventional Commits are required; the changelog is generated from them.
 

@@ -56,7 +56,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 **Goal.** Every commit from here on is formatted, linted, signed off, license-tagged and secret-scanned before it leaves a laptop, and CI enforces the same rules. No feature code is written before this phase closes.
 
-**Exit criteria.** `prek run --all-files` passes on `main`; the DCO and REUSE checks are required status checks; a PR that violates any hook fails locally *and* in CI; the three project rule files exist and are referenced from the PRD.
+**Exit criteria.** `prek run --all-files` passes on `main`; the `commit-messages` (DCO) and REUSE checks are required status checks; a PR that violates any hook fails locally *and* in CI; the three project rule files exist and are referenced from the PRD.
 
 ### 1.1 prek and local hooks
 
@@ -105,7 +105,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 ### 1.5 CI skeleton (`.github/workflows/`)
 
-- [x] `pr-hygiene.yml` — runs on every PR: `prek run --all-files`, REUSE lint (`reuse lint`), gitleaks. Mark REUSE and the GitHub DCO app as required status checks; protect `main`; squash-merge only.
+- [x] `pr-hygiene.yml` — runs on every PR: `prek run --all-files`, REUSE lint (`reuse lint`), gitleaks. Mark REUSE and `commit-messages` (the DCO check: sign-off present and matching the author or committer email; no GitHub app) as required status checks; protect `main`; squash-merge only.
 - [x] Placeholder workflows that succeed with a "not yet wired" step and correct `paths:` filters: `android.yml`, `ios.yml`, `contract.yml`, `api-sync.yml` (schedule: weekly), `tokens-check.yml`, `release.yml` (on tag).
 - [x] Pin every action by commit SHA; add Renovate config (`renovate.json`) for actions, Gradle, SwiftPM, the prek hook revisions and the gitleaks pin. (Renovate, not Dependabot, by maintainer decision: every edbpede repository uses Renovate, and two bots would open duplicate PRs.)
 

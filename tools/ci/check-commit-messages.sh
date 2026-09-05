@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # CI mirror of the two commit-msg hooks in prek.toml (conventional-pre-commit, dco-signoff),
-# which `prek run --all-files` cannot exercise. Checks every commit in a range and,
-# optionally, the PR title that becomes the squash-merge subject (PRD §14.2, §15.3).
+# which `prek run --all-files` cannot exercise. This job is the project's DCO check: every
+# commit in the range needs a Conventional Commit subject and a Signed-off-by trailer whose
+# email matches the author or the committer (PRD §14.2, §15.3). Optionally checks the PR title.
 set -euo pipefail
 
 usage() {
@@ -12,8 +13,8 @@ usage() {
 Usage: tools/ci/check-commit-messages.sh [--help] [--title TITLE] BASE HEAD
 
 Every non-merge commit in BASE..HEAD must have a Conventional Commit subject
-and a `Signed-off-by: Name <email>` trailer (DCO 1.1). --title checks a PR title
-against the same subject rule.
+and a `Signed-off-by: Name <email>` trailer (DCO 1.1) whose email matches the commit's
+author or committer email. --title checks a PR title against the same subject rule.
 USAGE
 }
 
@@ -50,6 +51,13 @@ if [[ ${#positional[@]} -eq 2 ]]; then
     if ! grep -Eq "$signoff" <<<"$body"; then
       echo "commit-messages: ${sha:0:12} is missing a Signed-off-by trailer (git commit -s)" >&2
       status=1
+    else
+      author="$(git log -1 --format=%ae "$sha")"
+      committer="$(git log -1 --format=%ce "$sha")"
+      if ! grep -E "$signoff" <<<"$body" | grep -Fq -e "<$author>" -e "<$committer>"; then
+        echo "commit-messages: ${sha:0:12} Signed-off-by email matches neither author <$author> nor committer <$committer>" >&2
+        status=1
+      fi
     fi
   done < <(git rev-list --no-merges "$base..$head")
 elif [[ ${#positional[@]} -ne 0 ]]; then

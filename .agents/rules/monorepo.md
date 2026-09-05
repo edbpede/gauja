@@ -33,7 +33,7 @@ A change under `apps/android/` needs no iOS reviewer and vice versa. A change un
 
 | Workflow | Trigger | Scope |
 |---|---|---|
-| `pr-hygiene.yml` | every PR; push to `main` | `prek run --all-files`, `reuse lint`, gitleaks, commit-message and PR-title check, tool tests, cross-boundary grep. `REUSE`, `DCO`, `prek` and `commit-messages` are required status checks |
+| `pr-hygiene.yml` | every PR; push to `main` | `prek run --all-files`, `reuse lint`, gitleaks, commit-message and PR-title check, tool tests, cross-boundary grep. `REUSE`, `prek`, `commit-messages` (the DCO check), `gitleaks`, `tool-tests` and `boundary` are required status checks |
 | `android.yml` | `apps/android/**`, `api/**`, `design/**`, `tools/codegen/**`, `tools/tokens/**` | Build, unit tests, ktfmt, detekt, Android Lint, module-graph check, generated-code drift, emulator smoke, baseline profile, egress test |
 | `ios.yml` | `apps/ios/**`, `api/**`, `design/**`, `tools/codegen/**`, `tools/tokens/**` | XcodeGen, build, Swift Testing, swift-format lint, SwiftLint strict, package-graph check, generated-code drift, simulator smoke, egress test |
 | `contract.yml` | `api/**`, `tools/codegen/**`; weekly | Seerr container, seeded fixtures, recorded contract tests for both generated clients, imminent-`Sunset` check |

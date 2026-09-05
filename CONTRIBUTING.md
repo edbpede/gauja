@@ -19,7 +19,7 @@ The sign-off certifies the [Developer Certificate of Origin 1.1](https://develop
 
 > The license of this project is the GNU Affero General Public License, version 3 or (at your option) any later version, **together with** the additional permission set out in `APPSTORE_EXCEPTION.md`. Every reference to "the license" in this repository, including in SPDX headers and in the Developer Certificate of Origin, means the AGPL together with that additional permission.
 
-By signing off you license your contribution under AGPL-3.0-or-later together with the App Store Distribution Exception. The GitHub DCO check is a required status on every pull request; the local `dco-signoff` hook rejects unsigned commits before they leave your machine.
+By signing off you license your contribution under AGPL-3.0-or-later together with the App Store Distribution Exception. The `commit-messages` CI check is required on every pull request: it verifies that every commit is signed off and that the sign-off email matches the author or committer. The local `dco-signoff` hook rejects unsigned commits before they leave your machine.
 
 ## Local hooks (prek)
 
@@ -58,7 +58,7 @@ Every file carries `SPDX-FileCopyrightText: 2026 Gauja contributors` and `SPDX-L
 - One module, one screen or one hook per PR where practical. Link the screen spec (`design/screens/<area>/<screen>.md`) for any UI change; write it first if it does not exist.
 - Tests mirror sources folder-for-folder.
 - Generated code (`apps/android/core/api/`, `apps/ios/Packages/SeerrAPI/Generated/`, generated themes) is never hand-edited. Regenerate with `tools/codegen/` or `tools/tokens/`.
-- `main` is protected: squash-merge only, the PR title becomes the commit subject, and the `REUSE`, `DCO`, `prek` and `commit-messages` checks must pass.
+- `main` is protected: squash-merge only, the PR title becomes the commit subject, and the `REUSE`, `prek`, `commit-messages`, `gitleaks`, `tool-tests` and `boundary` checks must pass.
 - Nothing under `apps/android/` may reference `apps/ios/` or vice versa. Artifacts flow from `api/` and `design/` into the apps only.
 
 ## Building one platform without the other's toolchain
