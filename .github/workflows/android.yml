@@ -72,6 +72,9 @@ jobs:
           sdkmanager 'emulator' 'platforms;android-37.0' "system-images;android-$API;google_apis;x86_64"
           echo no | avdmanager create avd --force --name gauja-smoke --device pixel_4 --package "system-images;android-$API;google_apis;x86_64"
           test -f "$ANDROID_AVD_HOME/gauja-smoke.ini"
+          # Older runner command-line tools default to an 800 MB data partition.
+          sed -i '/^disk.dataPartition.size=/d' "$ANDROID_AVD_HOME/gauja-smoke.avd/config.ini"
+          echo 'disk.dataPartition.size=10G' >> "$ANDROID_AVD_HOME/gauja-smoke.avd/config.ini"
           adb start-server
           test -f "$ANDROID_USER_HOME/adbkey"
           emulator_features=()
@@ -84,6 +87,7 @@ jobs:
           trap 'adb emu kill || true' EXIT
           timeout 180 adb wait-for-device
           timeout 180 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done'
+          adb shell df -h /data
           apps/android/gradlew --project-dir apps/android connectedDebugAndroidTest
       - name: Emulator startup log
         if: failure()
