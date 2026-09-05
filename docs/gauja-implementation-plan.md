@@ -31,15 +31,16 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
   These rule files are authoritative over the PRD and over this plan on language, framework and library usage (PRD §12.1). Where this plan and a rule file disagree, the rule file wins and this plan gets a fix-up PR. The three project-level rule files (`modularity.md`, `api-contract.md`, `monorepo.md`) were written in Phase 1.
 - Numbering note: the PRD refers to rule-file authoring and prek setup as "Phase 0". In this plan that work is **Phase 1**, because tooling is the first thing that lands and the phase numbers here are the ones the repository uses from now on.
-- Checkbox conventions: `- [ ]` open, `- [x]` done. Do not delete finished items; the history is the point.
+- Add tooling and CI with their first real consumer. Do not create passing placeholders, empty-directory READMEs, empty module test suites, or all future feature modules upfront. Completed tasks describe the current retained result; git history records replaced scaffolding.
+- Checkbox conventions: `- [ ]` open, `- [x]` done. Update finished items when their result changes; retain phase traceability.
 
 ### Phase overview
 
 | Phase | Name | Output | Blocks |
 |---|---|---|---|
-| 1 | Developer tooling and repository hygiene | prek, CI skeleton, licensing, rule files | everything |
+| 1 | Developer tooling and repository hygiene | prek, meaningful hygiene CI, licensing, rule files | everything |
 | 2 | Shared contract | `api/`, `design/`, `tools/codegen`, `tools/tokens` | 3, 4 |
-| 3 | Modular monorepo skeleton | both apps build empty with every module in place | 4–12 |
+| 3 | Modular monorepo skeleton | both apps build with working boundary consumers | 4–12 |
 | 4 | Core platform layers | `core/*` and `Packages/*` non-feature code | 5–10 |
 | 5 | Auth and server profiles | sign in to a real server | 6–10 |
 | 6 | Discover and search | first usable screens | 7 |
@@ -60,7 +61,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 ### 1.1 prek and local hooks
 
-- [x] Add `prek.toml` at the repository root from PRD Appendix B, with these amendments:
+- [x] Maintain `prek.toml` at the repository root as the authoritative hook configuration:
   - [x] Replace the `ktlint` hook with a Gradle-driven `ktfmtCheck` hook (`apps/android/gradlew --project-dir apps/android ktfmtCheck`). The Kotlin rule file names ktfmt as the formatter and states ktlint is not preferred; the rule file is authoritative (PRD §12.1).
   - [x] Keep `detekt` Gradle-driven so it loads the Compose ruleset (`io.nlopez.compose.rules`). Note: the Gradle- and Xcode-driven hooks are inert until §3.2 / §3.3 exist, because their `files` filters match nothing before then; that is expected, not a gap.
   - [x] Keep every `exclude` for generated directories exactly as listed in the `GENERATED` comment so generated output stays byte-identical.
@@ -71,42 +72,42 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 - [x] Add `.editorconfig` (LF, final newline, 4-space Kotlin/Swift, 2-space YAML/JSON/TOML) and `.gitattributes` (`* text=auto eol=lf`, binary rules for store art).
 - [x] Add `.gitignore` covering Gradle (`.gradle/`, `build/`, `local.properties`), Xcode (`*.xcodeproj`, `*.xcworkspace`, `DerivedData/`, `.build/`, `.swiftpm/`), IDE folders, and `api/fixtures/**/*.local.*`.
 
-### 1.2 Hook-backed tool scripts (stubs that pass; made real in later phases)
+### 1.2 Tooling with meaningful consumers
 
-- [x] `tools/api-drift/check-local.sh` — exits 0 while `api/` is empty; real logic in Phase 2.
-- [x] `tools/ci/check-fixture-secrets.sh` — grep-based rejection of `X-Api-Key`, `connect.sid`, `X-Plex-Token`, Jellyfin `AccessToken`, VAPID key patterns under `api/fixtures/`.
-- [x] `tools/ci/check-secret-logging.sh` — accepts a list of secret-layer symbols (`SecretStore`, `apiKey`, `sessionCookie`, `plexToken`, `basicAuthPassword`) and fails when one appears inside a `Log.*`/`Timber.*`/`Logger.*`/`print(`/`os_log` call; stub matches nothing until Phase 4 names the real symbols.
-- [x] `tools/ci/check-licenses.sh` — reads `deny.toml`; exits 0 on missing manifests until Phase 3.
-- [x] `tools/tokens/check.sh` — exits 0 until Phase 2 adds generators.
-- [x] `tools/community/validate-translations.py` — validates `strings.xml` / `*.xcstrings` syntax and key parity; exits 0 with no catalogs.
-- [x] Every script has an SPDX header, `set -euo pipefail`, and a `--help`.
+- [x] `tools/api-drift/check-local.sh` validates staged/range spec-pin pairing, effective contract, compatibility and complete operation coverage.
+- [x] `tools/ci/check-fixture-secrets.sh` rejects credentials in recordings; synthetic fixtures test the guard before Phase 11 recordings exist.
+- [x] `tools/ci/check-secret-logging.sh` heuristically scans Kotlin/Swift log calls. Keep its tested protection; do not expand it into a language parser.
+- [x] `tools/tokens/check.sh` verifies generated themes against tokens.
+- [x] Scripts have SPDX metadata, fail on errors and document their CLI. Python suites are discovered centrally by `tools/tests/run.sh`.
+- [ ] Enable resolved-dependency license enforcement with the first real app manifests (§3.4); the allow-list-only helper is not an active gate.
+- [ ] Enable translation hooks with real catalogs (§11.3); the no-catalog validator is not an active gate.
 
 ### 1.3 Licensing and governance files
 
-- [x] `APPSTORE_EXCEPTION.md` — verbatim text of PRD Appendix A.
+- [x] `APPSTORE_EXCEPTION.md` — authoritative additional permission, linked from PRD Appendix A.
 - [x] Append the PRD §15.2 sentence to `LICENSE` (the license means AGPL-3.0-or-later *together with* the additional permission).
-- [x] `REUSE.toml` — annotations for the whole tree; `api/seerr-api.yml` marked MIT with `LICENSE.upstream`; generated directories annotated as AGPL with the project copyright.
+- [x] `REUSE.toml` — annotations for the whole tree; `api/seerr-api.yml` marked MIT with `LICENSE.upstream`; generated material annotated with Gauja’s AGPL contribution and inherited MIT attribution; preserve upstream notices.
 - [x] `deny.toml` — dependency license allow-list (Apache-2.0, MIT, BSD-2/3, ISC, MPL-2.0, EPL-2.0 for Gradle plugins; deny GPL-incompatible and unknown).
 - [x] `CONTRIBUTING.md` — DCO section repeating the §15.2 sentence, `git commit -s`, prek setup, branch/PR conventions, "one module per PR", how to build one platform without the other's toolchain.
 - [x] `SECURITY.md` — private disclosure channel, supported versions statement, secret-handling promise from PRD §10.
 - [x] `.github/CODEOWNERS` — `apps/android/` and `apps/ios/` to platform maintainers, `api/` and `design/` to both, `docs/` and root config to project leads.
 - [x] `.github/PULL_REQUEST_TEMPLATE.md` — checklist: conventional title, sign-off, rule files followed, screen spec linked, tests mirror sources, no generated code hand-edited.
 - [x] `.github/ISSUE_TEMPLATE/` — bug (with Seerr version + Gauja version + platform), feature, settings-parity gap.
-- [x] `README.md` — one-paragraph description, unaffiliated-with-Seerr statement, supported Seerr range placeholder, roadmap line for notifications (PRD §18 risk 10), build-one-platform instructions.
-- [x] `docs/THIRD_PARTY.md` — placeholder for Seerr translation-seed attribution (filled in Phase 11).
+- [x] `README.md` — one-paragraph description, unaffiliated-with-Seerr statement, supported Seerr baseline link, roadmap line for notifications (PRD §18 risk 10), build-one-platform instructions.
+- [x] `docs/THIRD_PARTY.md` — current contract, palette and tooling provenance; add translation-seed provenance if imported in Phase 11.
 
 ### 1.4 Project rule files (`.agents/rules/`)
 
-- [x] `.agents/rules/modularity.md` — PRD §12.2 and §12.3 expanded: one responsibility per file, folder depth mirrors domain, no grab-bag files, advisory size limits (300-line file / 40-line function warnings, never errors), generated code isolated, names never repeat paths, tests mirror sources, allowed dependency graph for both platforms.
+- [x] `.agents/rules/modularity.md` — PRD §12.2 and §12.3 expanded: cohesive responsibilities, folders default within justified modules, no grab-bag files, advisory size limits (300-line file / 40-line function warnings, never errors), generated code isolated, names never repeat paths, meaningful tests follow sources, allowed dependency graph for both platforms.
 - [x] `.agents/rules/api-contract.md` — how `api/` is vendored, how overlays are written and justified, how fixtures are recorded and scrubbed, how generated clients are produced, isolated and wrapped by hand-written domain models, how `compat.json` gates features.
 - [x] `.agents/rules/monorepo.md` — directory ownership, CI lane triggers, the cross-boundary rule (`apps/android/` and `apps/ios/` never reference each other; artifacts flow from `api/` and `design/` into the apps only).
 - [x] Amend `docs/gauja-prd.md` in this PR (folded in by maintainer decision): §11.2 quality tools (ktfmt, not ktlint), §11.2 SDK line (compileSdk/targetSdk 37 per the Kotlin rule file), §14.1 hook table, Appendix B hook entry, and the companion-document filenames (`gauja-prd.md`, `gauja-implementation-plan.md`). Record the reason in the PR body: rule files are authoritative (§12.1).
 - [x] Add the new rule files to the rule-file list in this plan's "How to use this plan" section.
 
-### 1.5 CI skeleton (`.github/workflows/`)
+### 1.5 CI with real assertions (`.github/workflows/`)
 
 - [x] `pr-hygiene.yml` — runs on every PR: `prek run --all-files`, REUSE lint (`reuse lint`), gitleaks. Mark REUSE and `commit-messages` (the DCO check: sign-off present and matching the author or committer email; no GitHub app) as required status checks; protect `main`; squash-merge only.
-- [x] Placeholder workflows that succeed with a "not yet wired" step and correct `paths:` filters: `android.yml`, `ios.yml`, `contract.yml`, `api-sync.yml` (schedule: weekly), `tokens-check.yml`, `release.yml` (on tag).
+- [x] Add active `codegen-check.yml` and `tokens-check.yml` with their contract/theme consumers. Passing Android, iOS, contract, API-sync and release placeholders have been removed; add those lanes with the owning phases.
 - [x] Pin every action by commit SHA; add Renovate config (`renovate.json`) for actions, Gradle, SwiftPM, the prek hook revisions and the gitleaks pin. (Renovate, not Dependabot, by maintainer decision: every edbpede repository uses Renovate, and two bots would open duplicate PRs.)
 
 ---
@@ -119,15 +120,15 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 ### 2.1 Vendored API contract (`api/`)
 
-- [x] Copy upstream `seerr-api.yml` verbatim (OpenAPI 3.0.2; 163 paths / 212 operations, `info.version: 1.0.0`, served under `/api/v1`).
+- [x] Copy upstream `seerr-api.yml` verbatim from the stable baseline documented in `api/README.md`; derive counts from the effective contract.
 - [x] Write `api/UPSTREAM_COMMIT` with the exact upstream commit SHA and the fetch date.
 - [x] Add `api/LICENSE.upstream` (Seerr's MIT text).
 - [x] Make `tools/api-drift/check-local.sh` real: fail when `seerr-api.yml` changes without `UPSTREAM_COMMIT` changing or vice versa (compare staged paths).
-- [x] Create `api/overlays/README.md` describing the OpenAPI Overlay format and the rule that every entry cites an upstream issue or observed server behaviour.
-- [x] Record the first overlays while generating clients: missing `required` arrays, wrong integer/string types, the two operation tags not declared in the spec header (`tmdb`, `overriderule`), and any `nullable` gaps the generators choke on.
-- [x] Create `api/compat.json` with a JSON Schema (`api/compat.schema.json`): `{ featureId: { min: "x.y.z", max?: "x.y.z", note } }`. Seed with `blocklist` (prefer `/blocklist`; `/blacklist` is deprecated with `Sunset: 2026-06-01`), `discover.sliders`, `quickconnect`, `metadata.providers`.
-- [x] Create `api/fixtures/README.md` and the `api/fixtures/<seerr-version>/<tag>/<operationId>.json` layout; record nothing yet (recording happens against the CI container in Phase 11).
-- [x] Document the endpoint families Gauja will call, grouped by spec tag with path counts (settings 62, users 24, search 18, auth 8, tmdb 7, issue 6, other 6, blocklist 5, request 5, movies 5, tv 5, media 5, service 5, watchlist 3, public 2, person 2, overriderule 2, collection 1) in `api/ENDPOINTS.md` as the checklist Phases 5–10 tick off.
+- [x] Document overlays in `api/README.md`, describing the OpenAPI Overlay format and the rule that every entry cites an upstream issue or observed server behaviour.
+- [x] Record the first overlays while generating clients: missing `required` arrays, wrong integer/string types, the undeclared operation tags (`tmdb`, `issue`, `overriderule`), and any `nullable` gaps the generators choke on.
+- [x] Create `api/compat.json` with a JSON Schema (`api/compat.schema.json`): `{ featureId: { min: "x.y.z", max: "x.y.z" | null, endpoint, note } }`. Seed with `blocklist` (prefer `/blocklist`; `/blacklist` is deprecated with `Sunset: 2026-06-01`), `discover.sliders`, `quickconnect`, `metadata.providers`.
+- [x] Document the future `api/fixtures/<seerr-version>/<tag>/<operationId>.json` recording convention in `api/README.md`. Create directories with actual recordings in Phase 11.
+- [x] Keep `api/coverage.json` as the complete editable operation-to-phase/status/exclusion ledger. Validate coverage independently; render endpoint/tag counts on demand with `tools/contract/endpoints.py` instead of committing `ENDPOINTS.md`.
 
 ### 2.2 Code generation wrappers (`tools/codegen/`)
 
@@ -135,7 +136,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 - [x] `tools/codegen/android/` — openapi-generator config (`kotlin` generator, `jvm-retrofit2` library, kotlinx-serialization, `useCoroutines`), overlay application step, output to `apps/android/core/api/src/main/kotlin/` with a `GENERATED — do not edit` banner. Pinned generator version.
 - [x] `tools/codegen/ios/` — `swift-openapi-generator` config (`types`, `client`, `URLSession` transport), overlay application step, output to `apps/ios/Packages/SeerrAPI/Generated/`. Pinned version via `Package.swift` plugin dependency.
 - [x] `tools/codegen/generate.sh` — runs both, then diffs against the committed output; used by the CI generated-code drift check.
-- [x] Decide and document the wrapper boundary in `.agents/rules/api-contract.md`: generated DTOs never leave `core/api` / `SeerrAPI`; `core/data` / `Data` map them to `core/model` / `Model` types, one mapper file per aggregate.
+- [x] Decide and document the wrapper boundary in `.agents/rules/api-contract.md`: generated DTOs are accessible to `core/data` / `Data` and tests only. Data maps them to `core/model` / `Model` types and exposes domain values outward; aggregate-focused mappers use folders within Data.
 
 ### 2.3 Design tokens (`design/tokens.json`, `tools/tokens/`)
 
@@ -150,14 +151,14 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 - [x] *(can start early: after §1.3)* `design/screens/TEMPLATE.md` — content, states (loading, empty, error, offline, permission-denied), actions, adaptive behaviour (compact / medium / expanded), acceptance criteria, endpoints used, permissions required, content components used.
 - [x] *(can start early: after §1.3)* Screen inventory (`design/screens/INVENTORY.md`) listing every screen by area with a size estimate (S/M/L), so PRD §18 risk 1 is quantified before Phase 5 begins. Areas: auth, servers, discover, search, media (movie, tv, season, person, collection), requests, issues, watchlist, profile, users, settings (one folder per Seerr sidebar section), about.
-- [x] Content-component inventory (`design/screens/components/INVENTORY.md`): `TitleCard`, `MediaSlider`, `RequestCard`, `RequestBlock`, `RequestButton`, `IssueBlock`, `StatusBadge`, `AirDateBadge`, `PersonCard`, `CompanyCard`, `GenreCard`, `GenreTag`, `KeywordTag`, `DownloadBlock`, `ExternalLinkBlock`, `BlocklistedTagsBadge`, `PermissionEdit`, `PermissionOption`, `QuotaSelector`, `NotificationTypeSelector`, `JSONEditor` — each with a one-page spec before it is implemented in Phase 4.
+- [x] Content-component inventory (`design/screens/components/INVENTORY.md`): `TitleCard`, `MediaSlider`, `RequestCard`, `RequestBlock`, `RequestButton`, `IssueBlock`, `StatusBadge`, `AirDateBadge`, `PersonCard`, `CompanyCard`, `GenreCard`, `GenreTag`, `KeywordTag`, `DownloadBlock`, `ExternalLinkBlock`, `BlocklistedTagsBadge`, `PermissionEdit`, `PermissionOption`, `QuotaSelector`, `NotificationTypeSelector`, `JSONEditor` — retain unique component behavior and a shared baseline; refine detailed specs with the consuming feature, recording only applicable states and acceptance criteria.
 - [x] *(can start early: after §1.3)* Write the auth specs first (`design/screens/auth/*.md`) including the test matrix from PRD §18 risk 5: reverse proxy with basic auth, self-signed TLS, plain HTTP, Plex token expiry, Quick Connect timing.
 
 ---
 
 ## Phase 3 — Modular monorepo skeleton
 
-**Goal.** Both apps compile, test and lint with **every** module from PRD §12.4 and §12.5 present as a stub, the dependency graph enforced mechanically, and CI lanes real. Nothing user-visible yet beyond a placeholder screen.
+**Goal.** Both apps compile, test and lint with working consumers for their initial boundaries and real independent CI lanes. Preserve API/Data/domain and feature isolation. Create only modules needed by the initial app flow; use folders within Data and Settings. The PRD maps describe eventual responsibilities, not required stubs.
 
 **Exit criteria.** `android.yml` and `ios.yml` run build + unit tests + lint + module-graph check + generated-code drift check on path-filtered PRs; a deliberate cross-feature import fails the build on both platforms; a contributor can build one platform without installing the other's toolchain.
 
@@ -167,16 +168,16 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 ### 3.1 Repository layout
 
-- [ ] Create the tree below. Directories that would otherwise be empty get a `README.md` stating their purpose and owner.
+- [ ] Add the following planned paths only with working consumers. Do not create empty directories, purpose-only READMEs or future workflow placeholders.
 
 ```
 gauja/
   .agents/rules/                kotlin-2_4-android-app.md · swift-6_3-ios-app.md · modularity.md · api-contract.md · monorepo.md
   .github/
     workflows/                  pr-hygiene.yml · android.yml · ios.yml · contract.yml · api-sync.yml · tokens-check.yml · release.yml
-    CODEOWNERS · PULL_REQUEST_TEMPLATE.md · ISSUE_TEMPLATE/ · dependabot.yml
-  api/                          seerr-api.yml · UPSTREAM_COMMIT · LICENSE.upstream · ENDPOINTS.md · compat.json · compat.schema.json
-    overlays/                   NNNN-<topic>.yml (+ README.md)
+    CODEOWNERS · PULL_REQUEST_TEMPLATE.md · ISSUE_TEMPLATE/
+  api/                          seerr-api.yml · UPSTREAM_COMMIT · LICENSE.upstream · README.md · coverage.json · compat.json · compat.schema.json
+    overlays/                   <area>-<operation-or-schema>.yml
     fixtures/<seerr-version>/   <tag>/<operationId>.json
   apps/
     android/                    (§3.2)
@@ -192,20 +193,20 @@ gauja/
     api-drift/                  check-local.sh · diff-upstream.sh
     ci/                         check-secret-logging.sh · check-fixture-secrets.sh · check-licenses.sh · egress-test.sh
     community/                  validate-translations.py · seed-from-seerr.py
-  LICENSE · APPSTORE_EXCEPTION.md · REUSE.toml · prek.toml · crowdin.yml · deny.toml
+  LICENSE · APPSTORE_EXCEPTION.md · REUSE.toml · prek.toml · renovate.json · crowdin.yml · deny.toml
   CONTRIBUTING.md · SECURITY.md · README.md · CHANGELOG.md
 ```
 
 ### 3.2 Android skeleton (`apps/android/`)
 
-Governed by `.agents/rules/kotlin-2_4-android-app.md`. Versions come from that file's catalog: Kotlin 2.4.10, AGP 9.1.1 (built-in Kotlin; **never** apply `org.jetbrains.kotlin.android`), Gradle 9.1+, JDK 17, KSP 2.3.11, Compose BOM 2026.08.00, Material 3 Adaptive 1.3.0, Navigation 3 1.1.7, Hilt 2.60.1 (not 2.59.0), Room 3.0.2 (`androidx.room3`), DataStore 1.1.7, Retrofit 3.0.0, OkHttp 5.1.0, Coil 3.6.1, detekt 1.23.8, ktfmt 0.56, Compose rules 0.4.28. compileSdk/targetSdk 37, **minSdk 30** (fixed; anything above 30 goes behind an availability check).
+Governed by `.agents/rules/kotlin-2_4-android-app.md`. Initial app dependency selection (pin only consumed libraries in the actual catalog): Kotlin 2.4.10, AGP 9.1.1 (built-in Kotlin; **never** apply `org.jetbrains.kotlin.android`), Gradle 9.1+, JDK 17, KSP 2.3.11, Compose BOM 2026.08.00, Material 3 Adaptive 1.3.0, Navigation 3 1.1.7, Hilt 2.60.1 (not 2.59.0), Room 3.0.2 (`androidx.room3`), DataStore 1.1.7, Retrofit 3.0.0, OkHttp 5.1.0, Coil 3.6.1, detekt 1.23.8, ktfmt 0.56, Compose rules 0.4.28. compileSdk/targetSdk 37, **minSdk 30** (fixed; anything above 30 goes behind an availability check).
 
-- [ ] `settings.gradle.kts` with `pluginManagement`, `dependencyResolutionManagement` (`FAIL_ON_PROJECT_REPOS`), `includeBuild("build-logic")`, and every module included by path.
-- [ ] `gradle/libs.versions.toml` copied from the rule file and extended with `dependency-analysis`, `kotlinx-collections-immutable`, `androidx.sqlite` driver, `datastore-core`/`protobuf-javalite` (encrypted Proto DataStore), `androidx.browser` (Custom Tabs), `androidx.security` (Keystore-backed key), `okhttp-tls`, `robolectric`, `hilt-android-testing`.
-- [ ] `build-logic/convention/` with convention plugins: `gauja.android.application`, `gauja.android.library`, `gauja.android.library.compose`, `gauja.android.feature` (adds Hilt, Nav3, lifecycle, `core/ui`, `core/designsystem`, `core/navigation`, `core/common` deps), `gauja.android.hilt`, `gauja.android.room`, `gauja.jvm.library` (for `core/model`), `gauja.android.lint`.
+- [ ] `settings.gradle.kts` with `pluginManagement`, `dependencyResolutionManagement` (`FAIL_ON_PROJECT_REPOS`), `includeBuild("build-logic")`, and working modules included by path.
+- [ ] `gradle/libs.versions.toml` pins consumed libraries from the initial selection; add the following only with their consumers: `dependency-analysis`, `kotlinx-collections-immutable`, `androidx.sqlite` driver, `datastore-core`/`protobuf-javalite` (encrypted Proto DataStore), `androidx.browser` (Custom Tabs), `androidx.security` (Keystore-backed key), `okhttp-tls`, `robolectric`, `hilt-android-testing`.
+- [ ] Extract shared Gradle convention plugins when multiple working modules need the same configuration. Add Compose, Hilt, Room and lint conventions with their consumers.
 - [ ] Root `build.gradle.kts` declaring `kotlin-compose`, `kotlin-serialization`, `ksp`, `hilt`, `detekt` with `apply false` so KGP 2.4.10 overrides AGP's bundled 2.2.10.
 - [ ] `config/detekt.yml` (Compose ruleset active; complexity/length rules set to **warn**), `config/lint.xml`, ktfmt via the `com.ncorti.ktfmt.gradle` plugin with `ktfmtCheck`/`ktfmtFormat` tasks.
-- [ ] Module stubs, each with `build.gradle.kts`, `AndroidManifest.xml` where needed, one placeholder source file, and a mirrored `src/test/` tree:
+- [ ] Working modules, each with its required manifest/build configuration and meaningful behavior tests. The responsibility map below grows incrementally; it does not require a module per folder:
 
 ```
 apps/android/
@@ -218,9 +219,9 @@ apps/android/
     api/                        GENERATED openapi client (leaf; excluded from ktfmt/detekt/lint)
     common/                     Result, AppError taxonomy, dispatchers qualifiers, Clock
     compat/                     ServerVersion, FeatureGate, compat.json loader
-    data/                       one Gradle module per aggregate:
+    data/                       one Data module, folders per aggregate:
       auth/ discover/ media/ requests/ issues/ watchlist/ users/ settings/ servers/
-    database/                   Room 3 database, DAOs, entities (one per file), AndroidSQLiteDriver
+    database/                   Room 3 database, DAOs, related entities, AndroidSQLiteDriver
     datastore/                  ServerProfileStore (Proto), PreferencesStore, SecretStore (Keystore-encrypted)
     designsystem/               generated/ theme + primitives (GaujaTheme, buttons, cards, chips)
     model/                      pure Kotlin/JVM domain models and enums
@@ -238,12 +239,12 @@ apps/android/
     settings/discover/ settings/logs/ settings/jobs/ settings/cache/ settings/about/
 ```
 
-  Inside every feature module: `ui/<screen>/` (screen composable, `UiState`, `ViewModel`), `domain/` (use cases), `navigation/` (keys + Hilt `@IntoSet` `EntryProviderInstaller`), `di/`.
+  As needed within a working feature module: `ui/<screen>/` (screen composable, `UiState`, `ViewModel`), `domain/` (use cases), `navigation/` (keys + Hilt `@IntoSet` `EntryProviderInstaller`), `di/`.
 
-- [ ] Wire `com.autonomousapps.dependency-analysis` and a `tools/ci/check-module-graph.sh` (or a Gradle task) that asserts the PRD §12.3 graph: `feature/*` never depends on another `feature/*`; only `core/data/*` depends on `core/api`, `core/database`, `core/datastore`, `core/network`; `core/model` has no Android deps; nothing depends on `app`.
-- [ ] *(depends on the module stubs above)* Smoke tests: one JVM unit test (JUnit4 + coroutines-test + Turbine), one Robolectric Compose test, one Hilt instrumentation test with `HiltTestRunner`, all green.
-- [ ] Baseline profile module (`app/baselineprofile/`) generating a profile for the placeholder start-up path; validated in CI from Phase 11.
-- [ ] *(depends on every other §3.2 task)* `android.yml` real: `assembleDebug`, `testDebugUnitTest`, `detekt`, `ktfmtCheck`, `lint`, module-graph check, `tools/codegen/generate.sh --check`, emulator smoke (`connectedDebugAndroidTest` on API 30 and API 37), per-ABI split size report.
+- [ ] Wire `com.autonomousapps.dependency-analysis` and a `tools/ci/check-module-graph.sh` (or a Gradle task) that asserts the PRD §12.3 graph: `feature/*` never depends on another `feature/*`; only Data imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `core/model` has no Android deps; nothing depends on `app`.
+- [ ] *(depends on working modules above)* Smoke tests of real consumers: one JVM unit test (JUnit4 + coroutines-test + Turbine), one Robolectric Compose test, one Hilt instrumentation test with `HiltTestRunner`, all green.
+- [ ] Add baseline profiles with the measurable start-up/Discover path in Phase 11; do not benchmark a placeholder.
+- [ ] *(depends on working §3.2 app/build/tests)* `android.yml` real: `assembleDebug`, `testDebugUnitTest`, `detekt`, `ktfmtCheck`, `lint`, module-graph check, `tools/codegen/generate.sh --check --platform android` (transfer ownership from codegen-check), emulator smoke (`connectedDebugAndroidTest` on API 30 and API 37), per-ABI split size report.
 
 ### 3.3 iOS skeleton (`apps/ios/`)
 
@@ -251,7 +252,7 @@ Governed by `.agents/rules/swift-6_3-ios-app.md`. Xcode 26 / iOS 26 SDK, **iOS 1
 
 - [ ] `project.yml` with `options.deploymentTarget.iOS: "18.0"`, the settings above under `settings.base`, one `application` target, one `bundle.unit-test` target, one `bundle.ui-testing` target, local packages by path, `swift-dependencies` and `SwiftLintPlugins` by URL, schemes with coverage and randomised parallel tests.
 - [ ] `.swiftlint.yml` (strict; `excluded: "**/Generated"`; line length 120/160; length/complexity rules at **warning**) and `.swift-format` (JSON, 4 spaces, 120 columns).
-- [ ] Package stubs, each with `Package.swift`, `Sources/<Target>/`, `Tests/<Target>Tests/`, and a single `public` entry point:
+- [ ] Working packages with `Package.swift`, sources and meaningful tests. Add only targets required by current consumers; the following is the eventual responsibility map:
 
 ```
 apps/ios/
@@ -265,8 +266,7 @@ apps/ios/
     Model/                      pure Swift domain models and enums (nonisolated)
     Network/                    URLSession config, per-profile HTTPCookieStorage, auth/basic-auth, TLS delegate,
                                 deprecation recorder (nonisolated)
-    Data/                       one target per aggregate: AuthData, DiscoverData, MediaData, RequestsData, IssuesData,
-                                WatchlistData, UsersData, SettingsData, ServersData (nonisolated)
+    Data/                       one nonisolated target, folders per aggregate
     Persistence/                SwiftData models + @ModelActor stores, KeychainStore, TypedDefaults (nonisolated)
     DesignSystem/               Generated/ theme + primitive views (MainActor)
     UI/                         shared content components (MainActor)
@@ -274,29 +274,30 @@ apps/ios/
     Testing/                    fakes, fixture loaders, in-memory ModelContainer helpers
     Features/
       Auth/ Servers/ Discover/ Search/
-      Media/ (MovieDetail, TVDetail, PersonDetail, CollectionDetail targets)
+      Media/ (folders for movie, TV, person and collection details)
       Requests/ Issues/ Watchlist/ Profile/ Users/
-      Settings/ (one target per Seerr sidebar section: General, Users, Plex, Jellyfin, Services, Network, Metadata,
+      Settings/ (one target, folders per Seerr sidebar section: General, Users, Plex, Jellyfin, Services, Network, Metadata,
                  Notifications/<Agent>, Discover, Logs, Jobs, Cache, About)
 ```
 
   Every feature package exposes exactly one public entry view and one public route type; everything else is `internal`. Non-UI packages (`SeerrAPI`, `Common`, `Compat`, `Model`, `Network`, `Data`, `Persistence`) do **not** set `.defaultIsolation(MainActor.self)`; UI packages do. All packages enable `NonisolatedNonsendingByDefault` and `InferIsolatedConformances`.
 
-- [ ] `tools/ci/check-package-graph.sh` — parses every `Package.swift` and `project.yml` and asserts the PRD §12.3 graph (feature packages never import each other; only `Data` imports `SeerrAPI`, `Network`, `Persistence`; `Model` imports nothing in-repo).
-- [ ] *(depends on the package stubs above)* Smoke tests: one Swift Testing suite per package stub, one XCUITest launching to the placeholder root, all green on an iPhone 17 and an iPad simulator.
-- [ ] *(depends on every other §3.3 task)* `ios.yml` real: `xcodegen generate`, build, `xcodebuild test` (Swift Testing), `swift format lint --strict`, `swiftlint --strict`, package-graph check, `tools/codegen/generate.sh --check`, simulator smoke, thinned-size report.
+- [ ] `tools/ci/check-package-graph.sh` — parses every `Package.swift` and `project.yml` and asserts the PRD §12.3 graph (feature packages never import each other; only `Data` imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `Model` imports nothing in-repo).
+- [ ] *(depends on working packages above)* Test real serialization/redaction and app behavior with Swift Testing, plus an XCUITest launching the initial root on phone and tablet simulators. No empty stub suites.
+- [ ] *(depends on every other §3.3 task)* `ios.yml` real: `xcodegen generate`, build, `xcodebuild test` (Swift Testing), `swift format lint --strict`, `swiftlint --strict`, package-graph check, `tools/codegen/generate.sh --check --platform ios` (transfer ownership from codegen-check), simulator smoke, thinned-size report.
 
 ### 3.4 Cross-platform checks
 
-- [ ] *(depends on §3.2 and §3.3)* `tools/ci/check-licenses.sh` real: reads `gradle/libs.versions.toml` and `Package.resolved`, resolves licenses, fails on anything outside `deny.toml`.
-- [ ] `tools/ci/egress-test.sh` skeleton: runs the smoke lane behind a proxy that logs hosts and fails on any host other than the test server (made meaningful in Phase 11).
+- [ ] *(depends on §3.2 and §3.3)* Replace the allow-list-only `tools/ci/check-licenses.sh` with real enforcement and enable its hook: reads `gradle/libs.versions.toml` and `Package.resolved`, resolves licenses, fails on anything outside `deny.toml`.
+- [ ] Retire each platform’s duplicated smoke manifests/locks only after real API modules independently compile and pass equivalent serialization/redaction tests. Use one dependency/build source per platform.
+- [ ] Add egress enforcement with the first real transport flow (Phase 4/11), without a passing skeleton.
 - [ ] Verify the cross-boundary rule with a grep in `pr-hygiene.yml`: no path under `apps/android/` mentions `apps/ios/` and vice versa.
 
 ---
 
 ## Phase 4 — Core platform layers
 
-**Goal.** Every `core/*` module and non-feature `Packages/*` target does its one job against fixtures, with tests, before any screen uses it.
+**Goal.** Implement the core responsibilities needed by the hello-server flow with meaningful tests. Create additional repositories/components alongside their first feature consumers; do not build all future infrastructure upfront.
 
 **Exit criteria.** A test-only "hello server" flow signs in to a local Seerr with a session cookie, fetches `/auth/me`, caches it, and renders a `TitleCard` from cached data with no network. Secret-logging guard is real and green.
 
@@ -330,13 +331,13 @@ apps/ios/
 
 ### 4.4 `core/api` / `SeerrAPI` and `core/data` / `Data`
 
-- [ ] Commit the first generated clients from `tools/codegen/generate.sh`; CI verifies byte-for-byte.
-- [ ] *(depends on §4.1, §4.3, §4.5, §4.6)* Repository interfaces in `core/data/<aggregate>` with a default implementation per aggregate (`AuthRepository`, `ServersRepository`, `DiscoverRepository`, `MediaRepository`, `RequestsRepository`, `IssuesRepository`, `WatchlistRepository`, `UsersRepository`, `SettingsRepository`); one DTO → domain mapper file per aggregate; main-safe suspend functions; reactive reads as `Flow` / `AsyncSequence` from the cache.
+- [ ] Integrate the committed generated clients into the real API modules; CI keeps byte-for-byte verification.
+- [ ] *(depends on §4.1, §4.3, §4.5, §4.6)* Repository interfaces in `core/data/<aggregate>` with a default implementation per aggregate (`AuthRepository`, `ServersRepository`, `DiscoverRepository`, `MediaRepository`, `RequestsRepository`, `IssuesRepository`, `WatchlistRepository`, `UsersRepository`, `SettingsRepository`); aggregate-focused DTO → domain mappers; main-safe suspend functions; reactive reads as `Flow` / `AsyncSequence` from the cache.
 - [ ] Offline read-through: `refresh()` writes the cache; reads observe the cache; a `staleness` timestamp travels with every cached aggregate.
 
 ### 4.5 `core/database` / `Persistence` (caches)
 
-- [ ] Android: Room 3 database (`AndroidSQLiteDriver`, `setQueryCoroutineContext(Dispatchers.IO)`), one entity per file, DAOs with `Flow` reads and `@Upsert` writes, keyed by profile id. Entities for discover pages, media details, requests, issues, watchlist, profile, public settings, status.
+- [ ] Android: Room 3 database (`AndroidSQLiteDriver`, `setQueryCoroutineContext(Dispatchers.IO)`), cohesive entity groups, DAOs with `Flow` reads and `@Upsert` writes, keyed by profile id. Entities for discover pages, media details, requests, issues, watchlist, profile, public settings, status.
 - [ ] iOS: SwiftData `@Model` classes with explicit `@Relationship(deleteRule:inverse:)`, `#Index` on hot fetches, a `@ModelActor` store per aggregate; `PersistentIdentifier` crosses actor boundaries, model objects never do. `VersionedSchema` + `SchemaMigrationPlan` from v1.
 - [ ] Per-profile wipe: deleting a profile removes its rows, cookie jar, secrets, and image cache entries.
 
@@ -354,14 +355,14 @@ apps/ios/
 
 ### 4.8 `core/designsystem` / `DesignSystem` and `core/ui` / `UI`
 
-- [ ] Commit the generated themes from Phase 2; `GaujaTheme` (Material 3, dark default) and the SwiftUI equivalent; Dynamic Type / font scaling verified.
+- [ ] Integrate the committed generated themes from Phase 2; `GaujaTheme` (Material 3, dark default) and the SwiftUI equivalent; Dynamic Type / font scaling verified.
 - [ ] Primitive components with previews: buttons, cards, chips, badges, section headers, skeleton loaders, empty/error/offline states.
-- [ ] *(depends on the theme and primitives tasks above)* Content components (one file each, spec-driven from `design/screens/components/`): `TitleCard`, `MediaSlider`, `RequestCard`, `RequestBlock`, `RequestButton`, `IssueBlock`, `StatusBadge`, `AirDateBadge`, `PersonCard`, `CompanyCard`, `GenreCard`, `GenreTag`, `KeywordTag`, `DownloadBlock`, `ExternalLinkBlock`, `BlocklistedTagsBadge`. Each has TalkBack/VoiceOver labels and a `@PreviewScreenSizes` / multi-device preview.
+- [ ] *(depends on the theme and primitives tasks above)* Content components (cohesive files, spec-driven from `design/screens/components/`): `TitleCard`, `MediaSlider`, `RequestCard`, `RequestBlock`, `RequestButton`, `IssueBlock`, `StatusBadge`, `AirDateBadge`, `PersonCard`, `CompanyCard`, `GenreCard`, `GenreTag`, `KeywordTag`, `DownloadBlock`, `ExternalLinkBlock`, `BlocklistedTagsBadge`. Implement the components needed by this phase; add the rest with their feature consumers. Each has applicable TalkBack/VoiceOver labels and a `@PreviewScreenSizes` / multi-device preview.
 - [ ] Compose stability: state holders expose `ImmutableList`; `Modifier` is the first optional parameter; no work in composition bodies.
 
 ### 4.9 `core/navigation` / `Navigation`
 
-- [ ] Android: `@Serializable` `NavKey` hierarchy for every screen, a singleton `Navigator` owning the back stack, `EntryProviderInstaller` multibinding, `rememberNavBackStack` at the root, `ListDetailSceneStrategy` for adaptive list-detail areas, both entry decorators wired.
+- [ ] Android: `@Serializable` `NavKey` routes added with each screen, a singleton `Navigator` owning the back stack, `EntryProviderInstaller` multibinding, `rememberNavBackStack` at the root, `ListDetailSceneStrategy` for adaptive list-detail areas, both entry decorators wired.
 - [ ] iOS: `Route` enums per feature, a root `NavigationPath` owner, `NavigationSplitView` on regular width and `NavigationStack` on compact, `navigationDestination(for:)` centralised at the root, idempotent destination builders.
 - [ ] Deep-link key parsing for `gauja://server/<profileId>/...` and Seerr web URLs (`/movie/<id>`, `/tv/<id>`, `/person/<id>`, `/collection/<id>`, `/requests`, `/issues/<id>`, `/reset-password/<guid>`); registration itself lands in Phase 11.
 
@@ -505,7 +506,7 @@ apps/ios/
 
 ## Phase 10 — Admin: server settings
 
-**Goal.** Full native coverage of `/settings/*` (62 paths, 86 operations). One module and one PR per section, implemented in Seerr's sidebar order so partial progress is coherent: General → Users → Plex *or* Jellyfin/Emby → Services → Network → Metadata Providers → Notifications → Logs → Jobs → About, then the separate Discover slider management page. (PRD §5.10 lists Metadata before Network; this plan follows the order in Seerr's `SettingsLayout.tsx`.)
+**Goal.** Full native coverage of `/settings/*` (62 paths, 86 operations). Folders within Settings initially, with feature-sized PRs, implemented in Seerr's sidebar order so partial progress is coherent: General → Users → Plex *or* Jellyfin/Emby → Services → Network → Metadata Providers → Notifications → Logs → Jobs → About, then the separate Discover slider management page. (PRD §5.10 lists Metadata before Network; this plan follows the order in Seerr's `SettingsLayout.tsx`.)
 
 **Exit criteria.** Every setting Seerr's web UI exposes can be read and written from Gauja; list/detail layout on tablets and foldables; every form validates server-side via the corresponding `/test` endpoint where one exists.
 
@@ -534,7 +535,7 @@ apps/ios/
 
 - [ ] `/settings/metadatas` and `/settings/metadatas/test`: provider selection per media type with `MetadataSelector`.
 
-### 10.7 `feature/settings/notifications/<agent>` (one module per agent, 10 agents)
+### 10.7 `feature/settings/notifications/<agent>` (folders within Settings, 10 agents)
 
 - [ ] Shared agent form scaffold: enabled toggle, notification-type matrix, test button calling `/settings/notifications/<agent>/test`.
 - [ ] email, discord, gotify, ntfy, pushbullet, pushover (+ sound picker from `/settings/notifications/pushover/sounds`), slack, telegram, webpush (VAPID display only; no client subscription in v1), webhook.
@@ -579,7 +580,7 @@ apps/ios/
 
 ### 11.3 Localization
 
-- [ ] `crowdin.yml` real; `tools/community/validate-translations.py` enforces catalog validity and key parity between `strings.xml` and `Localizable.xcstrings`.
+- [ ] With real catalogs, enable `crowdin.yml` and the translation hook; `tools/community/validate-translations.py` enforces catalog validity and key parity between `strings.xml` and `Localizable.xcstrings`.
 - [ ] *(can start early: after §3.3)* `tools/community/seed-from-seerr.py`: one-time import of Seerr's `src/i18n/locale/*.json` (41 locales, underscore variants) for strings identical in meaning (status names, permission labels, settings section titles), normalising locale codes; attribution in `docs/THIRD_PARTY.md`.
 - [ ] Server-provided content honours the user's Seerr locale; UI honours the device locale.
 
@@ -600,14 +601,14 @@ apps/ios/
 ### 11.6 Contract tests (`contract.yml`)
 
 - [ ] *(can start early: after §2.2)* Boot upstream Seerr from its `Dockerfile` (SQLite default; no external services), initialise via `/settings/initialize` and the web-UI-equivalent API calls, seed users/media/requests/issues fixtures, obtain the API key for seeding only.
-- [ ] *(can start early: after §2.2; depends on the boot task above)* Record request/response fixtures into `api/fixtures/<seerr-version>/` for every operation listed in `api/ENDPOINTS.md`; run `tools/ci/check-fixture-secrets.sh` over the output.
+- [ ] *(can start early: after §2.2; depends on the boot task above)* Record request/response fixtures into `api/fixtures/<seerr-version>/` for callable operations tracked in `api/coverage.json`; run `tools/ci/check-fixture-secrets.sh` over the output.
 - [ ] Execute both generated clients against the container; assert schema conformance (the server itself validates requests with `express-openapi-validator`, so a rejected request is a client bug or an overlay candidate).
 - [ ] Fail when any endpoint Gauja calls returns a `Sunset` inside the next 90 days.
 - [ ] Weekly schedule plus `api/` and `tools/codegen/` path triggers.
 
 ### 11.7 Upstream drift (`api-sync.yml`)
 
-- [ ] *(can start early: after §2.1)* `tools/api-drift/diff-upstream.sh`: fetch upstream `seerr-api.yml` from `develop`, diff against the vendored copy, regenerate both clients, open a PR with the diff, updated `UPSTREAM_COMMIT`, and a checklist of overlays to re-verify. Humans review; nothing merges automatically.
+- [ ] *(can start early: after §2.1)* `tools/api-drift/diff-upstream.sh`: discover upstream changes (including develop) against the pin. Propose baseline upgrades only to a deliberately selected stable release, with verbatim spec, updated `UPSTREAM_COMMIT`, coverage, regenerated clients and overlays to re-verify. Discovery alone never upgrades support; humans review and nothing merges automatically.
 
 ---
 
@@ -623,6 +624,7 @@ apps/ios/
 - [ ] *(depends on §11.4 smoke lanes for screenshots)* Store listings: unaffiliated-with-Seerr statement, "Seerr" used only descriptively, none of Seerr's marks or artwork; screenshots generated from the emulator/simulator smoke lanes so they track the UI.
 - [ ] *(can start early: after §1.5)* `CHANGELOG.md` generated from Conventional Commits, sectioned per app; supported Seerr range and `api/compat.json` updated in every release.
 - [ ] GitHub Releases: signed APKs and the iOS source archive; SBOM attached.
+- [ ] Package and verify complete applicable notices for distributed material using `docs/THIRD_PARTY.md`: Seerr descriptions/spec, Tailwind-derived palette and resolved runtime dependencies. Check source archives and each binary’s bundled notices independently. REUSE lint does not replace dependency resolution or notice verification; preserve AGPL and the App Store permission.
 - [ ] Post-release: README supported-range update, record in PRD Appendix C any deviation discovered during store review (PRD §18 risk 4).
 
 ---

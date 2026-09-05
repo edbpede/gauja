@@ -7,42 +7,26 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 ## Contract
 
-Ordered, titled horizontal media collection on Discover or a detail screen. Consumed by Phase 4 and the owning feature phases. Reference: Seerr `src/components/MediaSlider/` at `69f73a6f1486fdb51b8ddae9a94a8dfb629f461c` (inspiration only). Native chrome belongs to the containing screen.
+Ordered, titled horizontal media collection on Discover or a detail screen. Consumed by Phase 4 and the owning feature phases. Reference: Seerr `src/components/MediaSlider/` at `69f73a6f1486fdb51b8ddae9a94a8dfb629f461c` (inspiration only). Uses the [shared behavior baseline](INVENTORY.md#shared-behavior-baseline).
 
 ## Content
 
-Stable slider ID and title, ordered TitleCard list, page/total state, loading-more state and cached timestamp. Respect enabled/order/data from the server. Inputs are immutable domain values; state flows down and events flow up. Do not create transport, storage or navigation owners inside this renderer.
-
-## States
-
-- **Loading:** retain existing content during refresh; use a noninteractive skeleton for first load.
-- **Empty:** omit absent optional metadata; show a meaningful placeholder or parent-owned empty state when the core value is absent.
-- **Error:** keep valid content and draft; expose the parent’s retry/message without a retry loop.
-- **Offline:** retain cached reads and their timestamp; all writes are disabled with an explanation.
-- **Permission-denied:** hide unauthorized actions and use the parent’s explanation if the entire content is forbidden.
+Stable slider ID and title, ordered TitleCard list, page/total state, loading-more state and cached timestamp. Respect enabled/order/data from the server.
 
 ## Actions
 
 Open an item; See all opens the same filter as a paginated grid. Prefetch the next page and correctly sized artwork near the end; avoid duplicate requests.
 
-## Adaptive behavior
-
-Compact uses native cards/chips/forms and stacked navigation. Medium/expanded size classes adjust wrapping, grid columns or form width without stretching text indefinitely. Lists preserve stable IDs and scroll state. The owning settings/request screen uses native list/detail scaffolds; this component never branches on raw screen width.
-
-## Accessibility
-
-Expose the full identity/value and action through TalkBack/VoiceOver. Avoid redundant decorative-image labels. Status and selection use text/semantics as well as color. Honor maximum Dynamic Type/font scaling without fixed text heights, native 48 dp/44 pt targets, keyboard/focus order and reduced motion. Theme values come from generated tokens, including the light theme.
-
 ## Endpoints
 
 GET /settings/discover supplies home ordering and configuration. Home collection sources are GET /media (recently added), GET /request (recent requests), GET /discover/watchlist (Plex watchlist), GET /discover/trending, GET /discover/movies and GET /discover/tv (popular/upcoming and filtered custom collections), GET /discover/movies/studio/{studioId}, GET /discover/tv/network/{networkId}, and GET /search (custom search). Genre collections use the [GenreCard](GenreCard.md#endpoints) operations.
 
-The owning screen spec must pin the selected operation, query filters and pagination before implementation; detail-screen collections use their owning screen’s exact operation from `api/ENDPOINTS.md`. The owning Data/screen layer performs I/O and supplies domain values; the component does not select or call endpoints.
+The owning screen spec must pin the selected operation, query filters and pagination before implementation; detail-screen collections use their owning screen’s exact operation from the effective contract. The owning Data/screen layer performs I/O and supplies domain values; the component does not select or call endpoints.
 
 ## Permissions
 
-Signed-in; RECENT_VIEW / REQUEST_VIEW / WATCHLIST_VIEW apply to restricted slider data according to its server endpoint. Re-evaluate after profile or permission changes. Server rejection is handled visibly even if the action was initially allowed.
+Signed-in; RECENT_VIEW / REQUEST_VIEW / WATCHLIST_VIEW apply to restricted slider data according to its server endpoint.
 
 ## Acceptance criteria
 
-Disabled sliders are absent. Order matches the server. A failed next page preserves loaded cards and offers retry; stable IDs preserve scroll position. Exercise loading, empty, error, offline and denied inputs on both platforms; verify compact and expanded presentations, largest text and screen-reader semantics. Image requests use rendered size and cancellation. Cached content contributes to the ≤300 ms offline budget and scrolling to <1% jank; measurements land in Phase 11.
+Disabled sliders are absent. Order matches the server. A failed next page preserves loaded cards and offers retry; stable IDs preserve scroll position.

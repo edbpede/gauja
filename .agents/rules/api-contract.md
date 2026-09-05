@@ -11,8 +11,8 @@ Everything both apps know about Seerr's API comes from `api/`. This file says ho
 
 - `api/seerr-api.yml` is upstream's `seerr-api.yml` **verbatim** (OpenAPI 3.0.2, MIT, license text in `api/LICENSE.upstream`). It is never edited by hand.
 - `api/UPSTREAM_COMMIT` identifies the upstream commit the spec was copied from: the full 40-character SHA on its first line, followed by `# Fetched: YYYY-MM-DD`. **The two files change together or not at all**; the `api-drift` hook and CI reject a commit that touches one without the other.
-- `api/ENDPOINTS.md` is a generated index of every path and operation with the phase that consumes it, refreshed by `tools/contract/endpoints.py` on every sync.
-- Weekly, `api-sync.yml` diffs upstream against the pinned commit and opens a PR with the new spec, the new pin and regenerated clients. Review that PR for renamed or removed operations, new enum values and new `Deprecation` markers before merging.
+- [API usage](../../api/README.md) owns the supported stable baseline. `api/coverage.json` owns operation implementation status; counts and the optional endpoint report are derived by `tools/contract/endpoints.py`. The report is not committed and coverage validation remains mandatory.
+- Planned in Phase 11: weekly upstream discovery identifies changes against the pin. Baseline upgrades use a deliberately selected stable release, with the new spec, pin and regenerated clients reviewed together; discovery of develop changes does not upgrade support. Review that PR for renamed or removed operations, new enum values and new `Deprecation` markers before merging.
 
 ## Overlays (`api/overlays/`)
 
@@ -36,12 +36,12 @@ Upstream's spec is hand-maintained and sometimes disagrees with the server. Corr
 - Android: openapi-generator (`kotlin` generator, kotlinx-serialization, Retrofit/OkHttp template) into `apps/android/core/api/`. iOS: `swift-openapi-generator` into `apps/ios/Packages/SeerrAPI/Generated/`.
 - Generation is only ever `tools/codegen/generate.sh` (both platforms by default; `--platform android|ios` for independent lanes) with the pinned generator versions in `tools/codegen/versions.env`. `tools/codegen/generate.sh --check` regenerates into a temporary directory and fails on any byte difference; CI runs it on every change under `api/`, `tools/codegen/` or the generated paths.
 - Generated code is excluded from formatters, linters and the whitespace hooks (see the `GENERATED` comment in `prek.toml`), annotated in `REUSE.toml`, and never hand-edited. A hand edit is a CI failure by construction.
-- Generated DTOs are public only to permit the **API → Data mapping boundary**: `core/data` / `Data` may import them, and test support may exercise them. No other production module may import them. Data’s public APIs expose domain types, never generated DTOs. `tools/ci/check-api-boundary.py` guards imports now; Phase 3 adds dependency graph enforcement. `core/data` / `Data` owns one mapper file per aggregate (`RequestMapper.kt`, `RequestMapper.swift`) that produces the hand-written domain models in `core/model` / `Model`.
+- Generated DTOs are public only to permit the **API → Data mapping boundary**: `core/data` / `Data` may import them, and test support may exercise them. No other production module may import them. Data’s public APIs expose domain types, never generated DTOs. `tools/ci/check-api-boundary.py` guards imports now; Phase 3 adds dependency graph enforcement. `core/data` / `Data` owns aggregate-focused mappers (`RequestMapper.kt`, `RequestMapper.swift`) that produce the hand-written domain models in `core/model` / `Model`.
 - Wire decoding is defensive: unknown keys are ignored; optional fields retain defaults/nullability. A generation-only lowering represents upstream enums as primitive wire values; the effective contract retains its enum constraints. Phase 4 Data mappers turn unrecognized values into explicit domain `Unknown` cases. Do not remove required fields wholesale. Generated secret-bearing descriptions are redacted; transient auth DTO wire encoding is permitted, while persistence and diagnostics must use SecretStore/Keychain and redaction. A decode failure on a recorded fixture is an overlay candidate; a crash on a live server is a defect.
 
 ## Compatibility gating (`api/compat.json`)
 
-- `compat.json` maps a feature key to `{ "min": "<semver>", "max": "<semver>|null", "endpoint": "<path>" , "note": "<why>" }`. Both apps generate their `FeatureGate` table from it (`tools/codegen/`), so a gate cannot drift between platforms.
+- `compat.json` maps a feature key to `{ "min": "<semver>", "max": "<semver>|null", "endpoint": "<path>" , "note": "<why>" }`. Phase 4 will generate each app’s `FeatureGate` table from it; current tooling validates the metadata.
 - The active server's `/status` is refreshed on connect and on every foreground. A feature outside its range is hidden or disabled with an inline explanation, never invoked and never allowed to crash.
 - `Deprecation`, `Sunset` and `Link rel="successor-version"` response headers are recorded per endpoint by `core/network` / `Network` and surfaced under About → Diagnostics. An endpoint with a `Sunset` inside the next 90 days fails the contract lane so a successor is wired before it disappears. The v3.4.1 supported floor uses `/blocklist`; `/blacklist` is excluded from callable coverage (`Sunset: 2026-06-01`). Supporting an older legacy range requires an explicit future gate.
 - Enum ordinals, permission bits and status values come from Seerr's `server/constants/` and `server/lib/permissions.ts` and must match bit-for-bit; the tables in `core/model` / `Model` cite the upstream file and commit they were transcribed from.
@@ -54,5 +54,5 @@ Upstream's spec is hand-maintained and sometimes disagrees with the server. Corr
 | Bumping `UPSTREAM_COMMIT` without the spec (or vice versa) | Pin lies | Change both in one commit |
 | A generated DTO in `feature/*` | Spec churn reaches UI | Domain model via a mapper in `core/data` / `Data` |
 | Hand-typing a fixture | Tests prove nothing | Record it from a container and scrub it |
-| Calling an endpoint absent from `compat.json` for the server's version | Crashes older servers | Gate it and explain inline |
+| Calling a gated feature outside its supported range | Crashes older servers | Gate it and explain inline |
 | Copying a permission bit from memory | Off-by-one bugs in admin UI | Transcribe from `server/lib/permissions.ts` with the commit cited |

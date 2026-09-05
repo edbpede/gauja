@@ -29,25 +29,24 @@ A change under `apps/android/` needs no iOS reviewer and vice versa. A change un
 - **Artifacts flow one way.** `api/` → generated clients and `FeatureGate` tables; `design/tokens.json` → generated themes; `design/screens/` → both apps' behaviour. Nothing flows from an app into `api/` or `design/`, and nothing flows sideways between the apps. If both apps need the same fact, it becomes part of the contract first.
 - Each app builds, tests and lints alone. A contributor with only a JDK builds Android; one with only Xcode builds iOS. A lane never installs the other platform's toolchain.
 
-## CI lanes and triggers (`.github/workflows/`)
+## CI ownership (`.github/workflows/`)
 
-| Workflow | Trigger | Scope |
-|---|---|---|
-| `pr-hygiene.yml` | every PR; push to `main` | `prek run --all-files`, `reuse lint`, gitleaks, commit-message and PR-title check, tool tests, cross-boundary grep. `REUSE`, `prek`, `commit-messages` (the DCO check), `gitleaks`, `tool-tests` and `boundary` are required status checks |
-| `android.yml` | `apps/android/**`, `api/**`, `design/**`, `tools/codegen/**`, `tools/tokens/**` | Build, unit tests, ktfmt, detekt, Android Lint, module-graph check, generated-code drift, emulator smoke, baseline profile, egress test |
-| `ios.yml` | `apps/ios/**`, `api/**`, `design/**`, `tools/codegen/**`, `tools/tokens/**` | XcodeGen, build, Swift Testing, swift-format lint, SwiftLint strict, package-graph check, generated-code drift, simulator smoke, egress test |
-| `contract.yml` | `api/**`, `tools/codegen/**`; weekly | Seerr container, seeded fixtures, recorded contract tests for both generated clients, imminent-`Sunset` check |
-| `api-sync.yml` | weekly schedule | Upstream diff, PR with new spec, pin and regenerated clients |
-| `codegen-check.yml` | contract, codegen, generated API paths | Separate JDK and Swift generator drift/compile checks; no app skeleton required |
-| `tokens-check.yml` | `design/**`, `tools/tokens/**` | Regenerate both themes, fail on diff |
-| `release.yml` | tags `android/v*`, `ios/v*` | Reproducible build, SBOM, F-Droid metadata, store upload |
+Workflow configurations own executable commands and triggers. [prek.toml](../../prek.toml) owns local hook filters. Prose defines required outcomes; add tooling and CI with the first real consumer, without passing placeholders.
 
-Rules:
+| Active workflow | Responsibility |
+|---|---|
+| [pr-hygiene.yml](../../.github/workflows/pr-hygiene.yml) | Hygiene hooks (including screen and API import boundaries), REUSE, history secret scan, commit/DCO checks, all tooling test suites, platform separation |
+| [codegen-check.yml](../../.github/workflows/codegen-check.yml) | Contract pairing/coverage and upstream bytes; separate Android/iOS client regeneration and compile/serialization/redaction checks |
+| [tokens-check.yml](../../.github/workflows/tokens-check.yml) | Theme regeneration and byte comparison |
+
+Local contract/theme hooks mirror their dedicated CI owners and are skipped in CI's prek job. Tool tests exercise validators with fixtures; they do not rerun production assertions as extra steps. Staged secret checks and history scanning have different scopes.
+
+Planned gates: independent Android/iOS app build, lint and graph checks in Phase 3; container contracts and upstream discovery in Phase 11; release/SBOM/bundled notices in Phase 12. Transfer existing checks to their replacement owner when equivalent real app checks land; retire smoke manifests and locks only after each platform independently compiles and passes serialization/redaction tests.
 
 - Every action is pinned by commit SHA; Renovate keeps the pins current.
-- `paths:` filters are the contract above. Adding a new shared input means adding it to both platform lanes' filters in the same PR.
-- A lane's `not yet wired` placeholder step is replaced, never bypassed, when the phase that owns it lands (Phase 3 for `android`/`ios`, Phase 2 for `tokens-check`, Phase 11 for `contract`/`api-sync`, Phase 12 for `release`).
-- Complexity and length lints stay at warning level in every lane (PRD §12.2 rule 5).
+- Add shared inputs and tooling dependencies to every affected lane’s filters in the same PR. Each platform lane installs only its own toolchain.
+- Preserve required checks (`REUSE`, `prek`, `commit-messages`, `gitleaks`, `tool-tests`, `boundary`); inspect repository branch protection/rulesets before removing or renaming jobs.
+- Complexity and length lints remain advisory (PRD §12.2 rule 5).
 
 ## Branches, commits, merges
 

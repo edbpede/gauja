@@ -65,10 +65,7 @@ hooks = [
   { id = "tokens-check", name = "design tokens → themes", entry = "tools/tokens/check.sh", language = "system", files = "^(design/tokens\\.json|tools/tokens/|apps/android/core/designsystem/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)", pass_filenames = false },
   # Secret-logging guard — no log call may format an exposed secret value (PRD §10).
   { id = "check-secret-logging", name = "secret-logging guard", entry = "tools/ci/check-secret-logging.sh", language = "system", types_or = ["kotlin", "swift"], files = "^apps/", pass_filenames = false },
-  # Translation catalogs (PRD §16).
-  { id = "translations", name = "translation catalogs", entry = "python3 tools/community/validate-translations.py", language = "system", files = "(^crowdin\\.yml$|^apps/(ios/.+\\.xcstrings|android/.+/res/(values|values-[^/]+)/strings\\.xml)$)", pass_filenames = false },
-  # Dependency license allow-list (PRD §10).
-  { id = "license-check", name = "dependency licenses", entry = "tools/ci/check-licenses.sh", language = "system", files = "(^|/)(gradle/libs\\.versions\\.toml|Package\\.resolved|deny\\.toml)$", pass_filenames = false },
+  # Translation and resolved-license hooks land with real catalogs/manifests.
 
   # iOS — apps/ios/ (toolchain swift-format + SwiftLint; PRD §14 ios lane). Generated client excluded.
   { id = "swift-format", name = "swift-format", entry = "swift format --in-place", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },

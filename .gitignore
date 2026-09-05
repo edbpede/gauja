@@ -42,3 +42,6 @@ api/fixtures/**/*.local.*
 # Python build tooling caches
 __pycache__/
 *.py[cod]
+
+# Optional generated endpoint report (coverage.json is authoritative)
+/api/ENDPOINTS.md

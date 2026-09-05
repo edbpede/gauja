@@ -270,4 +270,4 @@ Only auth/server detail specs are authored in Phase 2. Other paths below are res
 
 Every row inherits TEMPLATE.md’s five states, permission and compatibility gates, adaptive layouts, accessible targets/text, reduced motion and offline write restrictions. Discover, requests, watchlist and profile reads carry per-profile staleness timestamps. Performance and memory budgets remain PRD §9 release requirements. Tests mirror the owning source screen, on both platforms.
 
-The auth matrix is in [auth/MATRIX.md](auth/MATRIX.md). Stable endpoint coverage is in [api/ENDPOINTS.md](../../api/ENDPOINTS.md). Any later server setting outside the pinned API requires a contract sync before implementation, never a guessed call.
+The auth matrix is in [auth/MATRIX.md](auth/MATRIX.md). Stable endpoint coverage is in [api/coverage.json](../../api/coverage.json). Any later server setting outside the pinned API requires a contract sync before implementation, never a guessed call.

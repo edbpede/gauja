@@ -12,6 +12,17 @@ from operations import assign_operation_ids, operations
 from overlays import apply_overlays
 
 
+def validate_coverage(spec, coverage):
+    ids = {op["operationId"] for _, _, op in operations(spec)}
+    if not isinstance(coverage, dict) or set(coverage) != ids:
+        raise ValueError("coverage.json must cover exactly the effective operation IDs")
+    for name, entry in coverage.items():
+        if (not isinstance(entry, dict) or
+                entry.get("status") not in ("planned", "implemented", "excluded") or
+                not entry.get("phase") or not entry.get("note")):
+            raise ValueError(f"Invalid coverage metadata: {name}")
+
+
 def validate_refs(value, document):
     if isinstance(value, list):
         for item in value:

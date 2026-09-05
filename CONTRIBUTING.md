@@ -41,16 +41,16 @@ Hooks that fire on every commit:
 | `conventional-pre-commit` | Conventional Commit message |
 | `dco-signoff` | `Signed-off-by:` trailer |
 | `gitleaks` | No credentials in the diff. prek downloads a Go toolchain and builds gitleaks itself; nothing to install. For standalone scans: `brew install gitleaks` (macOS) or a release binary from https://github.com/gitleaks/gitleaks/releases (Linux) |
-| `api-drift`, `fixture-secrets`, `tokens-check`, `check-secret-logging`, `translations`, `license-check` | Path-scoped project checks under `tools/` (each has `--help`) |
+| `api-drift`, `api-boundary`, `screen-specs`, `fixture-secrets`, `tokens-check`, `check-secret-logging` | Path-scoped project checks under `tools/` (each has `--help`) |
 | `swift-format`, `swiftlint`, `ktfmt`, `detekt` | Formatting and lint for `apps/ios/` and `apps/android/`; inert until those trees exist |
 
 Formatting and lint hooks for one platform need that platform's toolchain. If you only work on Android, the iOS hooks skip because no Swift files are staged, and vice versa.
 
-The scripts under `tools/` have tests: `tools/tests/run.sh`.
+The scripts under `tools/` have tests: `tools/tests/run.sh`. Translation and resolved-dependency license hooks land with real catalogs and app manifests; they are not active gates today.
 
 ## Licensing headers (REUSE)
 
-Every file carries `SPDX-FileCopyrightText: 2026 Gauja contributors` and `SPDX-License-Identifier: AGPL-3.0-or-later`, either as a header or through `REUSE.toml`. CI runs `reuse lint`; run it locally with `pipx install reuse` / `brew install reuse`. Dependencies must have a license in the `deny.toml` allow-list.
+Files carry SPDX copyright and license information, either as headers or through `REUSE.toml`. Gauja contributions retain AGPL-3.0-or-later with the App Store permission; inherited material retains its upstream attribution and notices. See [third-party provenance and distribution responsibilities](docs/THIRD_PARTY.md). CI runs `reuse lint`; run it locally with `pipx install reuse` / `brew install reuse`. Resolved-dependency license enforcement against `deny.toml` is a separate planned check.
 
 ## Branches, commits and pull requests
 
@@ -74,3 +74,5 @@ Until Phase 3, the app trees contain generated artifacts only. See [the contract
 ## Reporting security issues
 
 See `SECURITY.md`. Never open a public issue for a vulnerability.
+
+Routine navigation/search should respect `.gitignore` (for example, `rg` or `git ls-files`). Keep `.cache/` and SwiftPM `.build/` dependency trees hidden in editor navigation; do not prune individual dependency files.
