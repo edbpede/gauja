@@ -65,9 +65,13 @@ jobs:
       - name: Emulator smoke
         env:
           API: ${{ matrix.api }}
+          ANDROID_USER_HOME: ${{ runner.temp }}/android
+          ANDROID_AVD_HOME: ${{ runner.temp }}/android/avd
         run: |
+          mkdir -p "$ANDROID_AVD_HOME"
           sdkmanager 'emulator' 'platforms;android-37.0' "system-images;android-$API;google_apis;x86_64"
           echo no | avdmanager create avd --force --name gauja-smoke --package "system-images;android-$API;google_apis;x86_64"
+          test -f "$ANDROID_AVD_HOME/gauja-smoke.ini"
           "$ANDROID_HOME/emulator/emulator" -avd gauja-smoke -no-window -no-audio -no-snapshot -gpu swiftshader_indirect > /tmp/emulator.log 2>&1 &
           trap 'adb emu kill || true' EXIT
           timeout 180 adb wait-for-device
