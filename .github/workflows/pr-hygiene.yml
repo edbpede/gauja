@@ -1,0 +1,109 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Runs on every PR and on pushes to main (PRD §14.2): the same hooks as prek.toml,
+# REUSE lint, a full-history gitleaks scan, the commit-message mirror of the commit-msg
+# hooks, the tool-script tests and the apps/android ↔ apps/ios boundary check.
+# Required status checks on main: REUSE, DCO (GitHub app), prek, commit-messages.
+name: pr-hygiene
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prek:
+    name: prek
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
+        env:
+          # no-commit-to-branch guards local commits; on a push to main CI is on main by design.
+          SKIP: no-commit-to-branch
+        with:
+          extra-args: --all-files
+
+  reuse:
+    name: REUSE
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      # The gitleaks binary is MIT; gitleaks-action is under a proprietary EULA, so the
+      # binary is downloaded from the release and checksum-verified instead.
+      - name: Install gitleaks
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          install -m 0755 gitleaks /usr/local/bin/gitleaks
+      - name: Scan history
+        run: gitleaks git --redact --no-banner --exit-code 1 .
+
+  commit-messages:
+    name: commit-messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Conventional Commits and DCO sign-off on every commit
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            tools/ci/check-commit-messages.sh --title "$PR_TITLE" \
+              "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          else
+            tools/ci/check-commit-messages.sh "${{ github.event.before }}" "${{ github.sha }}"
+          fi
+
+  tool-tests:
+    name: tool-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - run: tools/tests/run.sh
+
+  boundary:
+    name: boundary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: apps/android and apps/ios never reference each other (PRD §13)
+        run: |
+          status=0
+          if [[ -d apps/android ]] && grep -rIn --exclude-dir=build --exclude-dir=.gradle 'apps/ios' apps/android; then
+            echo '::error::apps/android references apps/ios'; status=1
+          fi
+          if [[ -d apps/ios ]] && grep -rIn --exclude-dir=.build --exclude-dir=DerivedData 'apps/android' apps/ios; then
+            echo '::error::apps/ios references apps/android'; status=1
+          fi
+          exit $status

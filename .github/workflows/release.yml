@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Release lane (PRD §14.2, §17): reproducible builds, SBOM, F-Droid metadata, store upload via
+# fastlane. Wired in Phase 12.
+name: release
+
+on:
+  push:
+    tags:
+      - "android/v*"
+      - "ios/v*"
+
+permissions:
+  contents: read
+
+jobs:
+  placeholder:
+    name: release (not yet wired)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "release lane is not yet wired; see docs/gauja-implementation-plan.md (Phase 12)."
