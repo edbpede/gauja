@@ -36,7 +36,7 @@ Gauja depends on nothing but the user's own Seerr server. It ships no telemetry,
 2. **Two first-class native apps** that share an information architecture, design tokens, and content-component vocabulary, while each respects its platform's conventions (§8).
 3. **Fast and light**: measurable performance budgets (§9), small binaries, offline-tolerant reads.
 4. **Private by construction**: the only network peer is the user's Seerr server, plus the image source that server is configured to use (§10).
-5. **A codebase that is a pleasure to contribute to**: single-purpose files and modules, deep folder hierarchies that mirror the domain, mechanically enforced boundaries (§12).
+5. **A codebase that is a pleasure to contribute to**: cohesive files and justified modules, folders that mirror the domain, mechanically enforced boundaries (§12).
 6. **Maintainable against a moving upstream**: a pinned, vendored API contract with automated drift detection and per-version feature gating (§4).
 
 ### 2.2 Non-goals
@@ -66,11 +66,11 @@ All three personas are assumed to be capable adults running self-hosted software
 
 ## 4. Compatibility policy
 
-Seerr moves quickly and its API is not semantically versioned: the OpenAPI document declares `info.version: 1.0.0` while the application is at `0.1.0`, and the specification is hand-maintained and may drift from real server behaviour. Gauja's compatibility policy is designed around those facts.
+The OpenAPI document’s `info.version` is not the Seerr application version. The supported stable baseline is recorded once in [api/README.md](../api/README.md), pinned by `api/UPSTREAM_COMMIT`; derive path/operation counts from the effective contract. The hand-maintained specification may drift from server behavior.
 
 ### 4.1 The vendored contract
 
-- `api/seerr-api.yml` is a verbatim copy of upstream's `seerr-api.yml` (OpenAPI 3.0.2, 167 paths at the time of writing).
+- `api/seerr-api.yml` is a verbatim copy of upstream's `seerr-api.yml` (OpenAPI 3.0.2).
 - `api/UPSTREAM_COMMIT` records the exact upstream commit the copy was taken from. The two files change together or not at all; a pre-commit hook and a CI check enforce this (§14).
 - `api/LICENSE.upstream` carries Seerr's MIT license text, which covers the vendored specification.
 - `api/overlays/` holds OpenAPI overlay documents that correct upstream spec defects (missing `required`, wrong types) without editing the vendored file. Every overlay entry cites the upstream issue or the observed server behaviour that justifies it.
@@ -83,15 +83,15 @@ Seerr moves quickly and its API is not semantically versioned: the OpenAPI docum
 
 ### 4.3 Deprecation signals
 
-Seerr emits RFC 8594 headers (`Deprecation`, `Sunset`, `Link rel="successor-version"`) on deprecated routes. Gauja's network layer records these per endpoint and surfaces them in the About → Diagnostics screen and in debug logs. A CI job fails when a vendored endpoint Gauja calls is marked deprecated with a `Sunset` date inside the next 90 days.
+Seerr emits RFC 8594 headers (`Deprecation`, `Sunset`, `Link rel="successor-version"`) on deprecated routes. Gauja's network layer records these per endpoint and surfaces them in the About → Diagnostics screen and in debug logs. The planned Phase 11 contract job fails when a vendored endpoint Gauja calls is marked deprecated with a `Sunset` date inside the next 90 days.
 
 ### 4.4 Upstream drift detection
 
-A scheduled workflow (`api-sync.yml`) fetches upstream `seerr-api.yml` from the `develop` branch, diffs it against the vendored copy, and opens a pull request with the diff, an updated `UPSTREAM_COMMIT`, and a regenerated client for both platforms. Humans review; nothing merges automatically.
+Planned in Phase 11: scheduled upstream discovery compares changes, including develop, with the pinned contract. A baseline upgrade selects a stable release and proposes its verbatim spec, pin, coverage and regenerated clients together. Discovery does not automatically change the supported baseline. Humans review; nothing merges automatically.
 
 ### 4.5 Contract tests
 
-CI runs a real Seerr container (upstream `Dockerfile`, SQLite) seeded with fixtures, and executes recorded request/response contract tests against it for every endpoint Gauja uses. Recorded fixtures live in `api/fixtures/<seerr-version>/` and are scanned for credentials on every commit (§14).
+Phase 11 will run a real Seerr container (upstream `Dockerfile`, SQLite) seeded with fixtures, and executes recorded request/response contract tests against it for every endpoint Gauja uses. Recorded fixtures live in `api/fixtures/<seerr-version>/` and are scanned for credentials on every commit (§14).
 
 ---
 
@@ -231,6 +231,8 @@ What blocks v1: the iOS path requires project-hosted infrastructure (§2.2), Uni
 
 ## 8. UX principles
 
+Keep the sized [screen inventory](../design/screens/INVENTORY.md) and [shared component baseline](../design/screens/components/INVENTORY.md#shared-behavior-baseline). Write detailed specifications with each feature; document only applicable states and acceptance criteria. The full planned native administration scope remains unchanged.
+
 **Same information architecture, same tokens, same content components. Platform-native chrome.**
 
 - **Information architecture** follows Seerr's web UI: Discover, Requests, Issues, Users (admin), Settings (admin), Profile, Search. Screen names, groupings and the order of settings sections match Seerr so that anyone who knows the web UI knows Gauja.
@@ -347,32 +349,24 @@ The three project-level files are written during Phase 1 of the implementation p
 
 ### 12.2 Single purpose, everywhere
 
-1. **One responsibility per file.** A file contains one type, one composable/view, one use case, one mapper, or one small family of tightly related extensions. If a file needs a section comment to navigate, it is two files.
-2. **One concern per module/package.** A module has one reason to change. `core/network` changes when transport changes; `core/api` changes when the spec changes; `feature/requests` changes when the requests experience changes.
+1. **Organize by cohesive responsibility.** Related types may share a file. Split when responsibilities diverge or navigation becomes difficult.
+2. **Create modules for an enforced boundary or demonstrated build/ownership benefit.** Folders are the default within that boundary. Add modules with working consumers, not as stubs for future features.
 3. **No god-files, no god-objects.** No `Utils`, `Helpers`, `Extensions.kt`, `Constants`, `AppState`, or `Repository` that knows more than one aggregate. Grab-bags are rejected in review.
-4. **Folders nest as deep as the domain does.** `feature/settings/services/radarr/edit/` is correct; `feature/settings/RadarrEditScreen.kt` next to forty siblings is not. Flat folders with more than roughly a dozen files are a smell.
+4. **Folders follow the domain.** Group related screens and aggregate types as navigation needs grow; avoid arbitrary file-count quotas and empty-directory READMEs.
 5. **Advisory size limits.** Files over ~300 lines and functions over ~40 lines produce lint *warnings*, never errors. The doctrine is about purpose, not line counts; the warning exists to prompt the question.
-6. **Generated code is isolated and never edited.** Generated clients, generated themes and generated resources live in leaf modules or clearly named `Generated/` directories, are excluded from formatters, and are verified byte-for-byte against the generator in CI. Hand-written domain models wrap generated DTOs so spec churn stops at the boundary.
+6. **Generated code is isolated and never edited.** Generated clients, generated themes and generated resources live in leaf modules or clearly named `Generated/` directories, are excluded from formatters, and are verified byte-for-byte against the generator in CI. Generated output follows supported generator structure. Data may import generated DTOs for mapping; Data’s public APIs expose hand-written domain models.
 7. **Names say what, folders say where.** A file's name never repeats its path (`feature/requests/list/RequestListScreen.kt`, not `feature/requests/list/FeatureRequestsListScreen.kt`).
-8. **Tests mirror sources.** Every source folder has a sibling test folder with the same structure; test files are named for the unit they test.
+8. **Test meaningful behavior.** Locate tests near the corresponding responsibility; do not create empty suites or test folders for stubs.
 
 ### 12.3 Module boundaries and dependency direction
 
-Both platforms follow the same layered shape. Arrows point in the only allowed direction.
+Both platforms preserve API → Data → domain exposure and feature isolation. Features never import other feature internals or generated DTOs. Cross-feature navigation uses navigation keys/routes; cross-feature data uses Data’s domain APIs. Pure domain models have no platform imports and nothing depends on the app target.
 
-```
-app  ──►  feature/*  ──►  core/ui, core/designsystem, core/data, core/navigation, core/common
-                            core/data  ──►  core/api (generated), core/database, core/datastore, core/network, core/model
-                            core/network ──► core/common
-                            core/api (generated) ──► nothing in-repo
-```
-
-- `feature/*` modules never depend on each other. Cross-feature navigation goes through `core/navigation` keys; cross-feature data goes through `core/data`.
-- `core/model` is pure Kotlin / pure Swift with no platform imports.
-- Nothing depends on `app`.
-- Enforcement: Gradle `dependency-analysis` and a module-graph check on Android; SPM package boundaries on iOS (a package cannot import what it does not declare), plus a script that verifies `project.yml` and each `Package.swift` conform to the allowed graph.
+The complete allowed dependency tables live in [modularity.md](../.agents/rules/modularity.md#dependency-direction). The API import guard is active; Phase 3 adds graph checks with working modules. These tables permit dependencies without requiring all modules to exist upfront.
 
 ### 12.4 Android module map (`apps/android/`)
+
+This is a responsibility map, created incrementally. Start with a single Data module and a single Settings feature module; nested aggregates, media screens and notification agents are folders unless a demonstrated boundary justifies another module.
 
 ```
 app/                          single Activity, Nav3 wiring, Hilt root, deep-link entry
@@ -382,7 +376,7 @@ core/
   compat/                     server-version gating driven by api/compat.json
   data/                       repositories; generated-DTO → domain mappers (one mapper per aggregate)
     auth/  discover/  media/  requests/  issues/  watchlist/  users/  settings/
-  database/                   Room database, DAOs, entities (one entity per file)
+  database/                   Room database, DAOs, entities
   datastore/                  server profiles, preferences, encrypted secrets
   designsystem/               GENERATED theme from design/tokens.json + primitive components
   model/                      domain models (pure Kotlin)
@@ -406,6 +400,8 @@ Inside a feature module: `ui/` (screens and state holders), `domain/` (use cases
 
 ### 12.5 iOS package map (`apps/ios/`)
 
+Create packages with working consumers. Data is initially one target and Settings one feature target; use folders for aggregates and sections.
+
 ```
 project.yml                   XcodeGen; the .xcodeproj is never committed
 App/                          app target: entry, scene, root navigation, deep links
@@ -416,7 +412,7 @@ Packages/
   Model/                      domain models (pure Swift)
   Network/                    URLSession config, per-profile cookie storage, auth, TLS delegate,
                               deprecation-header recorder
-  Data/                       repositories and DTO → domain mappers, one target per aggregate
+  Data/                       repositories and DTO → domain mappers, aggregate folders
   Persistence/                SwiftData models and stores; Keychain; typed defaults
   DesignSystem/               GENERATED theme from design/tokens.json + primitive views
   UI/                         shared content components
@@ -424,7 +420,7 @@ Packages/
   Testing/                    fakes, fixture loaders
   Features/
     Auth/  Servers/  Discover/  Search/  Media/  Requests/  Issues/  Watchlist/  Profile/  Users/
-    Settings/                 one target per Seerr settings section, nested per screen
+    Settings/                 one feature target, folders per section and screen
 ```
 
 Each package declares only the dependencies the allowed graph permits. Feature packages expose a single public entry view and route type; everything else is `internal`.
@@ -432,6 +428,8 @@ Each package declares only the dependencies the allowed graph permits. Feature p
 ---
 
 ## 13. Monorepo layout
+
+Planned ownership map; add directories, tooling and workflows with their first real consumer. Active workflows are described in §14 and configured under `.github/workflows/`.
 
 ```
 gauja/
@@ -466,40 +464,23 @@ gauja/
 
 Two layers: fast local hooks via prek, and authoritative CI. The local layer mirrors CI's format/lint failures so they surface before a push; heavier gates (full compilation, emulator/simulator smoke, REUSE lint, contract tests) run only in CI.
 
-### 14.1 Local hooks (`prek.toml`, Appendix B)
+### 14.1 Local hooks
 
-Builtin: trailing whitespace, EOF fixer, LF line endings, merge-conflict and case-conflict checks, large-file guard (512 KB), private-key detection, JSON/TOML/YAML validity, no direct commits to `main`. All whitespace fixers **exclude generated directories** so generated output stays byte-identical to the generator.
+[prek.toml](../prek.toml) owns commands, filters and exclusions. Hooks enforce file hygiene, commit conventions/sign-off, secret protection, contract/coverage consistency, theme drift, screen consistency and generated API boundaries. Handwritten platform formatting/lint hooks become applicable with app sources. Complexity and length remain advisory.
 
-Third-party: `conventional-pre-commit` (commit-msg), `gitleaks`.
-
-Local, path-scoped:
-
-| Hook | Scope | Purpose |
-|---|---|---|
-| `dco-signoff` | commit-msg | Requires a `Signed-off-by:` trailer; fast mirror of the CI `commit-messages` check (§15.3) |
-| `ktfmt`, `detekt` | `apps/android/` Kotlin, excluding `core/api/` generated | Gradle-driven so detekt loads the Compose ruleset; ktfmt is the formatter named by the Kotlin rule file |
-| `swift-format`, `swiftlint --strict` | `apps/ios/` Swift, excluding `Packages/SeerrAPI/Generated/` | Toolchain swift-format; SwiftLint strict |
-| `api-drift` | `api/seerr-api.yml`, `api/UPSTREAM_COMMIT` | Fails if the spec changed without the commit file, or vice versa |
-| `tokens-check` | `design/tokens.json`, generated themes | Regenerates themes and fails on diff |
-| `fixture-secrets` | `api/fixtures/**` | Rejects `X-Api-Key`, `connect.sid`, Plex/Jellyfin token patterns, VAPID keys |
-| `check-secret-logging` | Kotlin and Swift sources | No log call may format a value from the secrets layer |
-| `translations` | `crowdin.yml`, `strings.xml`, `*.xcstrings` | Catalog validity and key parity |
-| `license-check` | manifests / lockfiles | Dependency license allow-list (`deny.toml`) |
-
-Complexity and length lints are **advisory** (warn) and are never wired as blocking hooks (§12.2 rule 5).
+Translation validation is planned with real catalogs; resolved-dependency license enforcement is planned with real manifests. Neither is an active hook today. The secret-logging scanner is a heuristic supplemented by review and runtime redaction tests.
 
 ### 14.2 CI lanes
 
-| Lane | Trigger | What it does |
-|---|---|---|
-| `android` | changes under `apps/android/`, `api/`, `design/` | Build, unit tests, lint, module-graph check, generated-code drift check, emulator smoke, baseline profile validation, egress test |
-| `ios` | changes under `apps/ios/`, `api/`, `design/` | XcodeGen, build, Swift Testing, SwiftLint, package-graph check, generated-code drift check, simulator smoke, egress test |
-| `contract` | changes under `api/`, `tools/codegen/`, or weekly | Boot Seerr container, seed fixtures, run recorded contract tests for both generated clients, verify no called endpoint has an imminent `Sunset` |
-| `api-sync` | scheduled (weekly) | Diff upstream spec, open PR with regenerated clients |
-| `tokens-check` | changes under `design/` | Regenerate both themes, fail on diff |
-| `release` | tag | Reproducible builds, SBOM, F-Droid metadata, App Store / Play upload via fastlane |
+Configurations own triggers and commands. [CI ownership](../.agents/rules/monorepo.md#ci-ownership-githubworkflows) assigns each assertion one owner:
 
-The `commit-messages` job (Conventional Commit subject and a DCO sign-off whose email matches the author or committer, on every commit) and the REUSE lint are required status checks on every PR; no GitHub app is involved. `main` is protected; squash-merge with the PR title as the conventional-commit subject.
+- `pr-hygiene` enforces repository hygiene, REUSE, history secret scanning, commit/DCO checks, tooling tests and platform separation. Its prek job owns screen/API import checks.
+- `codegen-check` validates contract pairing/coverage and upstream bytes, plus independent client generation and synthetic compile/serialization/redaction checks.
+- `tokens-check` validates theme drift.
+
+Phase 3 adds independent Android/iOS app builds, lint, graph and UI smoke checks. Phase 11 adds real-server contracts, performance/egress checks and weekly upstream discovery; Phase 12 adds release builds, SBOM, bundled notices and store upload. Add each lane with meaningful assertions; do not create passing placeholders. Transfer an existing assertion when its replacement becomes authoritative rather than running duplicate CI steps.
+
+Preserve required status checks and inspect branch protection/rulesets before removing or renaming jobs. `main` remains protected; use Conventional Commits and DCO sign-off, with squash merges.
 
 ---
 
@@ -507,13 +488,13 @@ The `commit-messages` job (Conventional Commit subject and a DCO sign-off whose 
 
 ### 15.1 License
 
-Gauja is licensed **AGPL-3.0-or-later**. Every source file carries `SPDX-FileCopyrightText` and `SPDX-License-Identifier` headers; the repository is REUSE-compliant. Vendored upstream material (`api/seerr-api.yml`) is MIT and retains its license text.
+Gauja is licensed **AGPL-3.0-or-later**. Every source file carries `SPDX-FileCopyrightText` and `SPDX-License-Identifier` headers; the repository is REUSE-compliant. Vendored upstream material (`api/seerr-api.yml`) is MIT and retains its copyright and permission notice. Generated descriptions and imported palette material retain inherited attribution in `REUSE.toml`; Gauja contributions keep their existing license. REUSE metadata completeness and resolved-dependency license checks are separate responsibilities. Release packaging must include the complete applicable notices for material actually distributed, as specified in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 For the mobile apps the AGPL's network clause is effectively dormant; it is retained so that any future server-side component (the deferred notification relay, §7) is covered automatically.
 
 ### 15.2 App Store Distribution Exception
 
-Apple's App Store terms (and, to a lesser but real degree, Google Play's distribution agreement) impose restrictions on recipients that the (A)GPL does not permit. The original author may distribute their own code there, but every third-party contributor's copyright also governs distribution once their contribution is merged. Gauja therefore grants an **additional permission under AGPL-3.0 §7** for distribution through Apple's and Google's app stores and comparable services. The full text is `APPSTORE_EXCEPTION.md`, reproduced in Appendix A.
+Apple's App Store terms (and, to a lesser but real degree, Google Play's distribution agreement) impose restrictions on recipients that the (A)GPL does not permit. The original author may distribute their own code there, but every third-party contributor's copyright also governs distribution once their contribution is merged. Gauja therefore grants an **additional permission under AGPL-3.0 §7** for distribution through Apple's and Google's app stores and comparable services. The full text is [APPSTORE_EXCEPTION.md](../APPSTORE_EXCEPTION.md), linked in Appendix A.
 
 To close the gap between the DCO's "license indicated in the file" and this exception, the root `LICENSE` file states:
 
@@ -543,7 +524,7 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 ## 16. Localization
 
 - Source language: English (US). Catalogs: `strings.xml` per locale on Android, `Localizable.xcstrings` on iOS.
-- Crowdin hosts translation, configured by `crowdin.yml`; `tools/community/validate-translations.py` checks catalog validity and key parity between platforms.
+- With real catalogs, Phase 11 enables Crowdin and catalog validity/key-parity enforcement between platforms.
 - Seerr's own translation catalogs (`server/i18n/locale/`, MIT) may be used as a **seed** for UI strings that are identical in meaning (status names, permission labels, settings section titles), with attribution in `docs/THIRD_PARTY.md`. Seeding is a one-time import, not an ongoing dependency.
 - Both apps honour the user's Seerr locale setting for server-provided content and the device locale for UI, matching Seerr's behaviour.
 
@@ -562,7 +543,7 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 
 | # | Risk / question | Mitigation or owner |
 |---|---|---|
-| 1 | **Settings surface size.** 62 `/settings` paths and every notification agent form is the majority of the screen count. | Screen inventory sized before Phase 2; settings sections implemented in Seerr's sidebar order so partial progress is coherent; each section is its own module and PR. |
+| 1 | **Settings surface size.** 62 `/settings` paths and every notification agent form is the majority of the screen count. | Screen inventory sized before Phase 2; settings sections implemented in Seerr's sidebar order so partial progress is coherent; sections use folders within Settings initially and feature-sized PRs. |
 | 2 | **Spec drift from real behaviour.** Upstream's hand-maintained spec may not match the server. | Overlays (§4.1) plus contract tests against a real container (§4.5). |
 | 3 | **Maintainer bandwidth per platform.** Two native codebases. | CODEOWNERS; each app buildable alone; screen specs let one platform lead. |
 | 4 | **Apple review of an AGPL app.** | Exception (§15.2); precedent exists for GPL-family apps with such exceptions. |
@@ -575,117 +556,13 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 
 ---
 
-## Appendix A — App Store Distribution Exception (`APPSTORE_EXCEPTION.md`)
+## Appendix A — App Store Distribution Exception
 
-*An additional permission under section 7 of the GNU Affero General Public License, version 3.*
+The authoritative permission text is [APPSTORE_EXCEPTION.md](../APPSTORE_EXCEPTION.md). The project license and contribution grant are defined in [LICENSE](../LICENSE) and [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-### Why this exception exists
+## Appendix B — Local hook configuration
 
-This project is licensed **AGPL-3.0-or-later**. Apple distributes App Store apps, and Google distributes Google Play apps, under their own standard terms — usage rules, device limits, and restrictions on redistribution — which have long been considered (by the Free Software Foundation, and in practice in the 2011 VLC removal from the App Store) to impose restrictions on users beyond what the (A)GPL permits. Distributing a copyleft-covered work through such a service therefore requires permission from **every** copyright holder of that work.
-
-The original author can lawfully publish their own code there — one cannot infringe one's own copyright. But the moment a third-party contribution is merged, that contributor's copyright governs distribution too, and their AGPL grant alone arguably does not authorize the store's terms. This document is that missing permission, granted by every copyright holder of the project.
-
-### The additional permission
-
-As an additional permission under section 7 of the GNU Affero General Public License, version 3 (or any later version), each copyright holder of this work grants you permission to convey the work, and works based on it, in object-code form through Apple's App Store and associated Apple distribution services (including TestFlight), through Google Play and associated Google distribution services, and through other application distribution services that impose comparable terms on recipients, notwithstanding that those services' terms and conditions may impose restrictions on recipients that the License would otherwise prohibit — provided that the complete corresponding source code remains available to all recipients under the GNU Affero General Public License version 3 or any later version.
-
-### What this does not change
-
-- **The license stays AGPL-3.0-or-later for everyone, everywhere.** This exception grants an *additional* permission for specific distribution channels; it removes no right and adds no restriction for anyone.
-- **Source availability is unconditional.** Anyone may build, modify, and redistribute the app from source under the AGPL, on any platform, without Apple or Google.
-- **You may remove this permission.** Section 7 of the License expressly allows recipients to remove additional permissions from their copies.
-- **Contributions carry it automatically.** By submitting a contribution with a Developer Certificate of Origin sign-off (see `CONTRIBUTING.md`), you license your contribution under AGPL-3.0-or-later **together with this additional permission**.
-
----
-
-## Appendix B — `prek.toml`
-
-Adapted from the Spidola configuration. Differences: no Rust lanes; generated-code exclusions point at the OpenAPI clients and generated themes; added `api-drift`, `tokens-check`, `fixture-secrets` and a two-language `check-secret-logging`.
-
-```toml
-# SPDX-FileCopyrightText: 2026 Gauja contributors
-# SPDX-License-Identifier: AGPL-3.0-or-later
-
-# prek.toml — pre-commit hooks configuration
-# Docs: https://prek.j178.dev/configuration/
-#
-# Setup: `prek install` (installs both the pre-commit and commit-msg shims).
-# Run everything: `prek run --all-files` (do this after changing this file).
-# See docs/gauja-implementation-plan.md — Phase 1, and docs/gauja-prd.md §14.
-
-default_install_hook_types = ["pre-commit", "commit-msg"]
-
-# Generated artifacts must match their generators byte-for-byte (CI drift check),
-# so whitespace/EOF fixers and formatters skip them.
-# GENERATED = ^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)
-
-[[repos]]
-repo = "builtin"
-hooks = [
-  { id = "trailing-whitespace", exclude = "^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)" },
-  { id = "end-of-file-fixer",   exclude = "^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)" },
-  { id = "mixed-line-ending", args = ["--fix=lf"], exclude = "^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)" },
-  { id = "check-merge-conflict" },
-  { id = "check-case-conflict" },
-  { id = "check-added-large-files", args = ["--maxkb=512"] },
-  { id = "detect-private-key" },
-  { id = "check-json" },
-  { id = "check-toml" },
-  { id = "check-yaml" },
-  { id = "no-commit-to-branch", args = ["--branch", "main"] },
-]
-
-# Conventional Commits
-[[repos]]
-repo = "https://github.com/compilerla/conventional-pre-commit"
-rev = "v4.4.0"
-hooks = [
-  { id = "conventional-pre-commit", stages = ["commit-msg"] },
-]
-
-# Secret / credential leak guard (PRD §10, §14)
-[[repos]]
-repo = "https://github.com/gitleaks/gitleaks"
-rev = "v8.30.1"
-hooks = [
-  { id = "gitleaks" },
-]
-
-# Local hooks — path-scoped mirrors of the CI lanes (PRD §14). Heavier gates stay in CI.
-# Complexity/length lints remain ADVISORY (warn) per the modularity doctrine (PRD §12.2).
-[[repos]]
-repo = "local"
-hooks = [
-  # DCO sign-off — every commit certifies the DCO and grants the App Store exception
-  # (CONTRIBUTING.md + APPSTORE_EXCEPTION.md; PRD §15). Commit with `git commit -s`.
-  { id = "dco-signoff", name = "DCO sign-off (Signed-off-by)", entry = "sh -c 'grep -qE \"^Signed-off-by: .+ <.+@.+>\" \"$1\" || { echo \"Commit message is missing a Signed-off-by line (DCO). Commit with: git commit -s\"; exit 1; }' --", language = "system", stages = ["commit-msg"] },
-
-  # API contract — spec and pinned upstream commit change together (PRD §4.1).
-  { id = "api-drift", name = "api contract consistency", entry = "tools/api-drift/check-local.sh", language = "system", files = "^api/(seerr-api\\.yml|UPSTREAM_COMMIT|overlays/)", pass_filenames = false },
-  # Recorded fixtures must never carry credentials (PRD §10).
-  { id = "fixture-secrets", name = "fixture credential scan", entry = "tools/ci/check-fixture-secrets.sh", language = "system", files = "^api/fixtures/", pass_filenames = false },
-  # Design tokens — generated themes must match tokens.json (PRD §8).
-  { id = "tokens-check", name = "design tokens → themes", entry = "tools/tokens/check.sh", language = "system", files = "^(design/tokens\\.json|apps/android/core/designsystem/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)", pass_filenames = false },
-  # Secret-logging guard — no log call may format an exposed secret value (PRD §10).
-  { id = "check-secret-logging", name = "secret-logging guard", entry = "tools/ci/check-secret-logging.sh", language = "system", types_or = ["kotlin", "swift"], files = "^apps/", pass_filenames = false },
-  # Translation catalogs (PRD §16).
-  { id = "translations", name = "translation catalogs", entry = "python3 tools/community/validate-translations.py", language = "system", files = "(^crowdin\\.yml$|^apps/(ios/.+\\.xcstrings|android/.+/res/(values|values-[^/]+)/strings\\.xml)$)", pass_filenames = false },
-  # Dependency license allow-list (PRD §10).
-  { id = "license-check", name = "dependency licenses", entry = "tools/ci/check-licenses.sh", language = "system", files = "(^|/)(gradle/libs\\.versions\\.toml|Package\\.resolved|deny\\.toml)$", pass_filenames = false },
-
-  # iOS — apps/ios/ (toolchain swift-format + SwiftLint; PRD §14 ios lane). Generated client excluded.
-  { id = "swift-format", name = "swift-format", entry = "swift format --in-place", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
-  { id = "swiftlint", name = "swiftlint", entry = "swiftlint lint --strict", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
-
-  # Android — apps/android/ (ktfmt + detekt with the Compose ruleset; PRD §14 android lane).
-  # ktfmt, not ktlint: the Kotlin rule file names ktfmt as the formatter and is authoritative (PRD §12.1).
-  # Gradle-driven so detekt loads the Compose ruleset; fires only when Kotlin under apps/android/ is staged.
-  { id = "ktfmt", name = "ktfmt", entry = "apps/android/gradlew --project-dir apps/android ktfmtCheck", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
-  { id = "detekt", name = "detekt", entry = "apps/android/gradlew --project-dir apps/android detekt", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
-]
-```
-
----
+[prek.toml](../prek.toml) is the authoritative hook configuration, including commands, path filters and generated-file exclusions. Setup instructions live in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Appendix C — Decision log
 

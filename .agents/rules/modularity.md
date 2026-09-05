@@ -1,29 +1,31 @@
 ---
 type: "agent_requested"
-description: "Gauja modularity doctrine: one purpose per file and module, dependency direction, generated-code isolation (both platforms)"
+description: "Gauja modularity doctrine: cohesive responsibilities and justified modules, dependency direction, generated-code isolation (both platforms)"
 ---
 
 # Modularity
 
-This file expands PRD §12.2 and §12.3 into rules that apply to every line under `apps/android/` and `apps/ios/`. It is normative: violations are review blockers, and the dependency graph is enforced mechanically. On language, framework and library usage the platform rule files (`kotlin-2_4-android-app.md`, `swift-6_3-ios-app.md`) govern; this file governs shape.
+This file expands PRD §12.2 and §12.3 into rules that apply to every line under `apps/android/` and `apps/ios/`. It is normative: violations are review blockers, with import checks active now and dependency graph enforcement added with working modules in Phase 3. On language, framework and library usage the platform rule files (`kotlin-2_4-android-app.md`, `swift-6_3-ios-app.md`) govern; this file governs shape.
 
-## One purpose per file
+## Cohesive responsibilities
 
-1. **One responsibility per file.** A file contains exactly one of: one type, one composable / view, one use case, one mapper, one DAO, one small family of tightly related extensions on one receiver. If a file needs a section comment to navigate, it is two files.
-2. **No grab-bags.** No `Utils`, `Helpers`, `Extensions.kt`, `Constants`, `AppState`, `Misc`, `Common.swift`, or a `Repository` that knows more than one aggregate. Name the concern instead: `RedactingFormatter`, `IsoDurationParser`, `RequestRepository`.
-3. **Names say what, folders say where.** A file name never repeats its path. `feature/requests/list/RequestListScreen.kt`, not `feature/requests/list/FeatureRequestsListScreen.kt`. The type inside is named like the file.
-4. **Folders nest as deep as the domain.** `feature/settings/services/radarr/edit/` is right; forty siblings in `feature/settings/` is wrong. A flat folder with more than roughly a dozen files is a smell to fix in the same PR.
-5. **Advisory size limits.** Files over ~300 lines and functions over ~40 lines produce lint *warnings* (detekt `LongMethod` / `LargeClass`, SwiftLint `file_length` / `function_body_length` at `warning`), never errors, and are never wired as blocking hooks. The doctrine is about purpose, not line counts.
-6. **Tests mirror sources.** Every source folder has a sibling test folder with the same path; a test file is named for the unit it tests (`RequestMapperTest.kt`, `RequestMapperTests.swift`). Tool scripts follow the same rule under `tools/tests/`.
+1. **Organize by cohesive responsibility.** Related types may share a file. Split when responsibilities diverge or navigation becomes difficult, not because a file contains a second type.
+2. **Create build modules for an enforced boundary or demonstrated build/ownership benefit.** Folders are the default within that boundary. Start with one Data module/target and one Settings feature module/target; aggregate and notification-agent folders are not separate builds by default.
+3. **Name the concern.** Avoid unrelated `Utils`, `Helpers` or catch-all repositories. Names describe purpose without repeating the entire folder path.
+4. **Use folders as the domain grows.** Add depth when it improves navigation, without file-count quotas or empty-directory READMEs.
+5. **Advisory size limits.** Files over ~300 lines and functions over ~40 lines may produce lint warnings, never blocking errors. Generated output follows supported generator structure and is exempt.
+6. **Tests follow behavior.** Place meaningful tests where contributors can find them from the source. Do not create empty test trees or suites for package stubs.
 
 ## Inside a module
 
-- Feature modules use `ui/` (screens and state holders), `domain/` (use cases), `navigation/` (keys or routes), with nested subfolders per screen (`list/`, `detail/`, `edit/`).
-- A screen is a stateless renderer plus a state owner (ViewModel / `@Observable` model) in separate files. Its UI state is one immutable type per screen, modelling all five states from the screen spec: loading, empty, error, offline, permission-denied.
+- As needed, feature modules use `ui/` (screens and state holders), `domain/` (use cases), `navigation/` (keys or routes), with nested subfolders per screen (`list/`, `detail/`, `edit/`).
+- A screen is a stateless renderer plus a state owner (ViewModel / `@Observable` model) with clear ownership; closely related types may share a file. Its UI state is one immutable type per screen, modelling the applicable states in its screen spec.
 - Every `when` / `switch` over an upstream-defined enum (`MediaStatus`, `MediaRequestStatus`, `IssueType`, `IssueStatus`, `MediaServerType`, `DiscoverSliderType`, permission bits) has an explicit unknown branch. Seerr adds values.
-- Pure domain logic (`hasPermission`, `ServerVersion` parsing, `FeatureGate`, mappers, image-URL rewriting, deep-link parsing) lives in `core/model` / `core/common` / `Model` / `Common` with no platform imports, so it is unit-testable in isolation. Inject `Clock`, dispatchers and dependency keys; never read a global.
+- Pure domain logic (`hasPermission`, `ServerVersion` parsing, `FeatureGate`, image-URL rewriting, deep-link parsing) lives in `core/model` / `core/common` / `Model` / `Common` with no platform imports, so it is unit-testable in isolation. Inject `Clock`, dispatchers and dependency keys; never read a global.
 
 ## Dependency direction
+
+Preserve API → Data → domain exposure and feature isolation. The tables are an allowed responsibility map; add a module only with a working consumer.
 
 Arrows point in the only allowed direction. Anything else fails the module-graph check.
 
@@ -71,9 +73,9 @@ Rules that follow from the tables:
 
 - **`feature/*` modules never depend on each other.** Cross-feature navigation goes through `core/navigation` / `Navigation` keys; cross-feature data goes through `core/data` / `Data`.
 - **Nothing depends on `app` / the `App` target.**
-- **Generated DTOs may cross only the API → Data mapping boundary (plus tests), and never Data’s outward interface.** `core/data` / `Data` wraps them in hand-written domain models with one mapper file per aggregate.
+- **Generated DTOs may cross only the API → Data mapping boundary (plus tests), and never Data’s outward interface.** `core/data` / `Data` wraps them in hand-written domain models with aggregate-focused mappers in Data folders.
 - Each feature package on iOS exposes exactly one public entry view and one public route type; everything else is `internal`. On Android the feature module exposes its `NavKey`s and its `EntryProviderInstaller`; screens are `internal`.
-- Enforcement: Gradle `dependency-analysis` plus `tools/ci/check-module-graph.sh` on Android; SPM package boundaries plus `tools/ci/check-package-graph.sh` on iOS. Both scripts read the tables above and land with the skeletons in Phase 3.
+- Enforcement: Gradle `dependency-analysis` plus `tools/ci/check-module-graph.sh` on Android; SPM package boundaries plus `tools/ci/check-package-graph.sh` on iOS. Implement graph assertions against the allowed dependencies above when the working modules land in Phase 3; do not create passing placeholder scripts. The tables describe permitted dependencies, not a requirement to create every listed module upfront.
 
 ## Generated code is isolated and never edited
 
