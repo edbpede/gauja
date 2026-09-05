@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Ownership follows PRD §13: platform trees to their platform maintainers, the shared
+# contract (api/, design/) to both, docs and root configuration to the project leads.
+# A change under apps/android/ needs no iOS reviewer and vice versa.
+# There is one maintainer today; split the handles below as the team grows.
+
+# Root configuration and documentation: project leads
+*                       @edbpede
+docs/                   @edbpede
+.agents/                @edbpede
+.github/                @edbpede
+tools/                  @edbpede
+
+# Shared contract: both platform maintainers
+api/                    @edbpede
+design/                 @edbpede
+
+# Platform trees: platform maintainers
+apps/android/           @edbpede
+apps/ios/               @edbpede
