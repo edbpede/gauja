@@ -34,6 +34,7 @@ Gradle smoke `gradle.lockfile`.
 | Dependency family | License | Scope |
 |---|---|---|
 | PyYAML, attrs, jsonschema, jsonschema-specifications, referencing, rpds-py, python-jsonpath | MIT | Contract parsing/validation only |
+| typing-extensions | PSF-2.0 | Python 3.12 contract tooling only |
 | OpenAPI Generator, Kotlin, Gradle, kotlinx serialization/coroutines, Retrofit, OkHttp, Okio, JetBrains annotations | Apache-2.0 | Generation and JVM compile harness |
 | Swift OpenAPI Generator/runtime/URLSession, Swift Algorithms/Argument Parser/Numerics/Collections/HTTP Types | Apache-2.0 | Generation and Swift compile harness |
 | OpenAPIKit, Yams | MIT | Swift generator dependencies |

@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Shared contract tooling
 
-Run from the repository root. Python 3.13+ and git are required. Install the
+Run from the repository root. Python 3.12+ and git are required. Install the
 hash-pinned build dependencies once with `tools/contract/python.sh --install`.
 Nothing in this environment ships in either app. Tokens use Python's standard
 library and need no installation.
