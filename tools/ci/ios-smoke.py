@@ -25,12 +25,15 @@ def main():
     for runtime, device in zip(select_runtimes(data["runtimes"]), ["iPad-Pro-13-inch-M4-8GB", "iPhone-16-Pro"]):
         identifier = subprocess.check_output(["xcrun", "simctl", "create", "Gauja smoke", "com.apple.CoreSimulator.SimDeviceType." + device, runtime["identifier"]], text=True).strip()
         try:
+            subprocess.run(["xcrun", "simctl", "boot", identifier], check=True)
+            subprocess.run(["xcrun", "simctl", "bootstatus", identifier, "-b"], check=True)
+            # A single prepared simulator avoids cold parallel clones exhausting CI resources.
             destination = "platform=iOS Simulator,id=" + identifier
             subprocess.run(["xcodebuild", "-project", "Gauja.xcodeproj", "-scheme", "Gauja",
                             "-destination", destination, "-derivedDataPath", "DerivedData",
-                            "-skipPackagePluginValidation", "test", "CODE_SIGNING_ALLOWED=NO"], cwd=ROOT / "apps/ios", check=True)
+                            "-skipPackagePluginValidation", "-parallel-testing-enabled", "NO", "test", "CODE_SIGNING_ALLOWED=NO"], cwd=ROOT / "apps/ios", check=True)
             subprocess.run(["xcodebuild", "-scheme", "Servers", "-destination", destination,
-                            "-skipPackagePluginValidation", "test"], cwd=ROOT / "apps/ios/Packages/Features/Servers", check=True)
+                            "-skipPackagePluginValidation", "-parallel-testing-enabled", "NO", "test"], cwd=ROOT / "apps/ios/Packages/Features/Servers", check=True)
         finally:
             subprocess.run(["xcrun", "simctl", "shutdown", identifier], check=False)
             subprocess.run(["xcrun", "simctl", "delete", identifier], check=True)
