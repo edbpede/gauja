@@ -28,9 +28,10 @@ This file expands PRD §12.2 and §12.3 into rules that apply to every line unde
 Arrows point in the only allowed direction. Anything else fails the module-graph check.
 
 ```
-app ──► feature/* ──► core/ui, core/designsystem, core/data, core/navigation, core/common, core/compat, core/model
-                       core/data ──► core/api (generated), core/database, core/datastore, core/network, core/model, core/common
-                       core/network ──► core/common, core/model
+app ──► feature/*, core/ui, core/designsystem, core/navigation, core/data, core/common, core/compat, core/model, core/datastore (profile bootstrap only)
+        feature/* ──► core/ui, core/designsystem, core/data, core/navigation, core/common, core/compat, core/model
+                       core/data ──► core/api (generated), core/database, core/datastore, core/network, core/model, core/common, core/compat
+                       core/network ──► core/common, core/model, core/datastore (secrets read)
                        core/ui ──► core/designsystem, core/model, core/common
                        core/api (generated) ──► nothing in-repo
                        core/model ──► nothing in-repo

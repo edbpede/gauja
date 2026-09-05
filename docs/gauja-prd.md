@@ -97,7 +97,7 @@ CI runs a real Seerr container (upstream `Dockerfile`, SQLite) seeded with fixtu
 
 ## 5. Feature inventory
 
-Organised by API tag family. **Parity** is required unless a cell says otherwise; "platform-adapted" means the same information and actions with platform-native chrome. Every row here maps to one or more screen specs in `docs/screens/`.
+Organised by API tag family. **Parity** is required unless a cell says otherwise; "platform-adapted" means the same information and actions with platform-native chrome. Every row here maps to one or more screen specs in `design/screens/`.
 
 ### 5.1 Authentication and servers (`/auth`, `/status`)
 
@@ -240,7 +240,7 @@ What blocks v1: the iOS path requires project-hosted infrastructure (§2.2), Uni
 - **Dark first.** Seerr is dark; Gauja's default theme is dark with a light theme generated from the same tokens. Follow-system is available.
 - **Adaptive layouts** are a requirement, not a stretch goal: list/detail for settings and requests on tablets and foldables, multi-column discover grids, Material 3 Adaptive on Android and `NavigationSplitView` on iOS.
 
-Screen specs (`docs/screens/<area>/<screen>.md`) are the contract between the two apps: content, states (loading, empty, error, offline, permission-denied), actions, and analytics-free acceptance criteria.
+Screen specs (`design/screens/<area>/<screen>.md`) are the contract between the two apps: content, states (loading, empty, error, offline, permission-denied), actions, and analytics-free acceptance criteria.
 
 ---
 
@@ -566,7 +566,7 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 | 2 | **Spec drift from real behaviour.** Upstream's hand-maintained spec may not match the server. | Overlays (§4.1) plus contract tests against a real container (§4.5). |
 | 3 | **Maintainer bandwidth per platform.** Two native codebases. | CODEOWNERS; each app buildable alone; screen specs let one platform lead. |
 | 4 | **Apple review of an AGPL app.** | Exception (§15.2); precedent exists for GPL-family apps with such exceptions. |
-| 5 | **Auth edge cases** (proxies, self-signed TLS, Plex token expiry, Quick Connect timing). | Dedicated test matrix in `docs/screens/auth/`; per-profile trust modes (§6). |
+| 5 | **Auth edge cases** (proxies, self-signed TLS, Plex token expiry, Quick Connect timing). | Dedicated test matrix in `design/screens/auth/`; per-profile trust modes (§6). |
 | 6 | **Android minSdk.** A floor of 30 covers ~87% of active devices (April 2026), roughly parity with the iOS 18 floor; the remaining ~13% are Android 8–10 devices. | Decided: 30. The rule file is amended to match. Revisit only by amending the rule file first. |
 | 7 | **iOS image pipeline.** Own `URLSession` loader vs. a third-party library. | Decide in TECH_SPEC after measuring against §9 targets. |
 | 8 | **Seerr's Overseerr/Jellyseerr merge is ongoing** (`server/lib/overseerrMerge.ts`); endpoints may be renamed with `Deprecation` headers. | §4.3 and §4.4. |
