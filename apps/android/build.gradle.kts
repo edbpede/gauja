@@ -30,6 +30,8 @@ subprojects {
 tasks.register("exportModuleGraph") {
     val output = layout.buildDirectory.file("reports/module-graph.json")
     outputs.file(output)
+    // Edges come from evaluated project configurations, not declared file inputs.
+    outputs.upToDateWhen { false }
     doLast {
         val projects =
             allprojects
