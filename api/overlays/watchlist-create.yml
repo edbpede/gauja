@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Seerr v3.4.1: POST /watchlist requires mediaType and returns 201; upstream PR #3425.
+# Issue: https://github.com/seerr-team/seerr/pull/3425
+# Response evidence: https://github.com/seerr-team/seerr/blob/69f73a6f1486fdb51b8ddae9a94a8dfb629f461c/server/routes/watchlist.ts
+# Evidence: https://github.com/seerr-team/seerr/blob/69f73a6f1486fdb51b8ddae9a94a8dfb629f461c/server/interfaces/api/watchlistCreate.ts
+overlay: 1.0.0
+info:
+  title: 'POST /watchlist requires mediaType and returns 201; upstream PR #3425.'
+  version: 1.0.0
+actions:
+- target: $.components.schemas
+  update:
+    WatchlistRequest:
+      type: object
+      required:
+      - tmdbId
+      - mediaType
+      properties:
+        tmdbId:
+          type: number
+        mediaType:
+          type: string
+          enum:
+          - movie
+          - tv
+        ratingKey:
+          type: string
+        title:
+          type: string
+- target: $.paths['/watchlist'].post.requestBody.content['application/json'].schema
+  update:
+    $ref: '#/components/schemas/WatchlistRequest'
+- target: $.paths['/watchlist'].post.responses['200']
+  remove: true
+- target: $.paths['/watchlist'].post.responses
+  update:
+    '201':
+      description: Watchlist data returned
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Watchlist'

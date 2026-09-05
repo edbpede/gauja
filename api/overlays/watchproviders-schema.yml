@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Seerr v3.4.1 movie/TV watchProviders is an array of region objects, not arrays.
+# Evidence: https://github.com/seerr-team/seerr/blob/69f73a6f1486fdb51b8ddae9a94a8dfb629f461c/server/models/common.ts
+# Issue: https://github.com/seerr-team/seerr/pull/2700
+overlay: 1.0.0
+info:
+  title: Watch provider region object and flatrate array
+  version: 1.0.0
+actions:
+- target: $.components.schemas.WatchProviders.items
+  remove: true
+- target: $.components.schemas.WatchProviders
+  update:
+    type: object
+    properties:
+      iso_3166_1:
+        type: string
+      link:
+        type: string
+      buy:
+        type: array
+        items:
+          $ref: '#/components/schemas/WatchProviderDetails'
+      flatrate:
+        items:
+          $ref: '#/components/schemas/WatchProviderDetails'
+        type: array
+    required:
+    - iso_3166_1

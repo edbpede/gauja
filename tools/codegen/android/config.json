@@ -1,0 +1,10 @@
+{
+  "packageName": "app.gauja.core.api",
+  "serializationLibrary": "kotlinx_serialization",
+  "useCoroutines": true,
+  "hideGenerationTimestamp": true,
+  "generateOneOfAnyOfWrappers": true,
+  "typeMappings": {
+    "AnyType": "kotlinx.serialization.json.JsonElement"
+  }
+}

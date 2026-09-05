@@ -35,3 +35,10 @@ api/fixtures/**/*.local.*
 *.jks
 *.p12
 *.mobileprovision
+
+# Contract tooling and isolated generation/build checks
+.cache/
+
+# Python build tooling caches
+__pycache__/
+*.py[cod]

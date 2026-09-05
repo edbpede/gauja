@@ -71,7 +71,7 @@ Rules that follow from the tables:
 
 - **`feature/*` modules never depend on each other.** Cross-feature navigation goes through `core/navigation` / `Navigation` keys; cross-feature data goes through `core/data` / `Data`.
 - **Nothing depends on `app` / the `App` target.**
-- **Generated DTOs never leave `core/api` / `SeerrAPI`.** `core/data` / `Data` wraps them in hand-written domain models with one mapper file per aggregate.
+- **Generated DTOs may cross only the API → Data mapping boundary (plus tests), and never Data’s outward interface.** `core/data` / `Data` wraps them in hand-written domain models with one mapper file per aggregate.
 - Each feature package on iOS exposes exactly one public entry view and one public route type; everything else is `internal`. On Android the feature module exposes its `NavKey`s and its `EntryProviderInstaller`; screens are `internal`.
 - Enforcement: Gradle `dependency-analysis` plus `tools/ci/check-module-graph.sh` on Android; SPM package boundaries plus `tools/ci/check-package-graph.sh` on iOS. Both scripts read the tables above and land with the skeletons in Phase 3.
 

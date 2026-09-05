@@ -26,6 +26,7 @@ By signing off you license your contribution under AGPL-3.0-or-later together wi
 [prek](https://prek.j178.dev) runs the hooks in `prek.toml` on `pre-commit` and `commit-msg`.
 
 ```bash
+tools/contract/python.sh --install  # pinned build-only contract dependencies
 prek install            # once per clone: installs both shims
 prek run --all-files    # after changing prek.toml, or before opening a PR
 ```
@@ -68,7 +69,7 @@ Each app is a complete, standalone build. Only `api/`, `design/` and `tools/` ar
 - **Android only:** JDK 17 and Android SDK 37. `cd apps/android && ./gradlew assembleDebug testDebugUnitTest detekt ktfmtCheck lint`. No Xcode needed.
 - **iOS only:** Xcode 26 with the Swift 6.3 toolchain, XcodeGen 2.46.x, SwiftLint 0.65.x. `cd apps/ios && xcodegen generate` then build and test from Xcode or `xcodebuild`. No JDK needed.
 
-Until Phase 3 of the implementation plan lands, neither app tree exists yet.
+Until Phase 3, the app trees contain generated artifacts only. See [the contract tooling guide](tools/codegen/README.md) for the independent client smoke builds available now.
 
 ## Reporting security issues
 

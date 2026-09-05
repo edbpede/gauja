@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Seerr v3.4.1: Declare tags already used by operations; no routes are added.
+# Evidence: https://github.com/seerr-team/seerr/blob/69f73a6f1486fdb51b8ddae9a94a8dfb629f461c/seerr-api.yml
+overlay: 1.0.0
+info:
+  title: Declare tags already used by operations; no routes are added.
+  version: 1.0.0
+actions:
+- target: $.tags
+  update:
+  - name: tmdb
+    description: TMDB metadata lookups.
+  - name: issue
+    description: Media issues and comments.
+  - name: overriderule
+    description: Request override rules.

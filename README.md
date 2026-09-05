@@ -11,11 +11,11 @@ Gauja is an unofficial, fully native companion app for [Seerr](https://github.co
 
 ## Status
 
-Pre-release. The repository is in Phase 1 of `docs/gauja-implementation-plan.md` (tooling and repository hygiene); no app code exists yet.
+Pre-release. Phase 2 establishes the pinned API contract, generated clients and themes, and screen specifications. App shells begin in Phase 3; there is no runnable app yet.
 
 | | |
 |---|---|
-| Supported Seerr versions | _to be determined per release; recorded in `api/compat.json`_ |
+| Supported Seerr versions | Contract baseline: 3.4.1; feature bounds in `api/compat.json`. Release support awaits server contract tests. |
 | Android | minSdk 30 (Android 11), no Play Services, F-Droid eligible |
 | iOS | iOS 18.0 and later |
 | License | AGPL-3.0-or-later with the [App Store Distribution Exception](APPSTORE_EXCEPTION.md) |
@@ -31,7 +31,7 @@ Each app is a standalone build; you never need both toolchains.
 - **Android** (`apps/android/`): JDK 17, Android SDK 37. `./gradlew assembleDebug` from `apps/android/`.
 - **iOS** (`apps/ios/`): Xcode 26, XcodeGen. `xcodegen generate` from `apps/ios/`, then build in Xcode.
 
-Both trees land in Phase 3 of the plan. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for hooks, sign-off and PR conventions.
+These app build commands become available in Phase 3. Today, validate or regenerate the shared contract using [`tools/codegen/README.md`](tools/codegen/README.md). See [`CONTRIBUTING.md`](CONTRIBUTING.md) for hooks, sign-off and PR conventions.
 
 ## Documents
 
