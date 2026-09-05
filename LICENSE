@@ -659,3 +659,14 @@ specific requirements.
 if any, to sign a "copyright disclaimer" for the program, if necessary.
 For more information on this, and how to apply and follow the GNU AGPL, see
 <https://www.gnu.org/licenses/>.
+
+-----------------------------------------------------------------------
+
+                        NOTE ON THIS PROJECT'S LICENSE
+
+The license of this project is the GNU Affero General Public License,
+version 3 or (at your option) any later version, together with the
+additional permission set out in APPSTORE_EXCEPTION.md. Every reference
+to "the license" in this repository, including in SPDX headers and in
+the Developer Certificate of Origin, means the AGPL together with that
+additional permission.

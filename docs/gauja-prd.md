@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 | Date | 2026-09-05 |
 | Product | Gauja — native Android and iOS companion apps for Seerr |
 | License | AGPL-3.0-or-later, with the App Store Distribution Exception (Appendix A) |
-| Companion documents | `docs/TECH_SPEC.md` (how), `docs/IMPLEMENTATION_PLAN.md` (order), `docs/adr/` (decisions), `docs/screens/` (screen inventory) |
+| Companion documents | `docs/TECH_SPEC.md` (how), `docs/gauja-implementation-plan.md` (order), `design/screens/` (screen inventory); decisions are logged in Appendix C |
 | Normative coding guidelines | `.agents/rules/kotlin-2_4-android-app.md`, `.agents/rules/swift-6_3-ios-app.md` (see §12.1) |
 
 This document states **what** Gauja is and **why** each decision was made. It deliberately carries some material that a conventional PRD would push elsewhere — the licensing exception, the quality-gate configuration, the codebase doctrine — because losing those details is a bigger risk to this project than an over-long PRD.
@@ -97,7 +97,7 @@ CI runs a real Seerr container (upstream `Dockerfile`, SQLite) seeded with fixtu
 
 ## 5. Feature inventory
 
-Organised by API tag family. **Parity** is required unless a cell says otherwise; "platform-adapted" means the same information and actions with platform-native chrome. Every row here maps to one or more screen specs in `docs/screens/`.
+Organised by API tag family. **Parity** is required unless a cell says otherwise; "platform-adapted" means the same information and actions with platform-native chrome. Every row here maps to one or more screen specs in `design/screens/`.
 
 ### 5.1 Authentication and servers (`/auth`, `/status`)
 
@@ -208,15 +208,24 @@ Settings screens are **adaptive**: a list/detail layout on tablets and foldables
 
 ## 7. Notifications — deferred
 
-**Decision:** push notifications are out of scope for v1. The design that was investigated is recorded in `docs/adr/0002-notifications-deferred.md` so that the eventual implementation starts from a decided architecture.
+**Decision:** push notifications are out of scope for v1. The design that was investigated is recorded at the end of this section so that the eventual implementation starts from a decided architecture.
 
 What v1 ships:
 
-- A greyed-out **Notifications** entry in Gauja's app settings labelled "Coming later", with a one-line explanation and a link to the ADR in the About screen.
+- A greyed-out **Notifications** entry in Gauja's app settings labelled "Coming later", with a one-line explanation, repeated in the About screen.
 - The per-user **notification preferences** screen (§5.8), because it is an ordinary Seerr settings endpoint and works today for every agent the admin has enabled.
 - The admin **notification agent** configuration screens (§5.10), for the same reason.
 
-What v1 deliberately does not ship: any background polling worker, any push subscription, any relay, any `push` module. The ADR captures why: Seerr's per-user, multi-device channel is web push; on Android the Google-free path is UnifiedPush; on iOS the only wake-up path is APNs, which requires project-operated infrastructure; end-to-end encryption via RFC 8291 holds on every tier. That is a v2 conversation.
+What v1 deliberately does not ship: any background polling worker, any push subscription, any relay, any `push` module. That is a v2 conversation.
+
+**Investigated design (the starting point for v2).** Seerr's per-user, multi-device channel is **web push** (`/user/{id}/settings/notifications` with the `webpush` agent and `/user/{id}/pushSubscription`): VAPID-signed RFC 8030 requests to a push-service endpoint, payload encrypted end-to-end with RFC 8291 (aes128gcm, RFC 8188). Gauja would register a push subscription per profile exactly as the web UI does, so the server needs no change.
+
+- **Android without Google:** [UnifiedPush](https://unifiedpush.org). The app registers with a user-chosen distributor (ntfy, NextPush, …), receives an endpoint URL and hands it to Seerr as the subscription endpoint. The distributor relays opaque bytes; the app decrypts with the RFC 8291 keys it generated (an ECDH P-256 keypair and auth secret per subscription, stored in `SecretStore`). No Play Services, no Firebase, no project-run server.
+- **iOS:** the only wake-up path is APNs, which Seerr cannot address directly. It needs a project-operated **relay**: an HTTPS endpoint that accepts web push ciphertext and forwards it to APNs as a Notification Service Extension payload; the extension decrypts on device. The relay never sees plaintext, but it is project-hosted infrastructure with availability, abuse and privacy obligations, and the one component the AGPL network clause would govern.
+- **Encryption** holds end-to-end on every tier: the server encrypts to the device's public key; distributors and the relay forward ciphertext only.
+- **Background execution:** Android decrypts and posts the notification in a short worker triggered by the UnifiedPush broadcast; the iOS service extension runs for the notification only. No background polling anywhere.
+
+What blocks v1: the iOS path requires project-hosted infrastructure (§2.2), UnifiedPush needs a distributor-chooser UX and a fallback story, and both need a privacy-statement update. None of it changes Seerr.
 
 ---
 
@@ -231,7 +240,7 @@ What v1 deliberately does not ship: any background polling worker, any push subs
 - **Dark first.** Seerr is dark; Gauja's default theme is dark with a light theme generated from the same tokens. Follow-system is available.
 - **Adaptive layouts** are a requirement, not a stretch goal: list/detail for settings and requests on tablets and foldables, multi-column discover grids, Material 3 Adaptive on Android and `NavigationSplitView` on iOS.
 
-Screen specs (`docs/screens/<area>/<screen>.md`) are the contract between the two apps: content, states (loading, empty, error, offline, permission-denied), actions, and analytics-free acceptance criteria.
+Screen specs (`design/screens/<area>/<screen>.md`) are the contract between the two apps: content, states (loading, empty, error, offline, permission-denied), actions, and analytics-free acceptance criteria.
 
 ---
 
@@ -282,7 +291,7 @@ Governed by `.agents/rules/kotlin-2_4-android-app.md`.
 | Concern | Choice |
 |---|---|
 | Language / build | Kotlin 2.4 (K2), AGP 9.x with built-in Kotlin, KSP2, Gradle version catalog |
-| SDK | minSdk 30 (Android 11; fixed by the guideline — build behind availability checks, do not raise), targetSdk/compileSdk 36 |
+| SDK | minSdk 30 (Android 11; fixed by the guideline — build behind availability checks, do not raise), targetSdk/compileSdk 37 (per the Kotlin rule file) |
 | UI | Jetpack Compose (BOM-governed), Material 3, Material 3 Adaptive |
 | Navigation | Navigation 3, single Activity, owned back stack |
 | DI | Hilt via KSP |
@@ -291,7 +300,7 @@ Governed by `.agents/rules/kotlin-2_4-android-app.md`.
 | Images | Coil 3 with the OkHttp network fetcher |
 | Concurrency | Coroutines + Flow, structured; no `GlobalScope` |
 | Testing | JUnit, Turbine, Compose UI tests, Robolectric for units, an emulator smoke lane |
-| Quality | ktlint, detekt (with the Compose ruleset), Android Lint, baseline profiles |
+| Quality | ktfmt, detekt (with the Compose ruleset), Android Lint, baseline profiles |
 
 One build flavour. No Google Play Services, no Firebase.
 
@@ -334,7 +343,7 @@ Normative coding guidelines live in `.agents/rules/` and **must be followed** fo
 | `.agents/rules/api-contract.md` | How generated clients are produced, isolated and wrapped; how overlays and fixtures are maintained |
 | `.agents/rules/monorepo.md` | Directory ownership, CI lanes, what may and may not cross the `apps/` boundary |
 
-The three project-level files are written during Phase 0 of the implementation plan and are treated as living documents; a change to a rule file is a PR with a rationale, reviewed like code.
+The three project-level files are written during Phase 1 of the implementation plan (the plan's numbering; this document's earlier "Phase 0") and are treated as living documents; a change to a rule file is a PR with a rationale, reviewed like code.
 
 ### 12.2 Single purpose, everywhere
 
@@ -435,7 +444,7 @@ gauja/
     android/                    Gradle project (§12.4)
     ios/                        XcodeGen project + SPM packages (§12.5)
   design/                       tokens.json · screens/<area>/<screen>.md · assets/ (icons, SVG sources, store art)
-  docs/                         PRD.md · TECH_SPEC.md · IMPLEMENTATION_PLAN.md · adr/ · CONTRIBUTING.md · SECURITY.md
+  docs/                         gauja-prd.md · TECH_SPEC.md · gauja-implementation-plan.md · THIRD_PARTY.md
   tools/
     codegen/                    generator configs and wrapper scripts (android, ios)
     tokens/                     tokens.json → Compose theme / SwiftUI theme
@@ -444,7 +453,7 @@ gauja/
     community/                  translation validation
   LICENSE                       AGPL-3.0-or-later text + the note in §15.2
   APPSTORE_EXCEPTION.md         Appendix A
-  REUSE.toml · prek.toml · crowdin.yml · deny.toml (license allow-list) · README.md
+  REUSE.toml · prek.toml · crowdin.yml · deny.toml (license allow-list) · renovate.json · README.md · CONTRIBUTING.md · SECURITY.md
 ```
 
 - **Ownership:** `CODEOWNERS` assigns `apps/android/` and `apps/ios/` to their platform maintainers, `api/` and `design/` to both, `docs/` and root config to the project leads. A change under `apps/android/` needs no iOS reviewer and vice versa.
@@ -467,8 +476,8 @@ Local, path-scoped:
 
 | Hook | Scope | Purpose |
 |---|---|---|
-| `dco-signoff` | commit-msg | Requires a `Signed-off-by:` trailer; fast mirror of the GitHub DCO check (§15.3) |
-| `ktlint`, `detekt` | `apps/android/` Kotlin, excluding `core/api/` generated | Gradle-driven so detekt loads the Compose ruleset |
+| `dco-signoff` | commit-msg | Requires a `Signed-off-by:` trailer; fast mirror of the CI `commit-messages` check (§15.3) |
+| `ktfmt`, `detekt` | `apps/android/` Kotlin, excluding `core/api/` generated | Gradle-driven so detekt loads the Compose ruleset; ktfmt is the formatter named by the Kotlin rule file |
 | `swift-format`, `swiftlint --strict` | `apps/ios/` Swift, excluding `Packages/SeerrAPI/Generated/` | Toolchain swift-format; SwiftLint strict |
 | `api-drift` | `api/seerr-api.yml`, `api/UPSTREAM_COMMIT` | Fails if the spec changed without the commit file, or vice versa |
 | `tokens-check` | `design/tokens.json`, generated themes | Regenerates themes and fails on diff |
@@ -490,7 +499,7 @@ Complexity and length lints are **advisory** (warn) and are never wired as block
 | `tokens-check` | changes under `design/` | Regenerate both themes, fail on diff |
 | `release` | tag | Reproducible builds, SBOM, F-Droid metadata, App Store / Play upload via fastlane |
 
-The GitHub DCO check and the REUSE lint are required status checks on every PR. `main` is protected; squash-merge with the PR title as the conventional-commit subject.
+The `commit-messages` job (Conventional Commit subject and a DCO sign-off whose email matches the author or committer, on every commit) and the REUSE lint are required status checks on every PR; no GitHub app is involved. `main` is protected; squash-merge with the PR title as the conventional-commit subject.
 
 ---
 
@@ -514,7 +523,7 @@ To close the gap between the DCO's "license indicated in the file" and this exce
 
 ### 15.3 Contributions
 
-- Every commit is signed off (`git commit -s`) under the Developer Certificate of Origin 1.1; the GitHub DCO check is a required status.
+- Every commit is signed off (`git commit -s`) under the Developer Certificate of Origin 1.1; the `commit-messages` CI check (§14.2) is a required status.
 - No CLA. Contributors retain copyright; the DCO plus §15.2 is the whole grant.
 - Conventional Commits are required; the changelog is generated from them.
 
@@ -553,16 +562,16 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 
 | # | Risk / question | Mitigation or owner |
 |---|---|---|
-| 1 | **Settings surface size.** 62 `/settings` paths and every notification agent form is the majority of the screen count. | Screen inventory sized before Phase 1; settings sections implemented in Seerr's sidebar order so partial progress is coherent; each section is its own module and PR. |
+| 1 | **Settings surface size.** 62 `/settings` paths and every notification agent form is the majority of the screen count. | Screen inventory sized before Phase 2; settings sections implemented in Seerr's sidebar order so partial progress is coherent; each section is its own module and PR. |
 | 2 | **Spec drift from real behaviour.** Upstream's hand-maintained spec may not match the server. | Overlays (§4.1) plus contract tests against a real container (§4.5). |
 | 3 | **Maintainer bandwidth per platform.** Two native codebases. | CODEOWNERS; each app buildable alone; screen specs let one platform lead. |
 | 4 | **Apple review of an AGPL app.** | Exception (§15.2); precedent exists for GPL-family apps with such exceptions. |
-| 5 | **Auth edge cases** (proxies, self-signed TLS, Plex token expiry, Quick Connect timing). | Dedicated test matrix in `docs/screens/auth/`; per-profile trust modes (§6). |
+| 5 | **Auth edge cases** (proxies, self-signed TLS, Plex token expiry, Quick Connect timing). | Dedicated test matrix in `design/screens/auth/`; per-profile trust modes (§6). |
 | 6 | **Android minSdk.** A floor of 30 covers ~87% of active devices (April 2026), roughly parity with the iOS 18 floor; the remaining ~13% are Android 8–10 devices. | Decided: 30. The rule file is amended to match. Revisit only by amending the rule file first. |
 | 7 | **iOS image pipeline.** Own `URLSession` loader vs. a third-party library. | Decide in TECH_SPEC after measuring against §9 targets. |
 | 8 | **Seerr's Overseerr/Jellyseerr merge is ongoing** (`server/lib/overseerrMerge.ts`); endpoints may be renamed with `Deprecation` headers. | §4.3 and §4.4. |
 | 9 | **Webhook JSON editor.** Native editing of Seerr's templated JSON is fiddly. | Monospaced editor with variable-insertion palette and server-side validation via `/settings/notifications/webhook/test`. |
-| 10 | **Notifications (deferred).** Users will ask. | Greyed-out entry, ADR link, roadmap statement in README. |
+| 10 | **Notifications (deferred).** Users will ask. | Greyed-out entry, §7 explanation in About, roadmap statement in README. |
 
 ---
 
@@ -602,7 +611,7 @@ Adapted from the Spidola configuration. Differences: no Rust lanes; generated-co
 #
 # Setup: `prek install` (installs both the pre-commit and commit-msg shims).
 # Run everything: `prek run --all-files` (do this after changing this file).
-# See docs/IMPLEMENTATION_PLAN.md — Phase 0, and docs/PRD.md §14.
+# See docs/gauja-implementation-plan.md — Phase 1, and docs/gauja-prd.md §14.
 
 default_install_hook_types = ["pre-commit", "commit-msg"]
 
@@ -668,28 +677,31 @@ hooks = [
   { id = "swift-format", name = "swift-format", entry = "swift format --in-place", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
   { id = "swiftlint", name = "swiftlint", entry = "swiftlint lint --strict", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
 
-  # Android — apps/android/ (ktlint + detekt with the Compose ruleset; PRD §14 android lane).
+  # Android — apps/android/ (ktfmt + detekt with the Compose ruleset; PRD §14 android lane).
+  # ktfmt, not ktlint: the Kotlin rule file names ktfmt as the formatter and is authoritative (PRD §12.1).
   # Gradle-driven so detekt loads the Compose ruleset; fires only when Kotlin under apps/android/ is staged.
-  { id = "ktlint", name = "ktlint", entry = "apps/android/gradlew --project-dir apps/android ktlintCheck", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
+  { id = "ktfmt", name = "ktfmt", entry = "apps/android/gradlew --project-dir apps/android ktfmtCheck", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
   { id = "detekt", name = "detekt", entry = "apps/android/gradlew --project-dir apps/android detekt", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
 ]
 ```
 
 ---
 
-## Appendix C — Decision log (ADR index)
+## Appendix C — Decision log
 
-| ADR | Decision |
+Settled decisions. Changing one is a PR that edits this table with a rationale, reviewed like code.
+
+| # | Decision |
 |---|---|
-| 0001 | Pure Kotlin + pure Swift in one repository; no KMP; contract-only sharing |
-| 0002 | Notifications deferred; investigated design recorded (web push channel, UnifiedPush on Android, APNs relay on iOS, RFC 8291 end-to-end encryption) |
-| 0003 | AGPL-3.0-or-later with App Store Distribution Exception; DCO, no CLA |
-| 0004 | Single Android build; no Google Play Services / Firebase; F-Droid eligible |
-| 0005 | Vendored OpenAPI spec pinned by upstream commit; overlays; contract tests against a real container |
-| 0006 | Same IA / tokens / content components; platform-native chrome |
-| 0007 | Full native admin configuration in v1 |
-| 0008 | Android minSdk 30 (Android 11): parity with the iOS 18 floor, modern insets APIs, system dark theme; rule file amended to match |
-| 0009 | Name: Gauja |
+| 1 | Pure Kotlin + pure Swift in one repository; no KMP; contract-only sharing |
+| 2 | Notifications deferred; investigated design recorded (web push channel, UnifiedPush on Android, APNs relay on iOS, RFC 8291 end-to-end encryption) |
+| 3 | AGPL-3.0-or-later with App Store Distribution Exception; DCO, no CLA |
+| 4 | Single Android build; no Google Play Services / Firebase; F-Droid eligible |
+| 5 | Vendored OpenAPI spec pinned by upstream commit; overlays; contract tests against a real container |
+| 6 | Same IA / tokens / content components; platform-native chrome |
+| 7 | Full native admin configuration in v1 |
+| 8 | Android minSdk 30 (Android 11): parity with the iOS 18 floor, modern insets APIs, system dark theme; rule file amended to match |
+| 9 | Name: Gauja |
 
 ---
 

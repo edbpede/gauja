@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Bug report
+description: Something in the Gauja app does not work as Seerr's web UI does.
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: ["Android", "iOS"]
+    validations:
+      required: true
+  - type: input
+    id: gauja-version
+    attributes:
+      label: Gauja version
+      description: From About in the app (e.g. android/v1.2.0).
+    validations:
+      required: true
+  - type: input
+    id: seerr-version
+    attributes:
+      label: Seerr version
+      description: From your server's Settings → About, or `/api/v1/status`.
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version and device
+      placeholder: Android 15 on Pixel 8a / iOS 18.4 on iPhone 13
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour (what Seerr's web UI does)
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste the redacted diagnostics export from About → Diagnostics. Never paste cookies, API keys or tokens.

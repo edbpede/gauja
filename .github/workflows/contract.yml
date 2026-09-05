@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Contract lane (PRD §4.5, §14.2): boot a Seerr container, seed fixtures, run recorded contract
+# tests for both generated clients, fail on an imminent Sunset. Wired in Phase 11.6.
+name: contract
+
+on:
+  pull_request:
+    paths:
+      - "api/**"
+      - "tools/codegen/**"
+      - ".github/workflows/contract.yml"
+  schedule:
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  placeholder:
+    name: contract (not yet wired)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "contract lane is not yet wired; see docs/gauja-implementation-plan.md (§11.6)."

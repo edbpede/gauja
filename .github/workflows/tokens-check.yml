@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Design tokens (PRD §8, §14.2): regenerate both platform themes from design/tokens.json and
+# fail on any diff. Wired in Phase 2.3.
+name: tokens-check
+
+on:
+  pull_request:
+    paths:
+      - "design/**"
+      - "tools/tokens/**"
+      - ".github/workflows/tokens-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "design/**"
+      - "tools/tokens/**"
+
+permissions:
+  contents: read
+
+jobs:
+  placeholder:
+    name: tokens-check (not yet wired)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "tokens-check lane is not yet wired; see docs/gauja-implementation-plan.md (§2.3)."

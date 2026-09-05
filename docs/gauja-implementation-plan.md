@@ -25,8 +25,11 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 - **Apply the project rules in `.agents/rules/*.md` wherever relevant:**
   - `.agents/rules/kotlin-2_4-android-app.md`
   - `.agents/rules/swift-6_3-ios-app.md`
+  - `.agents/rules/modularity.md`
+  - `.agents/rules/api-contract.md`
+  - `.agents/rules/monorepo.md`
 
-  These rule files are authoritative over the PRD and over this plan on language, framework and library usage (PRD §12.1). Where this plan and a rule file disagree, the rule file wins and this plan gets a fix-up PR. The three project-level rule files written in Phase 1 (`modularity.md`, `api-contract.md`, `monorepo.md`) join this list once merged.
+  These rule files are authoritative over the PRD and over this plan on language, framework and library usage (PRD §12.1). Where this plan and a rule file disagree, the rule file wins and this plan gets a fix-up PR. The three project-level rule files (`modularity.md`, `api-contract.md`, `monorepo.md`) were written in Phase 1.
 - Numbering note: the PRD refers to rule-file authoring and prek setup as "Phase 0". In this plan that work is **Phase 1**, because tooling is the first thing that lands and the phase numbers here are the ones the repository uses from now on.
 - Checkbox conventions: `- [ ]` open, `- [x]` done. Do not delete finished items; the history is the point.
 
@@ -34,7 +37,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 | Phase | Name | Output | Blocks |
 |---|---|---|---|
-| 1 | Developer tooling and repository hygiene | prek, CI skeleton, licensing, rule files, ADR stubs | everything |
+| 1 | Developer tooling and repository hygiene | prek, CI skeleton, licensing, rule files | everything |
 | 2 | Shared contract | `api/`, `design/`, `tools/codegen`, `tools/tokens` | 3, 4 |
 | 3 | Modular monorepo skeleton | both apps build empty with every module in place | 4–12 |
 | 4 | Core platform layers | `core/*` and `Packages/*` non-feature code | 5–10 |
@@ -53,64 +56,58 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 **Goal.** Every commit from here on is formatted, linted, signed off, license-tagged and secret-scanned before it leaves a laptop, and CI enforces the same rules. No feature code is written before this phase closes.
 
-**Exit criteria.** `prek run --all-files` passes on `main`; the DCO and REUSE checks are required status checks; a PR that violates any hook fails locally *and* in CI; the three project rule files exist and are referenced from the PRD.
+**Exit criteria.** `prek run --all-files` passes on `main`; the `commit-messages` (DCO) and REUSE checks are required status checks; a PR that violates any hook fails locally *and* in CI; the three project rule files exist and are referenced from the PRD.
 
 ### 1.1 prek and local hooks
 
-- [ ] Add `prek.toml` at the repository root from PRD Appendix B, with these amendments:
-  - [ ] Replace the `ktlint` hook with a Gradle-driven `ktfmtCheck` hook (`apps/android/gradlew --project-dir apps/android ktfmtCheck`). The Kotlin rule file names ktfmt as the formatter and states ktlint is not preferred; the rule file is authoritative (PRD §12.1).
-  - [ ] Keep `detekt` Gradle-driven so it loads the Compose ruleset (`io.nlopez.compose.rules`). Note: the Gradle- and Xcode-driven hooks are inert until §3.2 / §3.3 exist, because their `files` filters match nothing before then; that is expected, not a gap.
-  - [ ] Keep every `exclude` for generated directories exactly as listed in the `GENERATED` comment so generated output stays byte-identical.
-- [ ] Run `prek install` (installs `pre-commit` and `commit-msg` shims); document the command in `CONTRIBUTING.md`.
-- [ ] Verify the builtin hooks fire: trailing whitespace, EOF fixer, LF endings, merge/case-conflict, large-file guard (512 KB), private-key detection, JSON/TOML/YAML validity, no direct commits to `main`.
-- [ ] Verify `conventional-pre-commit` rejects a non-conventional message and `dco-signoff` rejects a message without `Signed-off-by:`.
-- [ ] Verify `gitleaks` runs (install instructions for macOS/Linux in `CONTRIBUTING.md`).
-- [ ] Add `.editorconfig` (LF, final newline, 4-space Kotlin/Swift, 2-space YAML/JSON/TOML) and `.gitattributes` (`* text=auto eol=lf`, binary rules for store art).
-- [ ] Add `.gitignore` covering Gradle (`.gradle/`, `build/`, `local.properties`), Xcode (`*.xcodeproj`, `*.xcworkspace`, `DerivedData/`, `.build/`, `.swiftpm/`), IDE folders, and `api/fixtures/**/*.local.*`.
+- [x] Add `prek.toml` at the repository root from PRD Appendix B, with these amendments:
+  - [x] Replace the `ktlint` hook with a Gradle-driven `ktfmtCheck` hook (`apps/android/gradlew --project-dir apps/android ktfmtCheck`). The Kotlin rule file names ktfmt as the formatter and states ktlint is not preferred; the rule file is authoritative (PRD §12.1).
+  - [x] Keep `detekt` Gradle-driven so it loads the Compose ruleset (`io.nlopez.compose.rules`). Note: the Gradle- and Xcode-driven hooks are inert until §3.2 / §3.3 exist, because their `files` filters match nothing before then; that is expected, not a gap.
+  - [x] Keep every `exclude` for generated directories exactly as listed in the `GENERATED` comment so generated output stays byte-identical.
+- [x] Run `prek install` (installs `pre-commit` and `commit-msg` shims); document the command in `CONTRIBUTING.md`.
+- [x] Verify the builtin hooks fire: trailing whitespace, EOF fixer, LF endings, merge/case-conflict, large-file guard (512 KB), private-key detection, JSON/TOML/YAML validity, no direct commits to `main`.
+- [x] Verify `conventional-pre-commit` rejects a non-conventional message and `dco-signoff` rejects a message without `Signed-off-by:`.
+- [x] Verify `gitleaks` runs (install instructions for macOS/Linux in `CONTRIBUTING.md`).
+- [x] Add `.editorconfig` (LF, final newline, 4-space Kotlin/Swift, 2-space YAML/JSON/TOML) and `.gitattributes` (`* text=auto eol=lf`, binary rules for store art).
+- [x] Add `.gitignore` covering Gradle (`.gradle/`, `build/`, `local.properties`), Xcode (`*.xcodeproj`, `*.xcworkspace`, `DerivedData/`, `.build/`, `.swiftpm/`), IDE folders, and `api/fixtures/**/*.local.*`.
 
 ### 1.2 Hook-backed tool scripts (stubs that pass; made real in later phases)
 
-- [ ] `tools/api-drift/check-local.sh` — exits 0 while `api/` is empty; real logic in Phase 2.
-- [ ] `tools/ci/check-fixture-secrets.sh` — grep-based rejection of `X-Api-Key`, `connect.sid`, `X-Plex-Token`, Jellyfin `AccessToken`, VAPID key patterns under `api/fixtures/`.
-- [ ] `tools/ci/check-secret-logging.sh` — accepts a list of secret-layer symbols (`SecretStore`, `apiKey`, `sessionCookie`, `plexToken`, `basicAuthPassword`) and fails when one appears inside a `Log.*`/`Timber.*`/`Logger.*`/`print(`/`os_log` call; stub matches nothing until Phase 4 names the real symbols.
-- [ ] `tools/ci/check-licenses.sh` — reads `deny.toml`; exits 0 on missing manifests until Phase 3.
-- [ ] `tools/tokens/check.sh` — exits 0 until Phase 2 adds generators.
-- [ ] `tools/community/validate-translations.py` — validates `strings.xml` / `*.xcstrings` syntax and key parity; exits 0 with no catalogs.
-- [ ] Every script has an SPDX header, `set -euo pipefail`, and a `--help`.
+- [x] `tools/api-drift/check-local.sh` — exits 0 while `api/` is empty; real logic in Phase 2.
+- [x] `tools/ci/check-fixture-secrets.sh` — grep-based rejection of `X-Api-Key`, `connect.sid`, `X-Plex-Token`, Jellyfin `AccessToken`, VAPID key patterns under `api/fixtures/`.
+- [x] `tools/ci/check-secret-logging.sh` — accepts a list of secret-layer symbols (`SecretStore`, `apiKey`, `sessionCookie`, `plexToken`, `basicAuthPassword`) and fails when one appears inside a `Log.*`/`Timber.*`/`Logger.*`/`print(`/`os_log` call; stub matches nothing until Phase 4 names the real symbols.
+- [x] `tools/ci/check-licenses.sh` — reads `deny.toml`; exits 0 on missing manifests until Phase 3.
+- [x] `tools/tokens/check.sh` — exits 0 until Phase 2 adds generators.
+- [x] `tools/community/validate-translations.py` — validates `strings.xml` / `*.xcstrings` syntax and key parity; exits 0 with no catalogs.
+- [x] Every script has an SPDX header, `set -euo pipefail`, and a `--help`.
 
 ### 1.3 Licensing and governance files
 
-- [ ] `APPSTORE_EXCEPTION.md` — verbatim text of PRD Appendix A.
-- [ ] Append the PRD §15.2 sentence to `LICENSE` (the license means AGPL-3.0-or-later *together with* the additional permission).
-- [ ] `REUSE.toml` — annotations for the whole tree; `api/seerr-api.yml` marked MIT with `LICENSE.upstream`; generated directories annotated as AGPL with the project copyright.
-- [ ] `deny.toml` — dependency license allow-list (Apache-2.0, MIT, BSD-2/3, ISC, MPL-2.0, EPL-2.0 for Gradle plugins; deny GPL-incompatible and unknown).
-- [ ] `CONTRIBUTING.md` — DCO section repeating the §15.2 sentence, `git commit -s`, prek setup, branch/PR conventions, "one module per PR", how to build one platform without the other's toolchain.
-- [ ] `SECURITY.md` — private disclosure channel, supported versions statement, secret-handling promise from PRD §10.
-- [ ] `.github/CODEOWNERS` — `apps/android/` and `apps/ios/` to platform maintainers, `api/` and `design/` to both, `docs/` and root config to project leads.
-- [ ] `.github/PULL_REQUEST_TEMPLATE.md` — checklist: conventional title, sign-off, rule files followed, screen spec linked, tests mirror sources, no generated code hand-edited.
-- [ ] `.github/ISSUE_TEMPLATE/` — bug (with Seerr version + Gauja version + platform), feature, settings-parity gap.
-- [ ] `README.md` — one-paragraph description, unaffiliated-with-Seerr statement, supported Seerr range placeholder, roadmap line for notifications (PRD §18 risk 10), build-one-platform instructions.
-- [ ] `docs/THIRD_PARTY.md` — placeholder for Seerr translation-seed attribution (filled in Phase 11).
+- [x] `APPSTORE_EXCEPTION.md` — verbatim text of PRD Appendix A.
+- [x] Append the PRD §15.2 sentence to `LICENSE` (the license means AGPL-3.0-or-later *together with* the additional permission).
+- [x] `REUSE.toml` — annotations for the whole tree; `api/seerr-api.yml` marked MIT with `LICENSE.upstream`; generated directories annotated as AGPL with the project copyright.
+- [x] `deny.toml` — dependency license allow-list (Apache-2.0, MIT, BSD-2/3, ISC, MPL-2.0, EPL-2.0 for Gradle plugins; deny GPL-incompatible and unknown).
+- [x] `CONTRIBUTING.md` — DCO section repeating the §15.2 sentence, `git commit -s`, prek setup, branch/PR conventions, "one module per PR", how to build one platform without the other's toolchain.
+- [x] `SECURITY.md` — private disclosure channel, supported versions statement, secret-handling promise from PRD §10.
+- [x] `.github/CODEOWNERS` — `apps/android/` and `apps/ios/` to platform maintainers, `api/` and `design/` to both, `docs/` and root config to project leads.
+- [x] `.github/PULL_REQUEST_TEMPLATE.md` — checklist: conventional title, sign-off, rule files followed, screen spec linked, tests mirror sources, no generated code hand-edited.
+- [x] `.github/ISSUE_TEMPLATE/` — bug (with Seerr version + Gauja version + platform), feature, settings-parity gap.
+- [x] `README.md` — one-paragraph description, unaffiliated-with-Seerr statement, supported Seerr range placeholder, roadmap line for notifications (PRD §18 risk 10), build-one-platform instructions.
+- [x] `docs/THIRD_PARTY.md` — placeholder for Seerr translation-seed attribution (filled in Phase 11).
 
 ### 1.4 Project rule files (`.agents/rules/`)
 
-- [ ] `.agents/rules/modularity.md` — PRD §12.2 and §12.3 expanded: one responsibility per file, folder depth mirrors domain, no grab-bag files, advisory size limits (300-line file / 40-line function warnings, never errors), generated code isolated, names never repeat paths, tests mirror sources, allowed dependency graph for both platforms.
-- [ ] `.agents/rules/api-contract.md` — how `api/` is vendored, how overlays are written and justified, how fixtures are recorded and scrubbed, how generated clients are produced, isolated and wrapped by hand-written domain models, how `compat.json` gates features.
-- [ ] `.agents/rules/monorepo.md` — directory ownership, CI lane triggers, the cross-boundary rule (`apps/android/` and `apps/ios/` never reference each other; artifacts flow from `api/` and `design/` into the apps only).
-- [ ] Amend `docs/gauja-prd.md` in a follow-up PR: §11.2 quality tools (ktfmt, not ktlint), §11.2 SDK line (compileSdk/targetSdk 37 per the Kotlin rule file), §14.1 hook table, Appendix B hook entry, and the companion-document filenames (`gauja-prd.md`, `gauja-implementation-plan.md`). Record the reason in the PR body: rule files are authoritative (§12.1).
-- [ ] Add the new rule files to the rule-file list in this plan's "How to use this plan" section.
+- [x] `.agents/rules/modularity.md` — PRD §12.2 and §12.3 expanded: one responsibility per file, folder depth mirrors domain, no grab-bag files, advisory size limits (300-line file / 40-line function warnings, never errors), generated code isolated, names never repeat paths, tests mirror sources, allowed dependency graph for both platforms.
+- [x] `.agents/rules/api-contract.md` — how `api/` is vendored, how overlays are written and justified, how fixtures are recorded and scrubbed, how generated clients are produced, isolated and wrapped by hand-written domain models, how `compat.json` gates features.
+- [x] `.agents/rules/monorepo.md` — directory ownership, CI lane triggers, the cross-boundary rule (`apps/android/` and `apps/ios/` never reference each other; artifacts flow from `api/` and `design/` into the apps only).
+- [x] Amend `docs/gauja-prd.md` in this PR (folded in by maintainer decision): §11.2 quality tools (ktfmt, not ktlint), §11.2 SDK line (compileSdk/targetSdk 37 per the Kotlin rule file), §14.1 hook table, Appendix B hook entry, and the companion-document filenames (`gauja-prd.md`, `gauja-implementation-plan.md`). Record the reason in the PR body: rule files are authoritative (§12.1).
+- [x] Add the new rule files to the rule-file list in this plan's "How to use this plan" section.
 
-### 1.5 ADR stubs
+### 1.5 CI skeleton (`.github/workflows/`)
 
-- [ ] `docs/adr/README.md` — ADR format (context, decision, consequences) and numbering.
-- [ ] `docs/adr/0001-native-only-no-kmp.md` through `docs/adr/0009-name.md`, one per row of PRD Appendix C, each with the decision statement and a link to the PRD section.
-- [ ] `docs/adr/0002-notifications-deferred.md` carries the investigated design (web push channel, UnifiedPush on Android, APNs relay on iOS, RFC 8291 end-to-end encryption) so v2 starts from a decided architecture.
-
-### 1.6 CI skeleton (`.github/workflows/`)
-
-- [ ] `pr-hygiene.yml` — runs on every PR: `prek run --all-files`, REUSE lint (`reuse lint`), gitleaks. Mark REUSE and the GitHub DCO app as required status checks; protect `main`; squash-merge only.
-- [ ] Placeholder workflows that succeed with a "not yet wired" step and correct `paths:` filters: `android.yml`, `ios.yml`, `contract.yml`, `api-sync.yml` (schedule: weekly), `tokens-check.yml`, `release.yml` (on tag).
-- [ ] Pin every action by commit SHA; add Dependabot config for actions, Gradle, and SwiftPM.
+- [x] `pr-hygiene.yml` — runs on every PR: `prek run --all-files`, REUSE lint (`reuse lint`), gitleaks. Mark REUSE and `commit-messages` (the DCO check: sign-off present and matching the author or committer email; no GitHub app) as required status checks; protect `main`; squash-merge only.
+- [x] Placeholder workflows that succeed with a "not yet wired" step and correct `paths:` filters: `android.yml`, `ios.yml`, `contract.yml`, `api-sync.yml` (schedule: weekly), `tokens-check.yml`, `release.yml` (on tag).
+- [x] Pin every action by commit SHA; add Renovate config (`renovate.json`) for actions, Gradle, SwiftPM, the prek hook revisions and the gitleaks pin. (Renovate, not Dependabot, by maintainer decision: every edbpede repository uses Renovate, and two bots would open duplicate PRs.)
 
 ---
 
@@ -188,7 +185,7 @@ gauja/
     tokens.json
     screens/<area>/<screen>.md · screens/components/<Component>.md · INVENTORY.md · TEMPLATE.md
     assets/                     icons/ · svg/ · store/
-  docs/                         gauja-prd.md · gauja-implementation-plan.md · TECH_SPEC.md · THIRD_PARTY.md · adr/
+  docs/                         gauja-prd.md · gauja-implementation-plan.md · TECH_SPEC.md · THIRD_PARTY.md
   tools/
     codegen/                    android/ · ios/ · generate.sh
     tokens/                     generate-compose.py · generate-swiftui.py · check.sh
@@ -485,7 +482,7 @@ apps/ios/
 ### 8.2 App settings (in `app` / `App`)
 
 - [ ] Theme (dark default, light, follow system), image cache limits (defaults 64 MB memory / 256 MB disk), clear caches per profile and in bulk, diagnostics export (redacted).
-- [ ] **Notifications** entry greyed out and labelled "Coming later", one-line explanation, link to ADR 0002 from About.
+- [ ] **Notifications** entry greyed out and labelled "Coming later", one-line explanation, repeated in About (PRD §7).
 
 ---
 
@@ -624,9 +621,9 @@ apps/ios/
 - [ ] Reproducible Android release build (fixed timestamps, deterministic zip, per-ABI splits); F-Droid metadata in `fastlane/metadata/android/` and a `metadata/<applicationId>.yml` template for the F-Droid data repo.
 - [ ] Signing: Android upload key and iOS certificates in CI secrets; fastlane lanes for Play internal track and TestFlight.
 - [ ] *(depends on §11.4 smoke lanes for screenshots)* Store listings: unaffiliated-with-Seerr statement, "Seerr" used only descriptively, none of Seerr's marks or artwork; screenshots generated from the emulator/simulator smoke lanes so they track the UI.
-- [ ] *(can start early: after §1.6)* `CHANGELOG.md` generated from Conventional Commits, sectioned per app; supported Seerr range and `api/compat.json` updated in every release.
+- [ ] *(can start early: after §1.5)* `CHANGELOG.md` generated from Conventional Commits, sectioned per app; supported Seerr range and `api/compat.json` updated in every release.
 - [ ] GitHub Releases: signed APKs and the iOS source archive; SBOM attached.
-- [ ] Post-release: README supported-range update, ADR for any deviation discovered during store review (PRD §18 risk 4).
+- [ ] Post-release: README supported-range update, record in PRD Appendix C any deviation discovered during store review (PRD §18 risk 4).
 
 ---
 
@@ -647,7 +644,7 @@ apps/ios/
 | §5.10 Admin: server settings | 10 |
 | §5.11 Cross-cutting (permissions, deep links, offline, a11y, l10n) | 4.1, 4.4, 5.2, 11.1–11.3 |
 | §6 Authentication and server model | 4.3, 4.6, 5.1 |
-| §7 Notifications deferred | 1.5 (ADR 0002), 8.2, 10.7 |
+| §7 Notifications deferred | 8.2, 10.7 |
 | §8 UX principles (IA, tokens, content components, adaptive) | 2.3, 2.4, 4.8, 4.9, 11.2 |
 | §9 Performance targets | 3.2 (baseline profile), 11.4 |
 | §10 Privacy and security | 1.1, 1.2, 4.3, 4.6, 11.5 |
@@ -664,7 +661,7 @@ apps/ios/
 
 Carried from PRD §2.2 and §7 so that no phase quietly grows to include them:
 
-- Push notifications, background polling, UnifiedPush, APNs relay, any `push` module (ADR 0002).
+- Push notifications, background polling, UnifiedPush, APNs relay, any `push` module (PRD §7).
 - Kotlin Multiplatform or any shared runtime code between the apps.
 - Web views of any kind; media playback; the Seerr first-run setup wizard (`/settings/initialize`).
 - Telemetry, analytics, crash-reporting SDKs, Google Play Services, Firebase.

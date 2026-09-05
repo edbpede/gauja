@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# REUSE (https://reuse.software) annotations for the whole tree (PRD §15.1).
+# Files that carry their own SPDX header keep it ("closest" precedence); everything
+# else (dotfiles, CODEOWNERS, rule files with YAML front matter, JSON) is covered here.
+# "The license" means AGPL-3.0-or-later together with APPSTORE_EXCEPTION.md (see LICENSE).
+
+version = 1
+
+[[annotations]]
+path = ["**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Gauja contributors"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Generated code (never hand-edited; PRD §12.2 rule 6). The generator output carries no
+# header of its own, so the project annotation applies regardless of file contents.
+[[annotations]]
+path = [
+  "apps/android/core/api/**",
+  "apps/ios/Packages/SeerrAPI/Generated/**",
+  "apps/android/core/designsystem/src/main/kotlin/**/generated/**",
+  "apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Gauja contributors"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Vendored upstream contract: Seerr's OpenAPI specification stays MIT (PRD §4.1, §15.1).
+# The upstream license text is api/LICENSE.upstream; LICENSES/MIT.txt is added with the
+# spec in Phase 2 (an unused license in LICENSES/ fails `reuse lint`).
+[[annotations]]
+path = ["api/seerr-api.yml", "api/LICENSE.upstream"]
+precedence = "override"
+SPDX-FileCopyrightText = "Seerr contributors (https://github.com/seerr-team/seerr)"
+SPDX-License-Identifier = "MIT"

@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Settings parity gap
+description: A Seerr setting or admin screen that Gauja cannot configure natively.
+labels: ["parity"]
+body:
+  - type: input
+    id: section
+    attributes:
+      label: Seerr settings section
+      description: As named in Seerr's sidebar (e.g. Services → Radarr, Notifications → Discord).
+    validations:
+      required: true
+  - type: input
+    id: endpoint
+    attributes:
+      label: Endpoint path
+      placeholder: /api/v1/settings/radarr/{id}
+    validations:
+      required: true
+  - type: input
+    id: seerr-version
+    attributes:
+      label: Seerr version
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: What is missing or different
+      description: Field, validation, ordering or behaviour that differs from the web UI.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options: ["Android", "iOS"]

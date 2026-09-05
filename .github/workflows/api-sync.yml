@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Upstream drift (PRD §4.4, §14.2): weekly diff of the upstream spec against api/UPSTREAM_COMMIT;
+# opens a PR with the new spec, pin and regenerated clients. Wired in Phase 11.7.
+name: api-sync
+
+on:
+  schedule:
+    - cron: "23 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  placeholder:
+    name: api-sync (not yet wired)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "api-sync lane is not yet wired; see docs/gauja-implementation-plan.md (§11.7)."
