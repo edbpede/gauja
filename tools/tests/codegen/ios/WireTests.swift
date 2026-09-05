@@ -33,3 +33,11 @@ import Testing
     let value = try JSONDecoder().decode(Components.Schemas.WebhookSettings.optionsPayload.self, from: data)
     #expect(!String(reflecting: value).contains("synthetic-webhook-credential"))
 }
+
+@Test func unusedSubscriptionWireCredentialsAreRedacted() {
+    let value = Operations.postUserRegisterPushSubscription.Input.Body.jsonPayload(
+        endpoint: "https://push.example.invalid", auth: "synthetic-auth", p256dh: "synthetic-key")
+    #expect(String(describing: value) == "[REDACTED]")
+    #expect(String(reflecting: value) == "[REDACTED]")
+    #expect(Mirror(reflecting: value).children.isEmpty)
+}

@@ -53,10 +53,14 @@ class GenerationTests(unittest.TestCase):
     def test_swift_admin_credentials_are_redacted(self):
         with tempfile.TemporaryDirectory() as temp:
             directory = Path(temp)
-            for field in ["adminPass", "authPass", "authHeader", "pushoverUserKey"]:
+            for field in ["adminPass", "authPass", "authHeader", "pushoverUserKey", "auth", "p256dh"]:
                 (directory / "Types.swift").write_text(f"public struct Settings {{\n    public var {field}: String\n}}\n")
                 swift_descriptions(directory)
-                self.assertIn("extension Settings:", (directory / "RedactedDescriptions.swift").read_text())
+                text = (directory / "RedactedDescriptions.swift").read_text()
+                self.assertIn("extension Settings:", text)
+                for property_name in ["description", "debugDescription"]:
+                    self.assertIn(f'public var {property_name}: String {{ "[REDACTED]" }}', text)
+                self.assertIn('Mirror(reflecting: "[REDACTED]")', text)
 
     def test_swift_nested_namespaces_and_frozen_enums(self):
         with tempfile.TemporaryDirectory() as temp:

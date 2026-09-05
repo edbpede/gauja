@@ -33,7 +33,7 @@ def swift_descriptions(directory):
                     scopes.pop()
                 scopes.append((len(indent), kind, name))
             field = re.match(r"( *)public var ([A-Za-z_][A-Za-z0-9_]*):", line)
-            if field and re.search(r"password|pass$|token|secret|apikey|authorization|cookie|authheader|privatekey|accesskey|userkey", field[2], re.I):
+            if field and re.search(r"password|pass$|token|secret|apikey|authorization|cookie|authheader|privatekey|accesskey|userkey|auth$|p256dh$", field[2], re.I):
                 while scopes and scopes[-1][0] >= len(field[1]):
                     scopes.pop()
                 if scopes and scopes[-1][1] == "struct":

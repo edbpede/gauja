@@ -110,6 +110,18 @@ extension Operations.getSettingsNotificationsPushoverSounds.Input.Query: CustomS
     public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
 }
 
+extension Operations.getUserByUserIdPushSubscriptionByEndpoint.Output.Ok.Body.jsonPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String { "[REDACTED]" }
+    public var debugDescription: String { "[REDACTED]" }
+    public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
+}
+
+extension Operations.getUserByUserIdPushSubscriptions.Output.Ok.Body.jsonPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String { "[REDACTED]" }
+    public var debugDescription: String { "[REDACTED]" }
+    public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
+}
+
 extension Operations.getUserByUserIdSettingsPassword.Output.Ok.Body.jsonPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var description: String { "[REDACTED]" }
     public var debugDescription: String { "[REDACTED]" }
@@ -183,6 +195,12 @@ extension Operations.postUserByUserIdSettingsLinkedAccountsPlex.Input.Body.jsonP
 }
 
 extension Operations.postUserByUserIdSettingsPassword.Input.Body.jsonPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String { "[REDACTED]" }
+    public var debugDescription: String { "[REDACTED]" }
+    public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
+}
+
+extension Operations.postUserRegisterPushSubscription.Input.Body.jsonPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var description: String { "[REDACTED]" }
     public var debugDescription: String { "[REDACTED]" }
     public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
