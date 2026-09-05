@@ -4,10 +4,10 @@ name: codegen-check
 
 on:
   pull_request:
-    paths: ['api/**', 'tools/contract/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
+    paths: ['api/**', 'tools/contract/**', 'tools/api-drift/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
   push:
     branches: [main]
-    paths: ['api/**', 'tools/contract/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
+    paths: ['api/**', 'tools/contract/**', 'tools/api-drift/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
 
 permissions:
   contents: read

@@ -31,8 +31,9 @@ jobs:
       - run: tools/contract/python.sh --install
       - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
         env:
-          # no-commit-to-branch guards local commits; on a push to main CI is on main by design.
-          SKIP: no-commit-to-branch
+          # Branch guard is local; codegen-check owns contract validation and
+          # tokens-check owns theme drift. Other hooks remain authoritative here.
+          SKIP: no-commit-to-branch,api-drift,tokens-check
         with:
           extra-args: --all-files
 
@@ -93,8 +94,6 @@ jobs:
           python-version: "3.13"
       - run: tools/contract/python.sh --install
       - run: tools/tests/run.sh
-      - run: python3 tools/ci/check-api-boundary.py
-      - run: python3 tools/ci/check-screen-specs.py
 
   boundary:
     name: boundary

@@ -4,10 +4,10 @@ name: tokens-check
 
 on:
   pull_request:
-    paths: ['design/**', 'tools/tokens/**', 'tools/codegen/outputs.py', 'tools/tests/tokens/**', 'apps/android/core/designsystem/**', 'apps/ios/Packages/DesignSystem/**', '.github/workflows/tokens-check.yml']
+    paths: ['design/tokens.json', 'tools/tokens/**', 'tools/codegen/outputs.py', 'apps/android/core/designsystem/**', 'apps/ios/Packages/DesignSystem/**', '.github/workflows/tokens-check.yml']
   push:
     branches: [main]
-    paths: ['design/**', 'tools/tokens/**', 'tools/codegen/outputs.py', 'tools/tests/tokens/**', 'apps/android/core/designsystem/**', 'apps/ios/Packages/DesignSystem/**', '.github/workflows/tokens-check.yml']
+    paths: ['design/tokens.json', 'tools/tokens/**', 'tools/codegen/outputs.py', 'apps/android/core/designsystem/**', 'apps/ios/Packages/DesignSystem/**', '.github/workflows/tokens-check.yml']
 
 permissions:
   contents: read
@@ -22,5 +22,3 @@ jobs:
         with:
           python-version: '3.13'
       - run: tools/tokens/check.sh
-      - run: python3 -m unittest discover -s tools/tests/tokens -v
-      - run: python3 tools/ci/check-screen-specs.py

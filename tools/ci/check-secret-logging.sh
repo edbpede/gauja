@@ -11,6 +11,7 @@
 # `.method(` continuations), wherever line breaks fall. Parentheses and quotes inside string
 # literals (`"..."`, `"""..."""`, Swift `#"..."#`), char literals and comments do not count, and a
 # log call inside a comment is not a log call.
+# Heuristic guard, not a Kotlin/Swift parser; supplement with review and redaction tests.
 set -euo pipefail
 
 usage() {
