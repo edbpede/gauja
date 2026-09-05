@@ -91,7 +91,7 @@ scan_file() {
         if (pending) {
           if (c ~ /[[:space:]]/) { i++; continue }
           if (two != "//" && two != "/*") {
-            if (substr(text, i, 80) ~ chain) pending = 0
+            if (substr(text, i) ~ chain) pending = 0
             else { report(call_end); in_call = 0; pending = 0 }
           }
         }
