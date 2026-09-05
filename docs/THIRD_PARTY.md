@@ -7,11 +7,11 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 ## Seerr OpenAPI specification
 
-`api/seerr-api.yml` is vendored verbatim from [seerr-team/seerr](https://github.com/seerr-team/seerr) (MIT; text in `api/LICENSE.upstream`), pinned by `api/UPSTREAM_COMMIT`. See [contract baseline](../api/README.md). The pinned notice is **Copyright (c) 2020 sct**. Generated clients inherit specification descriptions; their REUSE annotations include this attribution alongside Gauja’s contributions.
+`api/seerr-api.yml` is vendored verbatim from [seerr-team/seerr](https://github.com/seerr-team/seerr) (MIT; text in `LICENSES/MIT.txt`), pinned by `api/UPSTREAM_COMMIT`. See [contract baseline](../api/README.md). The pinned notice is **Copyright (c) 2020 sct**. Generated clients inherit specification descriptions; their REUSE annotations include this attribution alongside Gauja’s contributions.
 
 ## Seerr translation seed
 
-No translation catalogs have been imported. Phase 11.3 may seed UI strings whose meaning is identical to Seerr's (status names, permission labels, settings section titles) from Seerr's `server/i18n/locale/` catalogs (MIT). When that one-time import happens, this section records the upstream commit, the catalogs used and the MIT notice. Seeding is not an ongoing dependency (PRD §16).
+No translation catalogs have been imported. Phase 11.3 may seed UI strings whose meaning is identical to Seerr's (status names, permission labels, settings section titles) from Seerr's `src/i18n/locale/` catalogs (MIT). When that one-time import happens, this section records the upstream commit, the catalogs used and the MIT notice. Seeding is not an ongoing dependency (PRD §16).
 
 ## Dependencies
 
@@ -42,13 +42,30 @@ Gradle smoke `gradle.lockfile`.
 | JUnit 4.13.2 | EPL-1.0 | Tests only; narrow build-only allowance in `deny.toml` |
 | Hamcrest Core 1.3 | BSD-3-Clause | Tests only |
 
-Runtime SBOM/license resolution still lands with the app manifests in Phase 3;
-`check-licenses.sh` currently validates the allow-list, not resolved artifacts.
+No resolved-dependency license gate exists yet. Add enforcement with real app manifests
+in Phase 3 and release SBOMs in Phase 12. An allow-list-only success must never
+stand in for artifact validation.
 
 ## Distribution responsibility
 
-Release packaging owns bundled notices for the material in each artifact. Source archives retain [LICENSE](../LICENSE), [APPSTORE_EXCEPTION.md](../APPSTORE_EXCEPTION.md), `LICENSES/`, [the Seerr notice](../api/LICENSE.upstream), [the Tailwind notice](../design/LICENSE.tailwind), and REUSE metadata. Binary apps bundle the complete Seerr and Tailwind notices when their generated descriptions/palette material ships, plus the applicable notices and license texts for resolved runtime dependencies. Verify both binary bundles and source archives before release; a link to this repository alone does not bundle a notice.
+Release packaging owns bundled notices for the material in each artifact. Source archives retain [LICENSE](../LICENSE), [APPSTORE_EXCEPTION.md](../APPSTORE_EXCEPTION.md), `LICENSES/` (including the complete Seerr notice in `MIT.txt`), [the Tailwind notice](../design/LICENSE.tailwind), and REUSE metadata. Binary apps bundle the complete Seerr and Tailwind notices when their generated descriptions/palette material ships, plus the applicable notices and license texts for resolved runtime dependencies. Verify both binary bundles and source archives before release; a link to this repository alone does not bundle a notice.
 
 Gauja contributions retain AGPL-3.0-or-later with the existing additional permission. Inherited MIT material retains its MIT notice; combined REUSE expressions record both sets of obligations without changing ownership. Keep generator output unchanged and maintain attribution through repository annotations and packaging.
 
 Merely running a build tool does not copy all of its dependencies into Gauja. If code or templates are actually copied or distributed, record their provenance and include the applicable license, modification and NOTICE material. Resolve dependencies and check `deny.toml` separately from REUSE lint: metadata completeness does not establish ownership or verify a release bundle.
+
+The [MIT condition](https://opensource.org/license/mit) applies to copies or substantial
+portions of upstream material, including the vendored specification and inherited descriptions;
+calling Seerr's API alone does not require distributing its license. The [pinned Seerr notice](https://github.com/seerr-team/seerr/blob/69f73a6f1486fdb51b8ddae9a94a8dfb629f461c/LICENSE)
+is stored once in `LICENSES/MIT.txt` and checked against upstream bytes. Its location is not
+prescribed by MIT. Keep the Tailwind copyright alongside its applicable terms.
+
+[OpenAPI Generator distinguishes its templates from generated output](https://github.com/OpenAPITools/openapi-generator/blob/v7.25.0/README.md#3---usage):
+templates are Apache-2.0; generated output is not automatically under the generator's license.
+Copied templates/code and distributed runtime libraries require separate review. For Apache
+material actually distributed, [§4](https://www.apache.org/licenses/LICENSE-2.0) requires the
+license, applicable retained notices, prominent modification notices and relevant upstream
+NOTICE content. Do not copy a build tool's entire dependency notice inventory into app releases.
+
+[REUSE](https://reuse.software/spec-3.3/) annotations associate attribution with files and
+`LICENSES/` provides the license texts; neither replaces checking the contents of release bundles.

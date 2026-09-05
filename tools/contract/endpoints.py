@@ -31,11 +31,11 @@ def render(spec, coverage):
         lines += ["", f"## {tag}", ""]
         for path, method, op, entry in rows:
             mark = "x" if entry["status"] == "implemented" else " "
-            lines.append(f"- [{mark}] `{method.upper()} {path}` — `{op['operationId']}`; phase {entry['phase']}; {entry['status']}. {entry['note']}")
-    lines += ["", "## Outside this pin", "",
-              "Develop adds `/settings/{plex|jellyfin}/library/{libraryId}` and",
-              "`/settings/{plex|jellyfin}/library/sync` (four paths). These need a later contract sync.",
-              "The full v1 inventory retains library management using this release's operations.", "",
+            summary = op.get("summary", "").rstrip(".")
+            description = ". ".join(part for part in [summary, entry.get("note", "").rstrip(".")] if part)
+            details = f" {description}." if description else ""
+            lines.append(f"- [{mark}] `{method.upper()} {path}` — `{op['operationId']}`; phase {entry['phase']}; {entry['status']}.{details}")
+    lines += ["", "## Outside the OpenAPI document", "",
               "Plex PIN endpoints and the configured image proxy/CDN are outside this OpenAPI document.",
               "Their purposes and allowed peers are specified in auth and component specs.", ""]
     return "\n".join(lines)

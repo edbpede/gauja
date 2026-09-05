@@ -1,203 +1,167 @@
 {
   "postAuthJellyfin": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Sign in using a Jellyfin username and password."
+    "status": "planned"
   },
   "postAuthJellyfinQuickconnectAuthenticate": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Authenticate with Quick Connect."
+    "status": "planned"
   },
   "getAuthJellyfinQuickconnectCheck": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Check Quick Connect authorization status."
+    "status": "planned"
   },
   "postAuthJellyfinQuickconnectInitiate": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Initiate Jellyfin Quick Connect."
+    "status": "planned"
   },
   "postAuthLocal": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Sign in using a local account."
+    "status": "planned"
   },
   "postAuthLogout": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Sign out and clear session cookie."
+    "status": "planned"
   },
   "getAuthMe": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Get logged-in user."
+    "status": "planned"
   },
   "postAuthPlex": {
     "phase": "5.2",
-    "status": "planned",
-    "note": "Sign in using a Plex token."
+    "status": "planned"
   },
   "postAuthResetPassword": {
     "phase": "5.2 / 11.1",
-    "status": "planned",
-    "note": "Send a reset password email."
+    "status": "planned"
   },
   "postAuthResetPasswordByGuid": {
     "phase": "5.2 / 11.1",
-    "status": "planned",
-    "note": "Reset the password for a user."
+    "status": "planned"
   },
   "getBackdrops": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get backdrops of trending items."
+    "status": "planned"
   },
   "getBlacklist": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
     "note": "Legacy alias; Sunset 2026-06-01. Use /blocklist."
   },
   "postBlacklist": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
     "note": "Legacy alias; Sunset 2026-06-01. Use /blocklist."
   },
   "deleteBlacklistByTmdbId": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
     "note": "Legacy alias; Sunset 2026-06-01. Use /blocklist."
   },
   "getBlacklistByTmdbId": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
     "note": "Legacy alias; Sunset 2026-06-01. Use /blocklist."
   },
   "getBlocklist": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Returns blocklisted items."
+    "status": "planned"
   },
   "postBlocklist": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Add media to blocklist."
+    "status": "planned"
   },
   "deleteBlocklistCollectionByCollectionId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Remove collection from blocklist."
+    "status": "planned"
   },
   "postBlocklistCollectionByCollectionId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Add collection to blocklist."
+    "status": "planned"
   },
   "deleteBlocklistByTmdbId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Remove media from blocklist."
+    "status": "planned"
   },
   "getBlocklistByTmdbId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get media from blocklist."
+    "status": "planned"
   },
   "getCertificationsMovie": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get movie certifications."
+    "status": "planned"
   },
   "getCertificationsTv": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get TV certifications."
+    "status": "planned"
   },
   "getCollectionByCollectionId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get collection details."
+    "status": "planned"
   },
   "getDiscoverGenresliderMovie": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Get genre slider data for movies."
+    "status": "planned"
   },
   "getDiscoverGenresliderTv": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Get genre slider data for TV series."
+    "status": "planned"
   },
   "getDiscoverKeywordByKeywordIdMovies": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Get movies from keyword."
+    "status": "planned"
   },
   "getDiscoverMovies": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover movies."
+    "status": "planned"
   },
   "getDiscoverMoviesGenreByGenreId": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover movies by genre."
+    "status": "planned"
   },
   "getDiscoverMoviesLanguageByLanguage": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover movies by original language."
+    "status": "planned"
   },
   "getDiscoverMoviesStudioByStudioId": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover movies by studio."
+    "status": "planned"
   },
   "getDiscoverMoviesUpcoming": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Upcoming movies."
+    "status": "planned"
   },
   "getDiscoverTrending": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Trending movies and TV."
+    "status": "planned"
   },
   "getDiscoverTv": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover TV shows."
+    "status": "planned"
   },
   "getDiscoverTvGenreByGenreId": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover TV shows by genre."
+    "status": "planned"
   },
   "getDiscoverTvLanguageByLanguage": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover TV shows by original language."
+    "status": "planned"
   },
   "getDiscoverTvNetworkByNetworkId": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover TV shows by network."
+    "status": "planned"
   },
   "getDiscoverTvUpcoming": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Discover Upcoming TV shows."
+    "status": "planned"
   },
   "getDiscoverWatchlist": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Get the Plex watchlist.."
+    "status": "planned"
   },
   "getGenresMovie": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get list of official TMDB movie genres."
+    "status": "planned"
   },
   "getGenresTv": {
     "phase": "6.1",
@@ -206,857 +170,690 @@
   },
   "getIssue": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Get all issues."
+    "status": "planned"
   },
   "postIssue": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Create new issue."
+    "status": "planned"
   },
   "getIssueCount": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Gets issue counts."
+    "status": "planned"
   },
   "deleteIssueByIssueId": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Delete issue."
+    "status": "planned"
   },
   "getIssueByIssueId": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Get issue."
+    "status": "planned"
   },
   "postIssueByIssueIdComment": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Create a comment."
+    "status": "planned"
   },
   "postIssueByIssueIdByStatus": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Update an issue's status."
+    "status": "planned"
   },
   "deleteIssueCommentByCommentId": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Delete issue comment."
+    "status": "planned"
   },
   "getIssueCommentByCommentId": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Get issue comment."
+    "status": "planned"
   },
   "putIssueCommentByCommentId": {
     "phase": "7.3",
-    "status": "planned",
-    "note": "Update issue comment."
+    "status": "planned"
   },
   "getKeywordByKeywordId": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get keyword."
+    "status": "planned"
   },
   "getLanguages": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Languages supported by TMDB."
+    "status": "planned"
   },
   "getMedia": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get media."
+    "status": "planned"
   },
   "deleteMediaByMediaId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Delete media item."
+    "status": "planned"
   },
   "deleteMediaByMediaIdFile": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Delete media file."
+    "status": "planned"
   },
   "getMediaByMediaIdWatchData": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get watch data."
+    "status": "planned"
   },
   "postMediaByMediaIdByStatus": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Update media status."
+    "status": "planned"
   },
   "getMovieByMovieId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get movie details."
+    "status": "planned"
   },
   "getMovieByMovieIdRatings": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get movie ratings."
+    "status": "planned"
   },
   "getMovieByMovieIdRatingscombined": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get RT and IMDB movie ratings combined."
+    "status": "planned"
   },
   "getMovieByMovieIdRecommendations": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get recommended movies."
+    "status": "planned"
   },
   "getMovieByMovieIdSimilar": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get similar movies."
+    "status": "planned"
   },
   "getNetworkByNetworkId": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get TV network details."
+    "status": "planned"
   },
   "getOverrideRule": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get override rules."
+    "status": "planned"
   },
   "postOverrideRule": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Create override rule."
+    "status": "planned"
   },
   "deleteOverrideRuleByRuleId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Delete override rule by ID."
+    "status": "planned"
   },
   "putOverrideRuleByRuleId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Update override rule."
+    "status": "planned"
   },
   "getPersonByPersonId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get person details."
+    "status": "planned"
   },
   "getPersonByPersonIdCombinedCredits": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get combined credits."
+    "status": "planned"
   },
   "getRegions": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Regions supported by TMDB."
+    "status": "planned"
   },
   "getRequest": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get all requests."
+    "status": "planned"
   },
   "postRequest": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Create new request."
+    "status": "planned"
   },
   "getRequestCount": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Gets request counts."
+    "status": "planned"
   },
   "deleteRequestByRequestId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Delete request."
+    "status": "planned"
   },
   "getRequestByRequestId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get MediaRequest."
+    "status": "planned"
   },
   "putRequestByRequestId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Update MediaRequest."
+    "status": "planned"
   },
   "postRequestByRequestIdRetry": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Retry failed request."
+    "status": "planned"
   },
   "postRequestByRequestIdByStatus": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Update a request's status."
+    "status": "planned"
   },
   "getSearch": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Search for movies, TV shows, or people."
+    "status": "planned"
   },
   "getSearchCompany": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Search for companies."
+    "status": "planned"
   },
   "getSearchKeyword": {
     "phase": "6.1 / 6.2",
-    "status": "planned",
-    "note": "Search for keywords."
+    "status": "planned"
   },
   "getServiceRadarr": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get non-sensitive Radarr server list."
+    "status": "planned"
   },
   "getServiceRadarrByRadarrId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get Radarr server quality profiles and root folders."
+    "status": "planned"
   },
   "getServiceSonarr": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get non-sensitive Sonarr server list."
+    "status": "planned"
   },
   "getServiceSonarrLookupByTmdbId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get series from Sonarr."
+    "status": "planned"
   },
   "getServiceSonarrBySonarrId": {
     "phase": "7.2",
-    "status": "planned",
-    "note": "Get Sonarr server quality profiles and root folders."
+    "status": "planned"
   },
   "getSettingsAbout": {
     "phase": "10.10",
-    "status": "planned",
-    "note": "Get server stats."
+    "status": "planned"
   },
   "getSettingsCache": {
     "phase": "10.9",
-    "status": "planned",
-    "note": "Get a list of active caches."
+    "status": "planned"
   },
   "postSettingsCacheDnsByDnsEntryFlush": {
     "phase": "10.9",
-    "status": "planned",
-    "note": "Flush a specific DNS cache entry."
+    "status": "planned"
   },
   "postSettingsCacheByCacheIdFlush": {
     "phase": "10.9",
-    "status": "planned",
-    "note": "Flush a specific cache."
+    "status": "planned"
   },
   "getSettingsDiscover": {
     "phase": "6.1 / 10.11",
-    "status": "planned",
-    "note": "Get all discover sliders."
+    "status": "planned"
   },
   "postSettingsDiscover": {
     "phase": "6.1 / 10.11",
-    "status": "planned",
-    "note": "Batch update all sliders.."
+    "status": "planned"
   },
   "postSettingsDiscoverAdd": {
     "phase": "6.1 / 10.11",
-    "status": "planned",
-    "note": "Add a new slider."
+    "status": "planned"
   },
   "getSettingsDiscoverReset": {
     "phase": "6.1 / 10.11",
-    "status": "planned",
-    "note": "Reset all discover sliders."
+    "status": "planned"
   },
   "deleteSettingsDiscoverBySliderId": {
     "phase": "6.1 / 10.11",
-    "status": "planned",
-    "note": "Delete slider by ID."
+    "status": "planned"
   },
   "putSettingsDiscoverBySliderId": {
     "phase": "6.1 / 10.11",
-    "status": "planned",
-    "note": "Update a single slider."
+    "status": "planned"
   },
   "postSettingsInitialize": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
-    "note": "Server initialization remains the web UI’s job; Phase 11 container seeding only."
+    "note": "Server initialization remains the web UI\u2019s job; Phase 11 container seeding only."
   },
   "getSettingsJellyfin": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get Jellyfin settings."
+    "status": "planned"
   },
   "postSettingsJellyfin": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Update Jellyfin settings."
+    "status": "planned"
   },
   "getSettingsJellyfinLibrary": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get Jellyfin libraries."
+    "status": "planned"
   },
   "getSettingsJellyfinSync": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get status of full Jellyfin library sync."
+    "status": "planned"
   },
   "postSettingsJellyfinSync": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Start full Jellyfin library sync."
+    "status": "planned"
   },
   "getSettingsJellyfinUsers": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get Jellyfin Users."
+    "status": "planned"
   },
   "getSettingsJobs": {
     "phase": "10.9",
-    "status": "planned",
-    "note": "Get scheduled jobs."
+    "status": "planned"
   },
   "postSettingsJobsByJobIdCancel": {
     "phase": "10.9",
-    "status": "planned",
-    "note": "Cancel a specific job."
+    "status": "planned"
   },
   "postSettingsJobsByJobIdRun": {
     "phase": "10.9",
-    "status": "planned",
-    "note": "Invoke a specific job."
+    "status": "planned"
   },
   "postSettingsJobsByJobIdSchedule": {
     "phase": "10.9",
-    "status": "planned",
-    "note": "Modify job schedule."
+    "status": "planned"
   },
   "getSettingsLogs": {
     "phase": "10.8",
-    "status": "planned",
-    "note": "Returns logs."
+    "status": "planned"
   },
   "getSettingsMain": {
     "phase": "10.1 / 10.2",
-    "status": "planned",
-    "note": "Get main settings."
+    "status": "planned"
   },
   "postSettingsMain": {
     "phase": "10.1 / 10.2",
-    "status": "planned",
-    "note": "Update main settings."
+    "status": "planned"
   },
   "postSettingsMainRegenerate": {
     "phase": "10.1 / 10.2",
-    "status": "planned",
-    "note": "Get main settings with newly-generated API key."
+    "status": "planned"
   },
   "getSettingsMetadatas": {
     "phase": "10.6",
-    "status": "planned",
-    "note": "Get Metadata settings."
+    "status": "planned"
   },
   "putSettingsMetadatas": {
     "phase": "10.6",
-    "status": "planned",
-    "note": "Update Metadata settings."
+    "status": "planned"
   },
   "postSettingsMetadatasTest": {
     "phase": "10.6",
-    "status": "planned",
-    "note": "Test Provider configuration."
+    "status": "planned"
   },
   "getSettingsNetwork": {
     "phase": "10.5",
-    "status": "planned",
-    "note": "Get network settings."
+    "status": "planned"
   },
   "postSettingsNetwork": {
     "phase": "10.5",
-    "status": "planned",
-    "note": "Update network settings."
+    "status": "planned"
   },
   "getSettingsNotificationsDiscord": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Discord notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsDiscord": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update Discord notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsDiscordTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test Discord settings."
+    "status": "planned"
   },
   "getSettingsNotificationsEmail": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get email notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsEmail": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update email notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsEmailTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test email settings."
+    "status": "planned"
   },
   "getSettingsNotificationsGotify": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Gotify notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsGotify": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update Gotify notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsGotifyTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test Gotify settings."
+    "status": "planned"
   },
   "getSettingsNotificationsNtfy": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get ntfy.sh notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsNtfy": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update ntfy.sh notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsNtfyTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test ntfy.sh settings."
+    "status": "planned"
   },
   "getSettingsNotificationsPushbullet": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Pushbullet notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsPushbullet": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update Pushbullet notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsPushbulletTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test Pushbullet settings."
+    "status": "planned"
   },
   "getSettingsNotificationsPushover": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Pushover notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsPushover": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update Pushover notification settings."
+    "status": "planned"
   },
   "getSettingsNotificationsPushoverSounds": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Pushover sounds."
+    "status": "planned"
   },
   "postSettingsNotificationsPushoverTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test Pushover settings."
+    "status": "planned"
   },
   "getSettingsNotificationsSlack": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Slack notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsSlack": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update Slack notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsSlackTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test Slack settings."
+    "status": "planned"
   },
   "getSettingsNotificationsTelegram": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Telegram notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsTelegram": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update Telegram notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsTelegramTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test Telegram settings."
+    "status": "planned"
   },
   "getSettingsNotificationsWebhook": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get webhook notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsWebhook": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update webhook notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsWebhookTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test webhook settings."
+    "status": "planned"
   },
   "getSettingsNotificationsWebpush": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Get Web Push notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsWebpush": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Update Web Push notification settings."
+    "status": "planned"
   },
   "postSettingsNotificationsWebpushTest": {
     "phase": "10.7",
-    "status": "planned",
-    "note": "Test Web Push settings."
+    "status": "planned"
   },
   "getSettingsPlex": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get Plex settings."
+    "status": "planned"
   },
   "postSettingsPlex": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Update Plex settings."
+    "status": "planned"
   },
   "getSettingsPlexDevicesServers": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Gets the user's available Plex servers."
+    "status": "planned"
   },
   "getSettingsPlexLibrary": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get Plex libraries."
+    "status": "planned"
   },
   "getSettingsPlexSync": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get status of full Plex library scan."
+    "status": "planned"
   },
   "postSettingsPlexSync": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Start full Plex library scan."
+    "status": "planned"
   },
   "getSettingsPlexUsers": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get Plex users."
+    "status": "planned"
   },
   "getSettingsPublic": {
     "phase": "5.1",
-    "status": "planned",
-    "note": "Get public settings."
+    "status": "planned"
   },
   "getSettingsRadarr": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Get Radarr settings."
+    "status": "planned"
   },
   "postSettingsRadarr": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Create Radarr instance."
+    "status": "planned"
   },
   "postSettingsRadarrTest": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Test Radarr configuration."
+    "status": "planned"
   },
   "deleteSettingsRadarrByRadarrId": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Delete Radarr instance."
+    "status": "planned"
   },
   "putSettingsRadarrByRadarrId": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Update Radarr instance."
+    "status": "planned"
   },
   "getSettingsRadarrByRadarrIdProfiles": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Get available Radarr profiles."
+    "status": "planned"
   },
   "getSettingsSonarr": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Get Sonarr settings."
+    "status": "planned"
   },
   "postSettingsSonarr": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Create Sonarr instance."
+    "status": "planned"
   },
   "postSettingsSonarrTest": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Test Sonarr configuration."
+    "status": "planned"
   },
   "deleteSettingsSonarrBySonarrId": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Delete Sonarr instance."
+    "status": "planned"
   },
   "putSettingsSonarrBySonarrId": {
     "phase": "10.4",
-    "status": "planned",
-    "note": "Update Sonarr instance."
+    "status": "planned"
   },
   "getSettingsTautulli": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Get Tautulli settings."
+    "status": "planned"
   },
   "postSettingsTautulli": {
     "phase": "10.3",
-    "status": "planned",
-    "note": "Update Tautulli settings."
+    "status": "planned"
   },
   "getStatus": {
     "phase": "5.1",
-    "status": "planned",
-    "note": "Get Seerr status."
+    "status": "planned"
   },
   "getStatusAppdata": {
     "phase": "5.1",
-    "status": "planned",
-    "note": "Get application data volume status."
+    "status": "planned"
   },
   "getStudioByStudioId": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get movie studio details."
+    "status": "planned"
   },
   "getTvByTvId": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get TV details."
+    "status": "planned"
   },
   "getTvByTvIdRatings": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get TV ratings."
+    "status": "planned"
   },
   "getTvByTvIdRecommendations": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get recommended TV series."
+    "status": "planned"
   },
   "getTvByTvIdSeasonBySeasonNumber": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get season details and episode list."
+    "status": "planned"
   },
   "getTvByTvIdSimilar": {
     "phase": "7.1",
-    "status": "planned",
-    "note": "Get similar TV series."
+    "status": "planned"
   },
   "getUser": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get all users."
+    "status": "planned"
   },
   "postUser": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Create new user."
+    "status": "planned"
   },
   "putUser": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Update batch of users."
+    "status": "planned"
   },
   "postUserImportFromJellyfin": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Import all users from Jellyfin."
+    "status": "planned"
   },
   "postUserImportFromPlex": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Import all users from Plex."
+    "status": "planned"
   },
   "getUserJellyfinByJellyfinUserId": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get user by Jellyfin user ID."
+    "status": "planned"
   },
   "postUserRegisterPushSubscription": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Register a web push /user/registerPushSubscription."
+    "status": "planned"
   },
   "deleteUserByUserId": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Delete user by ID."
+    "status": "planned"
   },
   "getUserByUserId": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get user by ID."
+    "status": "planned"
   },
   "putUserByUserId": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Update a user by user ID."
+    "status": "planned"
   },
   "deleteUserByUserIdPushSubscriptionByEndpoint": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
     "note": "Deferred push subscription (v2)."
   },
   "getUserByUserIdPushSubscriptionByEndpoint": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
     "note": "Deferred push subscription (v2)."
   },
   "getUserByUserIdPushSubscriptions": {
-    "phase": "—",
+    "phase": "\u2014",
     "status": "excluded",
     "note": "Deferred push subscription (v2)."
   },
   "getUserByUserIdQuota": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get quotas for a specific user."
+    "status": "planned"
   },
   "getUserByUserIdRequests": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get requests for a specific user."
+    "status": "planned"
   },
   "deleteUserByUserIdSettingsLinkedAccountsJellyfin": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Remove the linked Jellyfin account for a user."
+    "status": "planned"
   },
   "postUserByUserIdSettingsLinkedAccountsJellyfin": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Link the provided Jellyfin account to the current user."
+    "status": "planned"
   },
   "postUserByUserIdSettingsLinkedAccountsJellyfinQuickconnect": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Link Jellyfin/Emby account with Quick Connect."
+    "status": "planned"
   },
   "deleteUserByUserIdSettingsLinkedAccountsPlex": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Remove the linked Plex account for a user."
+    "status": "planned"
   },
   "postUserByUserIdSettingsLinkedAccountsPlex": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Link the provided Plex account to the current user."
+    "status": "planned"
   },
   "getUserByUserIdSettingsMain": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get general settings for a user."
+    "status": "planned"
   },
   "postUserByUserIdSettingsMain": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Update general settings for a user."
+    "status": "planned"
   },
   "getUserByUserIdSettingsNotifications": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get notification settings for a user."
+    "status": "planned"
   },
   "postUserByUserIdSettingsNotifications": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Update notification settings for a user."
+    "status": "planned"
   },
   "getUserByUserIdSettingsPassword": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get password page informatiom."
+    "status": "planned"
   },
   "postUserByUserIdSettingsPassword": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Update password for a user."
+    "status": "planned"
   },
   "getUserByUserIdSettingsPermissions": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get permission settings for a user."
+    "status": "planned"
   },
   "postUserByUserIdSettingsPermissions": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Update permission settings for a user."
+    "status": "planned"
   },
   "getUserByUserIdWatchData": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get watch data."
+    "status": "planned"
   },
   "getUserByUserIdWatchlist": {
     "phase": "8.1 / 9.1",
-    "status": "planned",
-    "note": "Get the Plex watchlist for a specific user."
+    "status": "planned"
   },
   "postWatchlist": {
     "phase": "7.4",
-    "status": "planned",
-    "note": "Add media to watchlist."
+    "status": "planned"
   },
   "deleteWatchlistByTmdbId": {
     "phase": "7.4",
-    "status": "planned",
-    "note": "Delete watchlist item."
+    "status": "planned"
   },
   "getWatchprovidersMovies": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get watch provider movies."
+    "status": "planned"
   },
   "getWatchprovidersRegions": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get watch provider regions."
+    "status": "planned"
   },
   "getWatchprovidersTv": {
     "phase": "6.1",
-    "status": "planned",
-    "note": "Get watch provider series."
+    "status": "planned"
   }
 }

@@ -130,7 +130,9 @@ class DriftTests(unittest.TestCase):
             {key: value for key, value in original.items() if key != name},
             dict(original, invented={"status": "planned", "phase": "4", "note": "invalid"}),
             dict(original, **{name: {"status": "invalid", "phase": "4", "note": "invalid"}}),
-            dict(original, **{name: {"status": "planned", "phase": "4"}}),
+            dict(original, **{name: {"status": "excluded", "phase": "4"}}),
+            dict(original, **{name: {"status": "planned", "phase": "4", "note": " "}}),
+            dict(original, **{name: {"status": "planned", "phase": "4", "note": 42}}),
             dict(original, **{name: None}),
         ]:
             with self.subTest(invalid=invalid.get(name)):

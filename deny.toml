@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # Dependency license allow-list (PRD §10, §14.1 `license-check`).
-# Read by tools/ci/check-licenses.sh (a project format, not cargo-deny; Gauja has no Rust).
+# Policy for resolved-dependency enforcement with real app manifests in Phase 3.
+# This is a project format, not cargo-deny; Gauja has no Rust.
 # Every dependency of either app must resolve to an allowed SPDX identifier; unknown or
-# GPL-incompatible licenses fail CI. AGPL-3.0-or-later is compatible with all of these.
+# unacceptable licenses must fail the future resolved-dependency check.
+# An identifier alone does not establish compatibility; review conditions and scope.
 
 [licenses]
 allow = [

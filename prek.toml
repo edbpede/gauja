@@ -62,7 +62,7 @@ hooks = [
   # Recorded fixtures must never carry credentials (PRD §10).
   { id = "fixture-secrets", name = "fixture credential scan", entry = "tools/ci/check-fixture-secrets.sh", language = "system", files = "^api/fixtures/", pass_filenames = false },
   # Design tokens — generated themes must match tokens.json (PRD §8).
-  { id = "tokens-check", name = "design tokens → themes", entry = "tools/tokens/check.sh", language = "system", files = "^(design/tokens\\.json|tools/tokens/|apps/android/core/designsystem/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)", pass_filenames = false },
+  { id = "tokens-check", name = "design tokens → themes", entry = "tools/tokens/generate.sh --check", language = "system", files = "^(design/tokens\\.json|tools/tokens/|tools/codegen/outputs\\.py|apps/android/core/designsystem/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)", pass_filenames = false },
   # Secret-logging guard — no log call may format an exposed secret value (PRD §10).
   { id = "check-secret-logging", name = "secret-logging guard", entry = "tools/ci/check-secret-logging.sh", language = "system", types_or = ["kotlin", "swift"], files = "^apps/", pass_filenames = false },
   # Translation and resolved-license hooks land with real catalogs/manifests.
