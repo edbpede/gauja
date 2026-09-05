@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from jsonschema.exceptions import SchemaError, ValidationError
 from validate import load_contract
 
 
@@ -19,7 +20,7 @@ def main():
         if args.output:
             args.output.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n")
         print("contract: references, overlays, operation IDs and compatibility valid")
-    except (ValueError, KeyError, TypeError, OSError) as error:
+    except (SchemaError, ValidationError, ValueError, KeyError, TypeError, OSError) as error:
         parser.exit(1, f"contract: {error}\n")
 
 

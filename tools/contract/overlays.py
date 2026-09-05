@@ -40,7 +40,7 @@ def apply_overlays(spec, directory):
                 raise ValueError(f"{path.name}: unmatched target {action['target']}")
             # Removing array members must not shift subsequent selected indices.
             matches.sort(key=lambda m: (len(m.parts), str(m.parts[:-1]),
-                                       m.parts[-1] if isinstance(m.parts[-1], int) else -1), reverse=True)
+                                       m.parts[-1] if m.parts and isinstance(m.parts[-1], int) else -1), reverse=True)
             for match in matches:
                 if not match.parts:
                     if "remove" in action:

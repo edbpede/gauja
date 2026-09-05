@@ -22,6 +22,6 @@ def assign_operation_ids(spec):
             words = re.findall(r"[A-Za-z0-9]+", segment)
             pieces.append(("By" if parameter else "") + "".join(w[:1].upper() + w[1:] for w in words))
         name = operation.setdefault("operationId", method + "".join(pieces))
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", name) or name in seen:
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", name) or name in seen:
             raise ValueError(f"Invalid or duplicate operation ID: {name}")
         seen.add(name)

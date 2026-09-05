@@ -19,13 +19,19 @@ def validate_refs(value, document):
     elif isinstance(value, dict):
         if "$ref" in value:
             ref = value["$ref"]
-            if not isinstance(ref, str) or not ref.startswith("#/"):
+            if not isinstance(ref, str) or (ref != "#" and not ref.startswith("#/")):
                 raise ValueError("Only local OpenAPI references are allowed")
             node = document
             try:
-                for part in ref[2:].split("/"):
-                    node = node[part.replace("~1", "/").replace("~0", "~")]
-            except (KeyError, TypeError) as error:
+                for part in ref[2:].split("/") if ref != "#" else []:
+                    part = part.replace("~1", "/").replace("~0", "~")
+                    if isinstance(node, list):
+                        if not re.fullmatch(r"0|[1-9][0-9]*", part):
+                            raise ValueError("Invalid array index")
+                        node = node[int(part)]
+                    else:
+                        node = node[part]
+            except (KeyError, IndexError, TypeError, ValueError) as error:
                 raise ValueError(f"Unresolved reference: {ref}") from error
         for item in value.values():
             validate_refs(item, document)
@@ -54,8 +60,9 @@ def load_contract(api):
     schema = json.loads((api / "compat.schema.json").read_text())
     Draft202012Validator.check_schema(schema)
     Draft202012Validator(schema).validate(compat)
+    callable_paths = {path for path, _, _ in operations(spec)}
     for name, gate in compat.items():
-        if gate["endpoint"] not in spec["paths"]:
+        if gate["endpoint"] not in callable_paths:
             raise ValueError(f"{name}: endpoint absent from pinned contract")
         if gate["max"] is not None and tuple(map(int, gate["min"].split("."))) > tuple(map(int, gate["max"].split("."))):
             raise ValueError(f"{name}: inverted supported version range")

@@ -26,7 +26,7 @@ class ContractLoader(yaml.SafeLoader):
 # YAML 1.2 booleans: do not turn the OpenAPI parameter name 'on' into True.
 import re
 ContractLoader.add_implicit_resolver(
-    "tag:yaml.org,2002:bool", re.compile(r"^(?:true|false)$"), list("tf")
+    "tag:yaml.org,2002:bool", re.compile(r"^(?:true|True|TRUE|false|False|FALSE)$"), list("tTfF")
 )
 
 
