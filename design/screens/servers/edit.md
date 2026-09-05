@@ -23,7 +23,7 @@ Existing non-secret profile values; secure credential replacement controls; trus
 
 ## Actions
 
-Changing the endpoint identity clears the old session and requires server validation and sign-in again. Keep the saved profile unchanged if validation fails or the user cancels. Trust-mode changes invalidate the old transport and require the relevant confirmation.
+Apply the same URL normalization and validation as [Add server](add.md#actions) before changing endpoint identity or invalidating a session. Changing the endpoint identity clears the old session and requires server validation and sign-in again. Keep the saved profile unchanged if validation fails or the user cancels. Trust-mode changes invalidate the old transport and require the relevant confirmation.
 
 All network requests carry an immutable attempt/profile identity; cancel and ignore results when that identity changes. Secrets are transient secure input and then SecretStore/Keychain only, never saved-state payloads, logs, fixtures or diagnostics. Error handling never broadens TLS trust or follows a credential-bearing redirect to another origin.
 

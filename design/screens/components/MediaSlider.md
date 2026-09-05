@@ -35,7 +35,9 @@ Expose the full identity/value and action through TalkBack/VoiceOver. Avoid redu
 
 ## Endpoints
 
-GET /settings/discover and the slider-specific /discover, /media or /request endpoint listed in the screen spec. The owning Data/screen layer performs I/O and handles pagination; the component does not.
+GET /settings/discover supplies home ordering and configuration. Home collection sources are GET /media (recently added), GET /request (recent requests), GET /discover/watchlist (Plex watchlist), GET /discover/trending, GET /discover/movies and GET /discover/tv (popular/upcoming and filtered custom collections), GET /discover/movies/studio/{studioId}, GET /discover/tv/network/{networkId}, and GET /search (custom search). Genre collections use the [GenreCard](GenreCard.md#endpoints) operations.
+
+The owning screen spec must pin the selected operation, query filters and pagination before implementation; detail-screen collections use their owning screen’s exact operation from `api/ENDPOINTS.md`. The owning Data/screen layer performs I/O and supplies domain values; the component does not select or call endpoints.
 
 ## Permissions
 

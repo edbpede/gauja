@@ -33,7 +33,7 @@ Compact: native form/sheet and stacked back navigation. Medium: bounded readable
 
 ## Accessibility
 
-Secure input labels identify the credential and server. Announce validation/pending/expiry without reading secret values. Support keyboard submit/focus order, native 48 dp/44 pt targets, largest Dynamic Type/font scaling and reduced motion. Fingerprint/code can wrap and remains selectable only where explicitly safe; never copy the Quick Connect secret.
+Secure input labels identify the credential and server. Announce validation/pending without reading secret values. Support keyboard submit/focus order, native 48 dp/44 pt targets, largest Dynamic Type/font scaling and reduced motion. The password field never offers copy or reveals a stored credential.
 
 ## Endpoints
 

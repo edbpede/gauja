@@ -42,7 +42,8 @@ JAR into `.cache/` and verifies its SHA-256 before every execution. The isolated
 JVM smoke build requires Gradle 9.7.1 and JDK 17+; CI uses JDK 17.
 
 iOS generation requires Swift 6.3 (Xcode 26.6 in CI). Its tooling package and
-transitive dependencies are pinned in `ios/Package.swift` and `Package.resolved`.
+transitive dependencies are pinned in `tools/codegen/ios/Package.swift` and
+`tools/codegen/ios/Package.resolved`.
 CI installs the checksum-pinned SwiftLint 0.65.1 archive rather than relying on
 the runner PATH. The generator is invoked as an SPM executable with automatic resolution disabled;
 the application package/plugin integration belongs to Phase 3. Smoke compilation
@@ -76,7 +77,7 @@ mapping boundary and rationale.
 
 When updating tool versions, refresh the Python hashes, SPM locks and Gradle
 smoke lock deliberately. For Gradle, run the rendered smoke project with
-`--write-locks` and copy its `gradle.lockfile` back to `android/smoke/`.
+`--write-locks` and copy its `gradle.lockfile` back to `tools/codegen/android/smoke/`.
 For SPM, resolve the relevant package with the new exact versions and copy the
-smoke project's `Package.resolved` back to `ios/smoke/`. Review transitive license
+smoke project's `Package.resolved` back to `tools/codegen/ios/smoke/`. Review transitive license
 changes, regenerate, and run both smoke builds and `prek run --all-files`.

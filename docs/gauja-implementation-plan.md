@@ -119,7 +119,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 ### 2.1 Vendored API contract (`api/`)
 
-- [x] Copy upstream `seerr-api.yml` verbatim (OpenAPI 3.0.2; 167 paths / 187 operations at the time of writing, `info.version: 1.0.0`, served under `/api/v1`).
+- [x] Copy upstream `seerr-api.yml` verbatim (OpenAPI 3.0.2; 163 paths / 212 operations, `info.version: 1.0.0`, served under `/api/v1`).
 - [x] Write `api/UPSTREAM_COMMIT` with the exact upstream commit SHA and the fetch date.
 - [x] Add `api/LICENSE.upstream` (Seerr's MIT text).
 - [x] Make `tools/api-drift/check-local.sh` real: fail when `seerr-api.yml` changes without `UPSTREAM_COMMIT` changing or vice versa (compare staged paths).

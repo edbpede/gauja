@@ -35,7 +35,7 @@ Expose the full identity/value and action through TalkBack/VoiceOver. Avoid redu
 
 ## Endpoints
 
-GET /genres/movie; GET /genres/tv; /discover/genreslider and genre-specific discover operations. The owning Data/screen layer performs I/O and handles pagination; the component does not.
+GET /genres/movie; GET /genres/tv; GET /discover/genreslider/movie; GET /discover/genreslider/tv; GET /discover/movies/genre/{genreId}; GET /discover/tv/genre/{genreId}. The owning Data/screen layer performs I/O and handles pagination; the component does not.
 
 ## Permissions
 

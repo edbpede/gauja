@@ -246,7 +246,7 @@ Excluded operations remain generated but are never invoked by Gauja.
 
 - [ ] `GET /backdrops` — `getBackdrops`; phase 6.1; planned. Get backdrops of trending items.
 - [ ] `GET /genres/movie` — `getGenresMovie`; phase 6.1; planned. Get list of official TMDB movie genres.
-- [ ] `GET /genres/tv` — `getGenresTv`; phase 6.1; planned. Get list of official TMDB movie genres.
+- [ ] `GET /genres/tv` — `getGenresTv`; phase 6.1; planned. Get list of official TMDB TV genres.
 - [ ] `GET /languages` — `getLanguages`; phase 6.1; planned. Languages supported by TMDB.
 - [ ] `GET /network/{networkId}` — `getNetworkByNetworkId`; phase 6.1; planned. Get TV network details.
 - [ ] `GET /regions` — `getRegions`; phase 6.1; planned. Regions supported by TMDB.
