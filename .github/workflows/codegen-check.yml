@@ -59,13 +59,20 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
         with:
           xcode-version: '26.6'
+      - name: Install pinned SwiftLint
+        run: |
+          source tools/codegen/versions.env
+          mkdir -p .cache/swiftlint
+          curl --fail --location --retry 3 "https://github.com/realm/SwiftLint/releases/download/$SWIFTLINT_VERSION/portable_swiftlint.zip" -o .cache/swiftlint.zip
+          printf '%s  %s\n' "$SWIFTLINT_ARCHIVE_SHA256" .cache/swiftlint.zip | shasum -a 256 --check
+          unzip -q .cache/swiftlint.zip -d .cache/swiftlint
       - run: tools/contract/python.sh --install
       - run: tools/codegen/generate.sh --check --platform ios
       - run: python3 tools/codegen/smoke.py --platform ios
       - name: Handwritten Swift tooling checks
         run: |
           swift format lint --strict --configuration tools/codegen/ios/.swift-format tools/codegen/ios/Package.swift tools/tests/codegen/ios/WireTests.swift
-          swiftlint lint --strict --config tools/codegen/ios/.swiftlint.yml
+          .cache/swiftlint/swiftlint lint --strict --config tools/codegen/ios/.swiftlint.yml
       - name: Typecheck generated SwiftUI primitives at iOS 18 floor
         run: |
           xcrun swiftc -typecheck -swift-version 6 -default-isolation MainActor \

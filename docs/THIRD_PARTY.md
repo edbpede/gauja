@@ -38,6 +38,7 @@ Gradle smoke `gradle.lockfile`.
 | OpenAPI Generator, Kotlin, Gradle, kotlinx serialization/coroutines, Retrofit, OkHttp, Okio, JetBrains annotations | Apache-2.0 | Generation and JVM compile harness |
 | Swift OpenAPI Generator/runtime/URLSession, Swift Algorithms/Argument Parser/Numerics/Collections/HTTP Types | Apache-2.0 | Generation and Swift compile harness |
 | OpenAPIKit, Yams | MIT | Swift generator dependencies |
+| SwiftLint 0.65.1 | MIT | Handwritten Swift tooling lint only |
 | JUnit 4.13.2 | EPL-1.0 | Tests only; narrow build-only allowance in `deny.toml` |
 | Hamcrest Core 1.3 | BSD-3-Clause | Tests only |
 

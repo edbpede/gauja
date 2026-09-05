@@ -43,7 +43,8 @@ JVM smoke build requires Gradle 9.7.1 and JDK 17+; CI uses JDK 17.
 
 iOS generation requires Swift 6.3 (Xcode 26.6 in CI). Its tooling package and
 transitive dependencies are pinned in `ios/Package.swift` and `Package.resolved`.
-The generator is invoked as an SPM executable with automatic resolution disabled;
+CI installs the checksum-pinned SwiftLint 0.65.1 archive rather than relying on
+the runner PATH. The generator is invoked as an SPM executable with automatic resolution disabled;
 the application package/plugin integration belongs to Phase 3. Smoke compilation
 uses OpenAPIURLSession and the locked runtime dependencies.
 
