@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# prek.toml — pre-commit hooks configuration
+# Docs: https://prek.j178.dev/configuration/
+#
+# Setup: `prek install` (installs both the pre-commit and commit-msg shims).
+# Run everything: `prek run --all-files` (do this after changing this file).
+# See docs/gauja-implementation-plan.md — Phase 1, and docs/gauja-prd.md §14.
+
+default_install_hook_types = ["pre-commit", "commit-msg"]
+
+# Generated artifacts must match their generators byte-for-byte (CI drift check),
+# so whitespace/EOF fixers and formatters skip them.
+# GENERATED = ^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)
+
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace", exclude = "^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)" },
+  { id = "end-of-file-fixer",   exclude = "^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)" },
+  { id = "mixed-line-ending", args = ["--fix=lf"], exclude = "^(apps/android/core/api/|apps/ios/Packages/SeerrAPI/Generated/|apps/android/core/designsystem/src/main/kotlin/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)" },
+  { id = "check-merge-conflict" },
+  { id = "check-case-conflict" },
+  { id = "check-added-large-files", args = ["--maxkb=512"] },
+  { id = "detect-private-key" },
+  { id = "check-json" },
+  { id = "check-toml" },
+  { id = "check-yaml" },
+  { id = "no-commit-to-branch", args = ["--branch", "main"] },
+]
+
+# Conventional Commits
+[[repos]]
+repo = "https://github.com/compilerla/conventional-pre-commit"
+rev = "v4.4.0"
+hooks = [
+  { id = "conventional-pre-commit", stages = ["commit-msg"] },
+]
+
+# Secret / credential leak guard (PRD §10, §14)
+[[repos]]
+repo = "https://github.com/gitleaks/gitleaks"
+rev = "v8.30.1"
+hooks = [
+  { id = "gitleaks" },
+]
+
+# Local hooks — path-scoped mirrors of the CI lanes (PRD §14). Heavier gates stay in CI.
+# Complexity/length lints remain ADVISORY (warn) per the modularity doctrine (PRD §12.2).
+[[repos]]
+repo = "local"
+hooks = [
+  # DCO sign-off — every commit certifies the DCO and grants the App Store exception
+  # (CONTRIBUTING.md + APPSTORE_EXCEPTION.md; PRD §15). Commit with `git commit -s`.
+  { id = "dco-signoff", name = "DCO sign-off (Signed-off-by)", entry = "sh -c 'grep -qE \"^Signed-off-by: .+ <.+@.+>\" \"$1\" || { echo \"Commit message is missing a Signed-off-by line (DCO). Commit with: git commit -s\"; exit 1; }' --", language = "system", stages = ["commit-msg"] },
+
+  # API contract — spec and pinned upstream commit change together (PRD §4.1).
+  { id = "api-drift", name = "api contract consistency", entry = "tools/api-drift/check-local.sh", language = "system", files = "^api/(seerr-api\\.yml|UPSTREAM_COMMIT|overlays/)", pass_filenames = false },
+  # Recorded fixtures must never carry credentials (PRD §10).
+  { id = "fixture-secrets", name = "fixture credential scan", entry = "tools/ci/check-fixture-secrets.sh", language = "system", files = "^api/fixtures/", pass_filenames = false },
+  # Design tokens — generated themes must match tokens.json (PRD §8).
+  { id = "tokens-check", name = "design tokens → themes", entry = "tools/tokens/check.sh", language = "system", files = "^(design/tokens\\.json|apps/android/core/designsystem/.*/generated/|apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/)", pass_filenames = false },
+  # Secret-logging guard — no log call may format an exposed secret value (PRD §10).
+  { id = "check-secret-logging", name = "secret-logging guard", entry = "tools/ci/check-secret-logging.sh", language = "system", types_or = ["kotlin", "swift"], files = "^apps/", pass_filenames = false },
+  # Translation catalogs (PRD §16).
+  { id = "translations", name = "translation catalogs", entry = "python3 tools/community/validate-translations.py", language = "system", files = "(^crowdin\\.yml$|^apps/(ios/.+\\.xcstrings|android/.+/res/(values|values-[^/]+)/strings\\.xml)$)", pass_filenames = false },
+  # Dependency license allow-list (PRD §10).
+  { id = "license-check", name = "dependency licenses", entry = "tools/ci/check-licenses.sh", language = "system", files = "(^|/)(gradle/libs\\.versions\\.toml|Package\\.resolved|deny\\.toml)$", pass_filenames = false },
+
+  # iOS — apps/ios/ (toolchain swift-format + SwiftLint; PRD §14 ios lane). Generated client excluded.
+  { id = "swift-format", name = "swift-format", entry = "swift format --in-place", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
+  { id = "swiftlint", name = "swiftlint", entry = "swiftlint lint --strict", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
+
+  # Android — apps/android/ (ktfmt + detekt with the Compose ruleset; PRD §14 android lane).
+  # ktfmt, not ktlint: the Kotlin rule file names ktfmt as the formatter and is authoritative (PRD §12.1).
+  # Gradle-driven so detekt loads the Compose ruleset; fires only when Kotlin under apps/android/ is staged.
+  { id = "ktfmt", name = "ktfmt", entry = "apps/android/gradlew --project-dir apps/android ktfmtCheck", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
+  { id = "detekt", name = "detekt", entry = "apps/android/gradlew --project-dir apps/android detekt", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
+]
