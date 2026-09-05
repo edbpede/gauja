@@ -41,6 +41,17 @@ class GenerationTests(unittest.TestCase):
             self.assertFalse((dest / "extra.kt").exists())
             publish(source, dest, True)
 
+    def test_directory_can_be_replaced_by_generated_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source, dest = Path(temp) / "source", Path(temp) / "dest"
+            source.mkdir()
+            (source / "Client.kt").write_text("expected")
+            (dest / "Client.kt").mkdir(parents=True)
+            (dest / "Client.kt/old.kt").write_text("stale")
+            publish(source, dest, False)
+            self.assertEqual((dest / "Client.kt").read_text(), "expected")
+            publish(source, dest, True)
+
     def test_redaction_is_generated_not_a_hand_edit(self):
         with tempfile.TemporaryDirectory() as temp:
             directory = Path(temp)

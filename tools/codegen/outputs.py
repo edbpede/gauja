@@ -21,4 +21,7 @@ def publish(source, destination, check):
         destination.mkdir(parents=True, exist_ok=True)
         for path in actual.keys() - expected.keys():
             (destination / path).unlink()
+        for path in expected:
+            if (destination / path).is_dir():
+                shutil.rmtree(destination / path)
         shutil.copytree(source, destination, dirs_exist_ok=True)

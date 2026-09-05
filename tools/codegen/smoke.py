@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 import shutil
 import subprocess
+import re
 
 
 def main():
@@ -18,6 +19,10 @@ def main():
     work = root / ".cache" / ("smoke-" + args.platform)
     work.mkdir(parents=True, exist_ok=True)
     if args.platform == "android":
+        installed = subprocess.check_output(["gradle", "--version"], text=True)
+        version = re.search(r"^Gradle (\S+)$", installed, re.M)
+        if not version or version[1] != pins["GRADLE_VERSION"]:
+            parser.exit(1, f"smoke: Gradle {pins['GRADLE_VERSION']} is required\n")
         source = root / "apps/android/core/api/src/main/kotlin"
         destination = work / "src/main/kotlin"
         test_destination = work / "src/test/kotlin"
