@@ -66,10 +66,13 @@ jobs:
         env:
           API: ${{ matrix.api }}
         run: |
-          sdkmanager 'platforms;android-37.0' "system-images;android-$API;google_apis;x86_64"
+          sdkmanager 'emulator' 'platforms;android-37.0' "system-images;android-$API;google_apis;x86_64"
           echo no | avdmanager create avd --force --name gauja-smoke --package "system-images;android-$API;google_apis;x86_64"
           "$ANDROID_HOME/emulator/emulator" -avd gauja-smoke -no-window -no-audio -no-snapshot -gpu swiftshader_indirect > /tmp/emulator.log 2>&1 &
           trap 'adb emu kill || true' EXIT
           timeout 180 adb wait-for-device
           timeout 180 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done'
           apps/android/gradlew --project-dir apps/android connectedDebugAndroidTest
+      - name: Emulator startup log
+        if: failure()
+        run: test ! -f /tmp/emulator.log || cat /tmp/emulator.log
