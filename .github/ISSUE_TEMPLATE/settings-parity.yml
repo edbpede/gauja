@@ -15,9 +15,10 @@ body:
     id: endpoint
     attributes:
       label: Endpoint path
+      description: Optional, if known. The settings section and observed behavior are enough.
       placeholder: /api/v1/settings/radarr/{id}
     validations:
-      required: true
+      required: false
   - type: input
     id: seerr-version
     attributes:

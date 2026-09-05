@@ -4,10 +4,10 @@ name: codegen-check
 
 on:
   pull_request:
-    paths: ['api/**', 'tools/contract/**', 'tools/api-drift/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
+    paths: ['api/**', 'LICENSES/MIT.txt', 'tools/contract/**', 'tools/api-drift/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
   push:
     branches: [main]
-    paths: ['api/**', 'tools/contract/**', 'tools/api-drift/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'design/tokens.json', 'tools/tokens/**', 'apps/ios/Packages/DesignSystem/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
+    paths: ['api/**', 'LICENSES/MIT.txt', 'tools/contract/**', 'tools/api-drift/**', 'tools/codegen/**', 'tools/tests/codegen/**', 'apps/android/core/api/**', 'apps/ios/Packages/SeerrAPI/**', '.github/workflows/codegen-check.yml']
 
 permissions:
   contents: read
@@ -77,8 +77,3 @@ jobs:
         run: |
           swift format lint --strict --configuration tools/codegen/ios/.swift-format tools/codegen/ios/Package.swift tools/tests/codegen/ios/WireTests.swift
           .cache/swiftlint/swiftlint lint --strict --config tools/codegen/ios/.swiftlint.yml
-      - name: Typecheck generated SwiftUI primitives at iOS 18 floor
-        run: |
-          xcrun swiftc -typecheck -swift-version 6 -default-isolation MainActor \
-            -sdk "$(xcrun --sdk iphonesimulator --show-sdk-path)" -target arm64-apple-ios18.0-simulator \
-            apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated/*.swift

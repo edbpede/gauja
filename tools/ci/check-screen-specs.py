@@ -6,7 +6,9 @@ import argparse
 from pathlib import Path
 import re
 
-SECTIONS = ["Contract", "Content", "Actions", "Endpoints", "Permissions", "Acceptance criteria"]
+
+def anchor_name(heading):
+    return re.sub(r"[^\w\- ]", "", heading.lower()).replace(" ", "-")
 
 
 def check_links(path):
@@ -19,15 +21,27 @@ def check_links(path):
             raise ValueError(f"{path.name}: broken link {link}")
         if anchor and destination.suffix == ".md":
             headings = re.findall(r"^#+ (.+)$", destination.read_text(), re.M)
-            anchors = {re.sub(r"[^\w\- ]", "", heading.lower()).replace(" ", "-") for heading in headings}
+            anchors = {anchor_name(heading) for heading in headings}
             if anchor not in anchors:
                 raise ValueError(f"{path.name}: broken anchor {link}")
+
+
+def contract_text(path, anchor):
+    text = path.read_text()
+    if not anchor:
+        return text
+    headings = list(re.finditer(r"^(#+) (.+)$", text, re.M))
+    for index, heading in enumerate(headings):
+        if anchor_name(heading[2]) == anchor:
+            end = next((item.start() for item in headings[index + 1:] if len(item[1]) <= len(heading[1])), len(text))
+            return text[heading.end():end]
+    raise ValueError(f"{path.name}: missing contract anchor {anchor}")
 
 
 def check(root):
     screens = root / "design/screens"
     inventory = (screens / "INVENTORY.md").read_text()
-    rows = re.findall(r"^\| `([^`]+\.md)` \| ([^|]+) \| ([SML]) \| ([^|]+) \| ([^|]+) \|$", inventory, re.M)
+    rows = re.findall(r"^\| `([^`]+\.md(?:#[^`]+)?)` \| ([^|]+) \| ([SML]) \| ([^|]+) \| ([^|]+) \|$", inventory, re.M)
     if not rows or len({r[0] for r in rows}) != len(rows):
         raise ValueError("Missing or duplicate screen identities")
     areas = {row[0].split("/")[0] for row in rows}
@@ -44,26 +58,29 @@ def check(root):
         raise ValueError("Duplicate auth matrix IDs")
     cases = set(case_ids)
     referenced = set()
-    component_names = re.findall(r"^\| \[([^\]]+)\]\(([^)]+\.md)\) \|", components, re.M)
+    component_names = re.findall(r"^\| \[([^\]]+)\]\(([^)]+\.md(?:#[^)]+)?)\) \|", components, re.M)
     names, targets = zip(*component_names) if component_names else ((), ())
     if not names or len(set(names)) != len(names) or len(set(targets)) != len(targets):
         raise ValueError("Missing or duplicate component identities")
-    paths = [screens / "components" / target for target in targets]
-    screen_paths = [screens / row[0] for row in rows]
-    for path in screen_paths:
+    contracts = [(screens / "components" / target.partition("#")[0], target.partition("#")[2]) for target in targets]
+    screen_contracts = [(screens / row[0].partition("#")[0], row[0].partition("#")[2]) for row in rows]
+    for path, anchor in screen_contracts:
         if path.is_file() or path.parent.name in {"auth", "servers"}:
-            paths.append(path)
+            contracts.append((path, anchor))
+    paths = {path for path, _ in contracts}
     detailed = set(screens.rglob("*.md")) - {screens / "TEMPLATE.md"}
     for path in detailed:
         check_links(path)
         if path.name not in {"INVENTORY.md", "MATRIX.md"} and path not in paths:
             raise ValueError(f"{path.name}: spec missing from inventory")
-    for path in paths:
-        text = path.read_text()
-        sections = SECTIONS + ([] if path.parent.name == "components" else ["States", "Adaptive behavior", "Accessibility", "Content components"])
-        for section in sections:
-            if f"## {section}\n" not in text:
-                raise ValueError(f"{path.name}: missing {section}")
+    for path, anchor in contracts:
+        text = contract_text(path, anchor)
+        # Behavior is required; a fixed set of sections is not. Review decides
+        # which states, permissions and interactions apply to each contract.
+        acceptance = re.search(r"^(?:#{2,6} Acceptance criteria\n|\*\*Acceptance criteria:\*\*)", text, re.M)
+        content = text[acceptance.end():].strip() if acceptance else ""
+        if not content or content.startswith(("#", "**")):
+            raise ValueError(f"{path.name}: missing Acceptance criteria")
         references = set(re.findall(r"\b[AS]\d{2}\b", text))
         if not references <= cases:
             raise ValueError(f"{path.name}: unknown matrix row")
@@ -71,7 +88,7 @@ def check(root):
             referenced |= references
     if referenced != cases:
         raise ValueError("An auth matrix row is not owned by a screen spec")
-    return len(rows), len(paths), len(cases)
+    return len(rows), len(contracts), len(cases)
 
 
 def main():

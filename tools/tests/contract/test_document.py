@@ -40,6 +40,18 @@ class ContractTests(unittest.TestCase):
             self.assertEqual(subprocess.check_output(command + ["--output", str(output)], text=True), "")
             self.assertEqual(output.read_text(), stdout)
             self.assertEqual(stdout.count("- [ ]"), 212)
+            self.assertIn("Sign in using a Jellyfin username and password.", stdout)
+            self.assertIn("Legacy alias; Sunset 2026-06-01. Use /blocklist.", stdout)
+
+    def test_coverage_keeps_unique_notes_and_derives_changed_summaries(self):
+        from endpoints import render
+        spec = load_contract(ROOT / "api")
+        coverage = json.loads((ROOT / "api/coverage.json").read_text())
+        operation = spec["paths"]["/auth/local"]["post"]
+        operation["summary"] = "Updated upstream description"
+        coverage[operation["operationId"]]["note"] = "Additional implementation constraint"
+        report = render(spec, coverage)
+        self.assertIn("Updated upstream description. Additional implementation constraint.", report)
 
     def test_duplicate_yaml_keys_fail(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -14,15 +14,11 @@ import urllib.request
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contract"))
 from validate import load_contract
 from outputs import publish
+from pins import versions
 from redaction import kotlin_sources, swift_descriptions
 from wire import wire_document
 
 ROOT = Path(__file__).resolve().parents[2]
-
-
-def versions():
-    return dict(line.split("=", 1) for line in (ROOT / "tools/codegen/versions.env").read_text().splitlines()
-                if line and not line.startswith("#"))
 
 
 def run(command):

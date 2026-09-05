@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import re
+from pins import versions
 
 
 def main():
@@ -14,8 +15,7 @@ def main():
     parser.add_argument("--platform", choices=["android", "ios"], required=True)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
-    pins = dict(line.split("=", 1) for line in (root / "tools/codegen/versions.env").read_text().splitlines()
-                if line and not line.startswith("#"))
+    pins = versions()
     work = root / ".cache" / ("smoke-" + args.platform)
     work.mkdir(parents=True, exist_ok=True)
     if args.platform == "android":

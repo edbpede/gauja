@@ -42,12 +42,25 @@ class UpstreamTests(unittest.TestCase):
 
     def test_exact_bytes_required_and_invalid_pin_never_requested(self):
         with tempfile.TemporaryDirectory() as temp:
-            api = Path(temp)
+            api = Path(temp) / "api"
+            api.mkdir()
+            notice = Path(temp) / "LICENSES/MIT.txt"
+            notice.parent.mkdir()
             (api / "UPSTREAM_COMMIT").write_text("a" * 40 + "\n# Fetched: 2026-09-05\n")
             (api / "seerr-api.yml").write_bytes(b"spec\n")
-            (api / "LICENSE.upstream").write_bytes(b"license\n")
-            with patch("sys.argv", ["check-upstream", "--api", temp]):
+            notice.write_bytes(b"license\n")
+            with patch("sys.argv", ["check-upstream", "--api", str(api)]):
                 with patch.object(module.urllib.request, "urlopen", side_effect=[io.BytesIO(b"spec\n"), io.BytesIO(b"license\n")]):
+                    module.main()
+                with patch.object(module.urllib.request, "urlopen", side_effect=[io.BytesIO(b"spec\n"), io.BytesIO(b"wrong notice\n")]):
+                    with self.assertRaises(SystemExit) as failure:
+                        module.main()
+                    self.assertEqual(failure.exception.code, 1)
+                alternate = Path(temp) / "notice.txt"
+                alternate.write_bytes(notice.read_bytes())
+                with patch("sys.argv", ["check-upstream", "--api", str(api), "--license", str(alternate)]), patch.object(
+                    module.urllib.request, "urlopen", side_effect=[io.BytesIO(b"spec\n"), io.BytesIO(b"license\n")]
+                ):
                     module.main()
                 with patch.object(module.urllib.request, "urlopen", return_value=io.BytesIO(b"changed")):
                     with self.assertRaises(SystemExit) as failure:

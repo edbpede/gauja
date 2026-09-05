@@ -5,6 +5,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 # <Screen name>
 
+Use this as a review prompt, not a required section list. A contract may be a section in an existing document when behavior is small. Keep a stable inventory identity, links and observable acceptance criteria; include the remaining sections only when applicable.
+
 ## Contract
 
 Area, screen ID, consuming phase, S/M/L estimate, pinned upstream reference, and entry/exit destinations. Screen names and ordering follow Seerr; chrome follows each native platform.

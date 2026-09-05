@@ -34,9 +34,9 @@ SPDX-FileCopyrightText = ["2026 Gauja contributors", "Tailwind Labs, Inc."]
 SPDX-License-Identifier = "AGPL-3.0-or-later AND MIT"
 
 # Vendored upstream contract: Seerr's OpenAPI specification stays MIT (PRD §4.1, §15.1).
-# Preserve the exact pinned notice in api/LICENSE.upstream and REUSE license text in LICENSES/MIT.txt.
+# The exact pinned Seerr notice and REUSE license text share LICENSES/MIT.txt.
 [[annotations]]
-path = ["api/seerr-api.yml", "api/LICENSE.upstream"]
+path = ["api/seerr-api.yml"]
 precedence = "override"
 SPDX-FileCopyrightText = "2020 sct"
 SPDX-License-Identifier = "MIT"

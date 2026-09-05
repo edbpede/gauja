@@ -19,7 +19,9 @@ def validate_coverage(spec, coverage):
     for name, entry in coverage.items():
         if (not isinstance(entry, dict) or
                 entry.get("status") not in ("planned", "implemented", "excluded") or
-                not entry.get("phase") or not entry.get("note")):
+                not entry.get("phase") or
+                ("note" in entry and (not isinstance(entry["note"], str) or not entry["note"].strip())) or
+                (entry.get("status") == "excluded" and not entry.get("note"))):
             raise ValueError(f"Invalid coverage metadata: {name}")
 
 

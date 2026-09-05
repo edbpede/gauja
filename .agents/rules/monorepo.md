@@ -15,18 +15,32 @@ Gauja is two independent native apps plus a shared contract in one repository (P
 | `design/` | `tokens.json`, `screens/<area>/<screen>.md`, `assets/` | Both platform maintainers |
 | `apps/android/` | Gradle project (`app`, `core/*`, `feature/*`, `build-logic/`) | Android maintainers |
 | `apps/ios/` | `project.yml`, `App/`, `Packages/*` | iOS maintainers |
-| `tools/` | `codegen/`, `tokens/`, `api-drift/`, `ci/`, `community/`, `tests/` | Project leads |
+| `tools/` | `codegen/`, `tokens/`, `api-drift/`, `ci/`, `tests/` | Project leads |
 | `docs/` | PRD, implementation plan, `THIRD_PARTY.md` | Project leads |
 | `.agents/rules/` | Normative rule files | Project leads |
 | root | `LICENSE`, `APPSTORE_EXCEPTION.md`, `REUSE.toml`, `prek.toml`, `deny.toml`, `renovate.json`, `CONTRIBUTING.md`, `SECURITY.md`, `README.md` | Project leads |
 
 A change under `apps/android/` needs no iOS reviewer and vice versa. A change under `api/` or `design/` needs both, because both apps consume it.
 
+## Documentation ownership
+
+Each fact has one authoritative owner; other documents link to it. The PRD owns product
+commitments and decision rationale; the implementation plan owns sequencing and completion.
+This file owns repository boundaries and workflow responsibilities; modularity owns the allowed
+dependency graph. API maintenance lives in `api/README.md`, generator usage and constraints in
+`tools/codegen/README.md`, attribution in `docs/THIRD_PARTY.md`, and contributor setup in
+`CONTRIBUTING.md`. Feature contracts own unique behavior and acceptance criteria.
+
+Do not create overview files or tutorial copies for directories. Put a decision with its owning
+concern; a separate document requires substantial unique content and a current consumer.
+The Swift and Kotlin coding guidelines remain authoritative for platform usage. Exact executable
+pins belong to the relevant manifests; prose should link to them instead of adding parallel pin tables.
+
 ## The cross-boundary rule
 
 - **Nothing under `apps/android/` references anything under `apps/ios/`, and vice versa.** No imports, no relative paths, no Gradle `includeBuild`, no SPM `path:` dependency, no symlink, no shared script. `pr-hygiene.yml` greps for the other tree's path and fails the PR.
 - **No shared runtime code.** No Kotlin Multiplatform, no shared library, no shared `common/` directory. What both apps share is the contract: `api/`, `design/`, and the generators in `tools/` that read them.
-- **Artifacts flow one way.** `api/` → generated clients and `FeatureGate` tables; `design/tokens.json` → generated themes; `design/screens/` → both apps' behaviour. Nothing flows from an app into `api/` or `design/`, and nothing flows sideways between the apps. If both apps need the same fact, it becomes part of the contract first.
+- **Artifacts flow one way.** `api/` → generated clients and bundled compatibility metadata; `design/tokens.json` → generated themes; `design/screens/` → both apps' behaviour. Nothing flows from an app into `api/` or `design/`, and nothing flows sideways between the apps. If both apps need the same fact, it becomes part of the contract first.
 - Each app builds, tests and lints alone. A contributor with only a JDK builds Android; one with only Xcode builds iOS. A lane never installs the other platform's toolchain.
 
 ## CI ownership (`.github/workflows/`)
@@ -37,7 +51,7 @@ Workflow configurations own executable commands and triggers. [prek.toml](../../
 |---|---|
 | [pr-hygiene.yml](../../.github/workflows/pr-hygiene.yml) | Hygiene hooks (including screen and API import boundaries), REUSE, history secret scan, commit/DCO checks, all tooling test suites, platform separation |
 | [codegen-check.yml](../../.github/workflows/codegen-check.yml) | Contract pairing/coverage and upstream bytes; separate Android/iOS client regeneration and compile/serialization/redaction checks |
-| [tokens-check.yml](../../.github/workflows/tokens-check.yml) | Theme regeneration and byte comparison |
+| [tokens-check.yml](../../.github/workflows/tokens-check.yml) | Theme regeneration, byte comparison and iOS primitive typechecking |
 
 Local contract/theme hooks mirror their dedicated CI owners and are skipped in CI's prek job. Tool tests exercise validators with fixtures; they do not rerun production assertions as extra steps. Staged secret checks and history scanning have different scopes.
 
@@ -46,7 +60,7 @@ Planned gates: independent Android/iOS app build, lint and graph checks in Phase
 - Every action is pinned by commit SHA; Renovate keeps the pins current.
 - Add shared inputs and tooling dependencies to every affected lane’s filters in the same PR. Each platform lane installs only its own toolchain.
 - Preserve required checks (`REUSE`, `prek`, `commit-messages`, `gitleaks`, `tool-tests`, `boundary`); inspect repository branch protection/rulesets before removing or renaming jobs.
-- Complexity and length lints remain advisory (PRD §12.2 rule 5).
+- Complexity and length lints remain advisory (PRD §12.2).
 
 ## Branches, commits, merges
 

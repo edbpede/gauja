@@ -19,7 +19,7 @@ Open an item; See all opens the same filter as a paginated grid. Prefetch the ne
 
 ## Endpoints
 
-GET /settings/discover supplies home ordering and configuration. Home collection sources are GET /media (recently added), GET /request (recent requests), GET /discover/watchlist (Plex watchlist), GET /discover/trending, GET /discover/movies and GET /discover/tv (popular/upcoming and filtered custom collections), GET /discover/movies/studio/{studioId}, GET /discover/tv/network/{networkId}, and GET /search (custom search). Genre collections use the [GenreCard](GenreCard.md#endpoints) operations.
+GET /settings/discover supplies home ordering and configuration. Home collection sources are GET /media (recently added), GET /request (recent requests), GET /discover/watchlist (Plex watchlist), GET /discover/trending, GET /discover/movies and GET /discover/tv (popular/upcoming and filtered custom collections), GET /discover/movies/studio/{studioId}, GET /discover/tv/network/{networkId}, and GET /search (custom search). Genre collections use the [GenreCard](INVENTORY.md#genrecard) operations.
 
 The owning screen spec must pin the selected operation, query filters and pagination before implementation; detail-screen collections use their owning screen’s exact operation from the effective contract. The owning Data/screen layer performs I/O and supplies domain values; the component does not select or call endpoints.
 

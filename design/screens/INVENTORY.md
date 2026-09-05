@@ -41,6 +41,8 @@ Only auth/server detail specs are authored in Phase 2. Other paths below are res
 | about | 1 | 0 | 0 | 1 |
 | **Total** | **14** | **50** | **31** | **95** |
 
+Contract references may point to a Markdown file or a `file.md#section` for small behavior. Keep identities unique and detailed acceptance criteria with the consuming feature.
+
 ## auth
 
 | ID / spec path | Screen | Size | Phase | Detail spec |

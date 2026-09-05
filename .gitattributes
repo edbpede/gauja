@@ -22,7 +22,7 @@
 *.keystore binary
 *.p12 binary
 
-# Generated code is reviewed collapsed on GitHub; it is never hand-edited (PRD §12.2 rule 6).
+# Generated code is reviewed collapsed on GitHub; it is never hand-edited (PRD §12.2).
 apps/android/core/api/** linguist-generated=true
 apps/ios/Packages/SeerrAPI/Generated/** linguist-generated=true
 apps/android/core/designsystem/src/main/kotlin/**/generated/** linguist-generated=true
