@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Content-component inventory
 
-All components are native implementations of a shared behavior contract. They accept domain values and events, never generated DTOs, services or mutable global state. Phase 4 implements them; this inventory does not claim native UI exists.
+Contracts may be sections here or separate files for substantial unique behavior. All components are native implementations of a shared behavior contract. They accept domain values and events, never generated DTOs, services or mutable global state. Implement them with their consuming flows; this inventory does not claim native UI exists.
 
 | Component | Contract |
 |---|---|
@@ -16,17 +16,17 @@ All components are native implementations of a shared behavior contract. They ac
 | [RequestButton](RequestButton.md) | Permission-aware entry point to movie/TV request creation. |
 | [IssueBlock](IssueBlock.md) | An issue summary or comment block with ownership and resolution state. |
 | [StatusBadge](StatusBadge.md) | Compact availability or request-state label; semantic families are shared across platforms. |
-| [AirDateBadge](AirDateBadge.md) | Localized release/air date and upcoming state. |
+| [AirDateBadge](INVENTORY.md#airdatebadge) | Localized release/air date and upcoming state. |
 | [PersonCard](PersonCard.md) | Cast, crew and search-result person identity. |
 | [CompanyCard](CompanyCard.md) | Studio or network browse entry. |
-| [GenreCard](GenreCard.md) | Visual genre entry into a media-type-specific browse grid. |
-| [GenreTag](GenreTag.md) | Small selectable genre label in details and filter editors. |
-| [KeywordTag](KeywordTag.md) | Keyword label and filter control. |
+| [GenreCard](INVENTORY.md#genrecard) | Visual genre entry into a media-type-specific browse grid. |
+| [GenreTag](INVENTORY.md#genretag) | Small selectable genre label in details and filter editors. |
+| [KeywordTag](INVENTORY.md#keywordtag) | Keyword label and filter control. |
 | [DownloadBlock](DownloadBlock.md) | Read-only request download progress, without playback. |
 | [ExternalLinkBlock](ExternalLinkBlock.md) | Explicit external metadata and trailer link-outs. |
-| [BlocklistedTagsBadge](BlocklistedTagsBadge.md) | Show that a title/collection is excluded from discovery. |
+| [BlocklistedTagsBadge](INVENTORY.md#blocklistedtagsbadge) | Show that a title/collection is excluded from discovery. |
 | [PermissionEdit](PermissionEdit.md) | Full Seerr permission matrix used by user/default/bulk editors. |
-| [PermissionOption](PermissionOption.md) | One labeled permission control inside PermissionEdit. |
+| [PermissionOption](INVENTORY.md#permissionoption) | One labeled permission control inside PermissionEdit. |
 | [QuotaSelector](QuotaSelector.md) | Movie/TV quota amount and rolling window editor or read-only usage summary. |
 | [NotificationTypeSelector](NotificationTypeSelector.md) | Server notification-type matrix for user preferences or an agent form. |
 | [JSONEditor](JSONEditor.md) | Native editor for Seerr’s webhook payload template. |
@@ -40,3 +40,91 @@ Components accept immutable domain values and emit events. Data and screen state
 - Expose identity, value, selection and actions through TalkBack/VoiceOver, including status beyond color. Support largest text without fixed text heights, native 48 dp/44 pt interactive targets, logical focus order and reduced motion. Use generated theme tokens in both themes.
 - Image-bearing components request rendered sizes, cancel obsolete loads, retain layout during loading/failure and use neutral missing-art placeholders. This requirement does not apply to text-only chips or controls.
 - Verify applicable component behavior on both platforms. Offline rendering and scroll budgets belong to the containing screen’s performance tests (PRD §9, Phase 11), rather than an acceptance paragraph on each component.
+
+## Small component contracts
+
+These components inherit the shared behavior baseline above. Their references are the corresponding `src/components/<Component>/` directories in Seerr at `69f73a6f1486fdb51b8ddae9a94a8dfb629f461c` (inspiration only). They are consumed by Phase 4 and their owning features.
+
+## AirDateBadge
+
+Localized release/air date and upcoming state.
+
+**Content:** An optional date, media/episode context and an injected clock/time zone for relative presentation. Distinguish unknown date from a released item.
+
+**Actions:** No default action; opening details belongs to the parent.
+
+**Endpoints:** No calls; dates from movie/TV/season domain models.
+
+**Permissions:** No additional permission beyond the containing media.
+
+**Acceptance criteria:** Boundary tests cover midnight, time zones, missing/invalid dates and future dates. The label is meaningful without color or animation.
+
+## BlocklistedTagsBadge
+
+Show that a title/collection is excluded from discovery.
+
+**Content:** Blocklist status, tag/reason labels when supplied, title/collection scope and typed identity.
+
+**Actions:** Open permitted blocklist management; add/remove requires an explicit action and refreshes the aggregate after success.
+
+**Endpoints:** /blocklist and /blocklist/collection/{collectionId}; never the sunset /blacklist alias at the v3.4.1 baseline.
+
+**Permissions:** VIEW_BLOCKLIST for blocklist views; MANAGE_BLOCKLIST for mutations, with ADMIN short-circuit.
+
+**Acceptance criteria:** Unsupported versions disable management with explanation. A failed removal leaves the blocklist label intact; offline writes are unavailable.
+
+## GenreCard
+
+Visual genre entry into a media-type-specific browse grid.
+
+**Content:** Genre ID/name, movie or TV scope, and representative backdrop when supplied.
+
+**Actions:** Open the matching genre-filtered grid and preserve its media type.
+
+**Endpoints:** GET /genres/movie; GET /genres/tv; GET /discover/genreslider/movie; GET /discover/genreslider/tv; GET /discover/movies/genre/{genreId}; GET /discover/tv/genre/{genreId}.
+
+**Permissions:** Signed-in viewing.
+
+**Acceptance criteria:** Empty artwork still exposes the genre name. A TV genre never opens a movie grid.
+
+## GenreTag
+
+Small selectable genre label in details and filter editors.
+
+**Content:** Typed genre ID, localized label, media type, selection state where applicable.
+
+**Actions:** Details navigate to the genre grid; editors toggle selection through an event to the state owner.
+
+**Endpoints:** No direct calls; genre lookup/discover operations are owned by Data.
+
+**Permissions:** Signed-in viewing; editor save permission belongs to its screen.
+
+**Acceptance criteria:** Selected state is conveyed through semantics and an icon, not just color. Touch area meets native minimums even when the visual chip is small.
+
+## KeywordTag
+
+Keyword label and filter control.
+
+**Content:** Typed keyword ID, label, selection/removal state and optional lookup progress.
+
+**Actions:** Open keyword results or toggle/remove in an editor; never treat free text as an ID.
+
+**Endpoints:** GET /search/keyword; GET /keyword/{keywordId}; keyword-filtered discover operations.
+
+**Permissions:** Signed-in viewing; write permission comes from the parent editor.
+
+**Acceptance criteria:** Unknown labels retain their ID until resolved. Cancellation cannot apply an old lookup result to a different keyword.
+
+## PermissionOption
+
+One labeled permission control inside PermissionEdit.
+
+**Content:** Exact flag bit/name, localized title/help, enabled/selected/read-only states and any dependent context.
+
+**Actions:** Emit a proposed toggle, never mutate a global mask or call the API.
+
+**Endpoints:** No calls.
+
+**Permissions:** Inherited from PermissionEdit; a disabled option has an inline reason.
+
+**Acceptance criteria:** TalkBack/VoiceOver announces label, checked state and restriction. Toggling one option changes only the intended bit; unknown flags are not assigned a guessed meaning.

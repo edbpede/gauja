@@ -20,7 +20,7 @@ class ScreenTests(unittest.TestCase):
         self.assertGreater(specs, 0)
         self.assertGreater(cases, 0)
 
-    def test_bad_matrix_reference_and_missing_section_fail(self):
+    def test_bad_matrix_reference_and_missing_acceptance_fail(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             shutil.copytree(ROOT / "design/screens", root / "design/screens")
@@ -30,7 +30,7 @@ class ScreenTests(unittest.TestCase):
             original = path.read_text()
             for change, message in [
                 (original.replace("A04", "A99"), "unknown matrix row"),
-                (original.replace("## Content components", "## Components"), "missing Content components"),
+                (original.replace("## Acceptance criteria", "## Examples"), "missing Acceptance criteria"),
             ]:
                 path.write_text(change)
                 with self.assertRaisesRegex(ValueError, message):
@@ -78,9 +78,49 @@ class ScreenTests(unittest.TestCase):
             shutil.copytree(ROOT / "design/screens", root / "design/screens")
             (root / "api").mkdir()
             shutil.copy2(ROOT / "api/coverage.json", root / "api/coverage.json")
-            path = root / "design/screens/components/GenreTag.md"
+            path = root / "design/screens/components/INVENTORY.md"
             path.write_text(path.read_text() + "\n## States\n\nSelected or unselected; no network state.\n")
             module.check(root)
+
+    def test_section_contract_requires_its_own_acceptance(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            shutil.copytree(ROOT / "design/screens", root / "design/screens")
+            (root / "api").mkdir()
+            shutil.copy2(ROOT / "api/coverage.json", root / "api/coverage.json")
+            path = root / "design/screens/components/INVENTORY.md"
+            original = path.read_text()
+            start = original.index("## GenreTag\n")
+            end = original.index("## KeywordTag\n", start)
+            section = original[start:end].replace("**Acceptance criteria:**", "**Examples:**")
+            path.write_text(original[:start] + section + original[end:])
+            with self.assertRaisesRegex(ValueError, "missing Acceptance criteria"):
+                module.check(root)
+
+    def test_screen_contract_can_be_a_section(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            shutil.copytree(ROOT / "design/screens", root / "design/screens")
+            (root / "api").mkdir()
+            shutil.copy2(ROOT / "api/coverage.json", root / "api/coverage.json")
+            inventory = root / "design/screens/INVENTORY.md"
+            inventory.write_text(inventory.read_text().replace("`auth/local.md`", "`auth/local.md#local-sign-in`"))
+            self.assertEqual(module.check(root), module.check(ROOT))
+            inventory.write_text(inventory.read_text().replace("#local-sign-in", "#missing"))
+            with self.assertRaisesRegex(ValueError, "missing contract anchor"):
+                module.check(root)
+
+    def test_duplicate_component_identity_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            shutil.copytree(ROOT / "design/screens", root / "design/screens")
+            (root / "api").mkdir()
+            shutil.copy2(ROOT / "api/coverage.json", root / "api/coverage.json")
+            path = root / "design/screens/components/INVENTORY.md"
+            row = next(line for line in path.read_text().splitlines() if line.startswith("| [GenreTag]"))
+            path.write_text(path.read_text() + "\n" + row + "\n")
+            with self.assertRaisesRegex(ValueError, "duplicate component identities"):
+                module.check(root)
 
     def test_broken_links_and_unowned_auth_cases_fail(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -88,7 +128,7 @@ class ScreenTests(unittest.TestCase):
             shutil.copytree(ROOT / "design/screens", root / "design/screens")
             (root / "api").mkdir()
             shutil.copy2(ROOT / "api/coverage.json", root / "api/coverage.json")
-            path = root / "design/screens/components/GenreTag.md"
+            path = root / "design/screens/components/INVENTORY.md"
             original = path.read_text()
             for link in ["missing.md", "INVENTORY.md#missing-anchor"]:
                 path.write_text(original + f"\n[Invalid]({link})\n")

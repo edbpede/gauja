@@ -33,20 +33,13 @@ prek run --all-files    # after changing prek.toml, or before opening a PR
 
 Install prek from https://prek.j178.dev/installation/ (`brew install prek`, `uv tool install prek`, or the install script).
 
-Hooks that fire on every commit:
-
-| Hook | What it enforces |
-|---|---|
-| builtin (`trailing-whitespace`, `end-of-file-fixer`, `mixed-line-ending`, `check-merge-conflict`, `check-case-conflict`, `check-added-large-files` 512 KB, `detect-private-key`, `check-json`/`toml`/`yaml`, `no-commit-to-branch main`) | Hygiene; generated directories are excluded so generator output stays byte-identical |
-| `conventional-pre-commit` | Conventional Commit message |
-| `dco-signoff` | `Signed-off-by:` trailer |
-| `gitleaks` | No credentials in the diff. prek downloads a Go toolchain and builds gitleaks itself; nothing to install. For standalone scans: `brew install gitleaks` (macOS) or a release binary from https://github.com/gitleaks/gitleaks/releases (Linux) |
-| `api-drift`, `api-boundary`, `screen-specs`, `fixture-secrets`, `tokens-check`, `check-secret-logging` | Path-scoped project checks under `tools/` (each has `--help`) |
-| `swift-format`, `swiftlint`, `ktfmt`, `detekt` | Formatting and lint for `apps/ios/` and `apps/android/`; inert until those trees exist |
+[prek.toml](prek.toml) owns hook commands, path filters and generated-file exclusions.
+It covers file hygiene, commit conventions/sign-off, secrets and the relevant contract/design
+checks. The platform hooks become applicable with handwritten app sources.
 
 Formatting and lint hooks for one platform need that platform's toolchain. If you only work on Android, the iOS hooks skip because no Swift files are staged, and vice versa.
 
-The scripts under `tools/` have tests: `tools/tests/run.sh`. Translation and resolved-dependency license hooks land with real catalogs and app manifests; they are not active gates today.
+The scripts under `tools/` have tests: `tools/tests/run.sh`. Translation and resolved-dependency license tooling lands with real catalogs and app manifests; neither is an active gate today.
 
 ## Licensing headers (REUSE)
 
@@ -56,8 +49,8 @@ Files carry SPDX copyright and license information, either as headers or through
 
 - Never commit to `main`; branch from it with a `feat/`, `fix/`, `refactor/`, `docs/`, `chore/` or `ci/` prefix.
 - Conventional Commits, one logical change per commit, every commit signed off.
-- One module, one screen or one hook per PR where practical. Link the screen spec (`design/screens/<area>/<screen>.md`) for any UI change; write it first if it does not exist.
-- Tests mirror sources folder-for-folder.
+- One module, one screen or one hook per PR where practical. Link the owning behavior contract (a file or inventory section) for UI changes; refine its applicable acceptance criteria with the feature.
+- Put meaningful behavior tests near the owning sources; do not create empty suites or require a file per type.
 - Generated code (`apps/android/core/api/`, `apps/ios/Packages/SeerrAPI/Generated/`, generated themes) is never hand-edited. Regenerate with `tools/codegen/` or `tools/tokens/`.
 - `main` is protected: squash-merge only, the PR title becomes the commit subject, and the `REUSE`, `prek`, `commit-messages`, `gitleaks`, `tool-tests` and `boundary` checks must pass.
 - Nothing under `apps/android/` may reference `apps/ios/` or vice versa. Artifacts flow from `api/` and `design/` into the apps only.

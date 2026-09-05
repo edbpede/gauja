@@ -11,10 +11,10 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 | Date | 2026-09-05 |
 | Product | Gauja — native Android and iOS companion apps for Seerr |
 | License | AGPL-3.0-or-later, with the App Store Distribution Exception (Appendix A) |
-| Companion documents | `docs/TECH_SPEC.md` (how), `docs/gauja-implementation-plan.md` (order), `design/screens/` (screen inventory); decisions are logged in Appendix C |
+| Companion documents | `docs/gauja-implementation-plan.md` (order), `design/screens/` (screen inventory); decisions are logged in Appendix C |
 | Normative coding guidelines | `.agents/rules/kotlin-2_4-android-app.md`, `.agents/rules/swift-6_3-ios-app.md` (see §12.1) |
 
-This document states **what** Gauja is and **why** each decision was made. It deliberately carries some material that a conventional PRD would push elsewhere — the licensing exception, the quality-gate configuration, the codebase doctrine — because losing those details is a bigger risk to this project than an over-long PRD.
+This document owns **what** Gauja is and **why** its product decisions were made. Each fact has one authoritative owner; other documents link to it. The [documentation ownership rules](../.agents/rules/monorepo.md#documentation-ownership) define the boundaries. Keep executable details in configuration, work sequencing in the implementation plan, and unique behavior in feature contracts.
 
 The name: Gauja was a VEF portable transistor radio built in Riga in the early 1960s, the predecessor of the Spidola. It is one word, pronounced *GOW-ya*.
 
@@ -24,7 +24,7 @@ The name: Gauja was a VEF portable transistor radio built in Riga in the early 1
 
 Gauja is an unofficial, fully native companion to [Seerr](https://github.com/seerr-team/seerr) — one Android app written in Kotlin and one iOS app written in Swift, developed together in a single repository. It lets users browse, search, and request media, and lets administrators manage requests, users, and the complete server configuration, all through native UI that follows Seerr's information architecture and visual language.
 
-Gauja depends on nothing but the user's own Seerr server. It ships no telemetry, no third-party SDKs, no hosted services, and no web views. It is not affiliated with the Seerr project and requires no changes upstream.
+Gauja depends on nothing but the user's own Seerr server. It ships no telemetry, analytics or crash-reporting SDKs, no project-hosted services, and no web views. It is not affiliated with the Seerr project and requires no changes upstream.
 
 ---
 
@@ -72,7 +72,7 @@ The OpenAPI document’s `info.version` is not the Seerr application version. Th
 
 - `api/seerr-api.yml` is a verbatim copy of upstream's `seerr-api.yml` (OpenAPI 3.0.2).
 - `api/UPSTREAM_COMMIT` records the exact upstream commit the copy was taken from. The two files change together or not at all; a pre-commit hook and a CI check enforce this (§14).
-- `api/LICENSE.upstream` carries Seerr's MIT license text, which covers the vendored specification.
+- `LICENSES/MIT.txt` carries Seerr's MIT license text, which covers the vendored specification.
 - `api/overlays/` holds OpenAPI overlay documents that correct upstream spec defects (missing `required`, wrong types) without editing the vendored file. Every overlay entry cites the upstream issue or the observed server behaviour that justifies it.
 
 ### 4.2 Version gating
@@ -91,7 +91,7 @@ Planned in Phase 11: scheduled upstream discovery compares changes, including de
 
 ### 4.5 Contract tests
 
-Phase 11 will run a real Seerr container (upstream `Dockerfile`, SQLite) seeded with fixtures, and executes recorded request/response contract tests against it for every endpoint Gauja uses. Recorded fixtures live in `api/fixtures/<seerr-version>/` and are scanned for credentials on every commit (§14).
+Run a real Seerr container (upstream `Dockerfile`, SQLite) with the first consuming app flow, then extend recorded request/response contract tests as features land. Phase 11 verifies coverage of every endpoint Gauja uses. Recorded fixtures live in `api/fixtures/<seerr-version>/` and are scanned for credentials on every commit (§14).
 
 ---
 
@@ -138,7 +138,7 @@ Debounced multi-search across movies, TV and people, with company and keyword lo
 | Availability and request state | Derived from the embedded `mediaInfo`; season-level for TV. |
 | Watch data | `/media/{id}/watch_data` (Tautulli) shown when the server has it. |
 | Admin: media management | Mark available / partially available / unknown, delete media, view file paths (`/media/{id}/*`). |
-| Blocklist / blacklist | Add/remove titles and collections (`/blocklist/*`, `/blacklist/*`); blocklisted-tag badges. |
+| Blocklist / blacklist | Add/remove titles and collections (`/blocklist/*`); blocklisted-tag badges. The sunset `/blacklist` alias is excluded at the supported baseline. |
 
 ### 5.5 Requests (`/request`, `/service`, `/overrideRule`)
 
@@ -237,12 +237,12 @@ Keep the sized [screen inventory](../design/screens/INVENTORY.md) and [shared co
 
 - **Information architecture** follows Seerr's web UI: Discover, Requests, Issues, Users (admin), Settings (admin), Profile, Search. Screen names, groupings and the order of settings sections match Seerr so that anyone who knows the web UI knows Gauja.
 - **Design tokens** live in `design/tokens.json` — the single source of truth for colour, spacing, radii, elevation, typography scale and motion durations. Both platform themes are *generated* from it (`tools/tokens/`); hand-editing a generated theme is a CI failure. The initial token set is derived from Seerr's Tailwind configuration: gray-900/800/700 surfaces, indigo-600 accent, the indigo-400→purple-400 gradient for hero text, Seerr's badge colour semantics for request status.
-- **Content components** are shared by name and behaviour, not by code: `TitleCard`, `MediaSlider`, `RequestCard`, `IssueBlock`, `StatusBadge`, `PersonCard`, `DownloadBlock`, `AirDateBadge`, and so on, mirroring Seerr's `src/components/` vocabulary. Each has a screen spec describing content, states and interactions; each platform implements it idiomatically.
+- **Content components** are shared by name and behaviour, not by code: `TitleCard`, `MediaSlider`, `RequestCard`, `IssueBlock`, `StatusBadge`, `PersonCard`, `DownloadBlock`, `AirDateBadge`, and so on, mirroring Seerr's `src/components/` vocabulary. Each has a behavior contract, which may be a section in the shared component inventory; each platform implements it idiomatically.
 - **Chrome is native.** Navigation bars, tabs, sheets, dialogs, pull-to-refresh, haptics, context menus, and system back behave as Material 3 (Adaptive) on Android and as iOS 18 SwiftUI on iOS. Gauja does not imitate one platform on the other.
 - **Dark first.** Seerr is dark; Gauja's default theme is dark with a light theme generated from the same tokens. Follow-system is available.
 - **Adaptive layouts** are a requirement, not a stretch goal: list/detail for settings and requests on tablets and foldables, multi-column discover grids, Material 3 Adaptive on Android and `NavigationSplitView` on iOS.
 
-Screen specs (`design/screens/<area>/<screen>.md`) are the contract between the two apps: content, states (loading, empty, error, offline, permission-denied), actions, and analytics-free acceptance criteria.
+Behavior contracts in `design/screens/` keep the two apps aligned. A contract may be a section in an existing document; create a separate file only for substantial unique behavior. Keep stable inventory identities and observable acceptance criteria, and describe states, actions and permissions only when applicable. Validators check identities, links and acceptance presence; review checks behavioral completeness.
 
 ---
 
@@ -261,7 +261,7 @@ Targets are measured on a mid-range reference device (Android: Pixel 8a or equiv
 | Memory | No retained-heap growth across 50 navigation cycles (leak check in CI) |
 | Offline reads | Cached discover/requests/watchlist/profile render in ≤ 300 ms with no network |
 
-Implementation guidance (paging, stable keys, image sizing, list prefetch) belongs to `TECH_SPEC.md`; the targets above are the product commitment.
+The targets above are product commitments. Record measured implementation decisions with the owning feature or package; do not create a parallel technical specification.
 
 ---
 
@@ -273,7 +273,7 @@ Implementation guidance (paging, stable keys, image sizing, list prefetch) belon
 - **TLS**: system trust by default; pinned self-signed fingerprints require explicit per-profile confirmation showing the fingerprint. Plain HTTP is allowed (LAN use) with a persistent warning.
 - **Permissions**: Android — `INTERNET` only (plus `POST_NOTIFICATIONS` reserved for v2). iOS — none beyond network.
 - **Local data**: server profiles and caches are removable per profile and in bulk; deleting a profile wipes its cookie jar, keys and cache.
-- **Supply chain**: dependency versions are pinned; `gitleaks` and a license allow-list run in CI; the SBOM is published with each release.
+- **Supply chain**: dependency versions are pinned; `gitleaks` runs in CI; resolved-dependency enforcement against the license allow-list lands with real app manifests; the SBOM is published with each release.
 
 ---
 
@@ -297,7 +297,7 @@ Governed by `.agents/rules/kotlin-2_4-android-app.md`.
 | UI | Jetpack Compose (BOM-governed), Material 3, Material 3 Adaptive |
 | Navigation | Navigation 3, single Activity, owned back stack |
 | DI | Hilt via KSP |
-| Networking | OkHttp 5 + Retrofit 3 with kotlinx-serialization; generated client from openapi-generator (`kotlin` generator, `jvm-okhttp4`/retrofit template) isolated in `core/api` |
+| Networking | OkHttp 5 + Retrofit 3 with kotlinx-serialization; generated client from openapi-generator (`kotlin` generator, `jvm-retrofit2` library) isolated in `core/api` |
 | Persistence | Room (KSP) for caches; DataStore (Preferences + encrypted Proto) for settings and profiles |
 | Images | Coil 3 with the OkHttp network fetcher |
 | Concurrency | Coroutines + Flow, structured; no `GlobalScope` |
@@ -317,7 +317,7 @@ Governed by `.agents/rules/swift-6_3-ios-app.md`.
 | UI | SwiftUI, `NavigationStack` / `NavigationSplitView` |
 | State | Observation (`@Observable`), not `ObservableObject` |
 | DI | `swift-dependencies` |
-| Networking | `URLSession`; generated client from `swift-openapi-generator` (SPM plugin) isolated in the `SeerrAPI` package |
+| Networking | `URLSession`; generated client from `swift-openapi-generator` (pinned executable; committed output) isolated in the `SeerrAPI` package |
 | Persistence | SwiftData for caches; Keychain for secrets; `UserDefaults` via a typed wrapper for non-secret settings |
 | Images | A small `URLSession`-based pipeline with `NSCache` and on-disk cache (choice of a third-party loader such as Nuke is an open question — §18) |
 | Testing | Swift Testing; XCUITest smoke lane on a simulator |
@@ -347,116 +347,41 @@ Normative coding guidelines live in `.agents/rules/` and **must be followed** fo
 
 The three project-level files are written during Phase 1 of the implementation plan (the plan's numbering; this document's earlier "Phase 0") and are treated as living documents; a change to a rule file is a PR with a rationale, reviewed like code.
 
-### 12.2 Single purpose, everywhere
+### 12.2 Cohesive responsibilities
 
-1. **Organize by cohesive responsibility.** Related types may share a file. Split when responsibilities diverge or navigation becomes difficult.
-2. **Create modules for an enforced boundary or demonstrated build/ownership benefit.** Folders are the default within that boundary. Add modules with working consumers, not as stubs for future features.
-3. **No god-files, no god-objects.** No `Utils`, `Helpers`, `Extensions.kt`, `Constants`, `AppState`, or `Repository` that knows more than one aggregate. Grab-bags are rejected in review.
-4. **Folders follow the domain.** Group related screens and aggregate types as navigation needs grow; avoid arbitrary file-count quotas and empty-directory READMEs.
-5. **Advisory size limits.** Files over ~300 lines and functions over ~40 lines produce lint *warnings*, never errors. The doctrine is about purpose, not line counts; the warning exists to prompt the question.
-6. **Generated code is isolated and never edited.** Generated clients, generated themes and generated resources live in leaf modules or clearly named `Generated/` directories, are excluded from formatters, and are verified byte-for-byte against the generator in CI. Generated output follows supported generator structure. Data may import generated DTOs for mapping; Data’s public APIs expose hand-written domain models.
-7. **Names say what, folders say where.** A file's name never repeats its path (`feature/requests/list/RequestListScreen.kt`, not `feature/requests/list/FeatureRequestsListScreen.kt`).
-8. **Test meaningful behavior.** Locate tests near the corresponding responsibility; do not create empty suites or test folders for stubs.
+Follow [modularity.md](../.agents/rules/modularity.md) for file cohesion, generated-code isolation
+and the allowed dependency graph. Related types may share files. Create modules only for an
+enforced boundary or demonstrated build/ownership benefit; folders are the default within a
+boundary. Generated output follows supported generator structure and is exempt from advisory
+size limits. Do not manually split it.
 
 ### 12.3 Module boundaries and dependency direction
 
-Both platforms preserve API → Data → domain exposure and feature isolation. Features never import other feature internals or generated DTOs. Cross-feature navigation uses navigation keys/routes; cross-feature data uses Data’s domain APIs. Pure domain models have no platform imports and nothing depends on the app target.
+Preserve API → Data → domain exposure and feature isolation. The complete allowed dependency
+tables and enforcement responsibilities live in [modularity.md](../.agents/rules/modularity.md#dependency-direction).
+The API import guard is active; graph checks arrive with working modules.
 
-The complete allowed dependency tables live in [modularity.md](../.agents/rules/modularity.md#dependency-direction). The API import guard is active; Phase 3 adds graph checks with working modules. These tables permit dependencies without requiring all modules to exist upfront.
+### 12.4 Android responsibilities
 
-### 12.4 Android module map (`apps/android/`)
+The implementation plan §3.2 introduces the working Android modules incrementally. Begin with
+the modules needed by the first server/profile/auth flow, one Data module, and folders for
+aggregates. Settings begins as one feature module when consumed. No catalog of future modules
+must be created to complete an earlier phase.
 
-This is a responsibility map, created incrementally. Start with a single Data module and a single Settings feature module; nested aggregates, media screens and notification agents are folders unless a demonstrated boundary justifies another module.
+### 12.5 iOS responsibilities
 
-```
-app/                          single Activity, Nav3 wiring, Hilt root, deep-link entry
-core/
-  api/                        GENERATED openapi client (leaf; excluded from lint/format)
-  common/                     Result types, dispatchers, clock, error taxonomy
-  compat/                     server-version gating driven by api/compat.json
-  data/                       repositories; generated-DTO → domain mappers (one mapper per aggregate)
-    auth/  discover/  media/  requests/  issues/  watchlist/  users/  settings/
-  database/                   Room database, DAOs, entities
-  datastore/                  server profiles, preferences, encrypted secrets
-  designsystem/               GENERATED theme from design/tokens.json + primitive components
-  model/                      domain models (pure Kotlin)
-  navigation/                 Nav3 keys and result contracts
-  network/                    OkHttp/Retrofit config, per-profile cookie jars, auth & basic-auth
-                              interceptors, TLS trust manager, deprecation-header recorder
-  testing/                    fakes, fixtures loaders, test rules
-  ui/                         shared content components (TitleCard, MediaSlider, StatusBadge, …)
-feature/
-  auth/         servers/       discover/      search/
-  media/movie/  media/tv/      media/person/  media/collection/
-  requests/     issues/        watchlist/     profile/
-  users/                                            (admin)
-  settings/general/  settings/plex/  settings/jellyfin/  settings/services/radarr/
-  settings/services/sonarr/  settings/metadata/  settings/network/
-  settings/notifications/<agent>/  settings/discover/  settings/jobs/  settings/cache/
-  settings/logs/  settings/about/
-```
-
-Inside a feature module: `ui/` (screens and state holders), `domain/` (use cases), `navigation/` (keys), and nested subfolders per screen (`list/`, `detail/`, `edit/`).
-
-### 12.5 iOS package map (`apps/ios/`)
-
-Create packages with working consumers. Data is initially one target and Settings one feature target; use folders for aggregates and sections.
-
-```
-project.yml                   XcodeGen; the .xcodeproj is never committed
-App/                          app target: entry, scene, root navigation, deep links
-Packages/
-  SeerrAPI/                   GENERATED swift-openapi client (leaf; Generated/ excluded from format/lint)
-  Common/                     Result, errors, clock, dependency keys
-  Compat/                     server-version gating
-  Model/                      domain models (pure Swift)
-  Network/                    URLSession config, per-profile cookie storage, auth, TLS delegate,
-                              deprecation-header recorder
-  Data/                       repositories and DTO → domain mappers, aggregate folders
-  Persistence/                SwiftData models and stores; Keychain; typed defaults
-  DesignSystem/               GENERATED theme from design/tokens.json + primitive views
-  UI/                         shared content components
-  Navigation/                 routes and result types
-  Testing/                    fakes, fixture loaders
-  Features/
-    Auth/  Servers/  Discover/  Search/  Media/  Requests/  Issues/  Watchlist/  Profile/  Users/
-    Settings/                 one feature target, folders per section and screen
-```
-
-Each package declares only the dependencies the allowed graph permits. Feature packages expose a single public entry view and route type; everything else is `internal`.
+The implementation plan §3.3 introduces the working iOS targets incrementally. Begin with the
+same responsibility boundaries as Android, using folders inside Data and Settings. Native
+platform behavior and independent builds remain requirements; package count is not a target.
 
 ---
 
 ## 13. Monorepo layout
 
-Planned ownership map; add directories, tooling and workflows with their first real consumer. Active workflows are described in §14 and configured under `.github/workflows/`.
-
-```
-gauja/
-  .agents/rules/                normative guidelines (§12.1)
-  .github/
-    workflows/                  android.yml · ios.yml · contract.yml · api-sync.yml · tokens-check.yml · release.yml
-    CODEOWNERS · PULL_REQUEST_TEMPLATE.md · ISSUE_TEMPLATE/
-  api/                          seerr-api.yml · UPSTREAM_COMMIT · LICENSE.upstream · overlays/ · fixtures/<version>/ · compat.json
-  apps/
-    android/                    Gradle project (§12.4)
-    ios/                        XcodeGen project + SPM packages (§12.5)
-  design/                       tokens.json · screens/<area>/<screen>.md · assets/ (icons, SVG sources, store art)
-  docs/                         gauja-prd.md · TECH_SPEC.md · gauja-implementation-plan.md · THIRD_PARTY.md
-  tools/
-    codegen/                    generator configs and wrapper scripts (android, ios)
-    tokens/                     tokens.json → Compose theme / SwiftUI theme
-    api-drift/                  upstream diff + UPSTREAM_COMMIT consistency
-    ci/                         helper scripts (secret-logging guard, fixture scan, egress test)
-    community/                  translation validation
-  LICENSE                       AGPL-3.0-or-later text + the note in §15.2
-  APPSTORE_EXCEPTION.md         Appendix A
-  REUSE.toml · prek.toml · crowdin.yml · deny.toml (license allow-list) · renovate.json · README.md · CONTRIBUTING.md · SECURITY.md
-```
-
-- **Ownership:** `CODEOWNERS` assigns `apps/android/` and `apps/ios/` to their platform maintainers, `api/` and `design/` to both, `docs/` and root config to the project leads. A change under `apps/android/` needs no iOS reviewer and vice versa.
-- **Independence:** each app is a complete, standalone build. A contributor can clone, build and test one platform without the other's toolchain. Only `api/`, `design/` and `tools/` are cross-platform inputs.
-- **Cross-boundary rule:** nothing under `apps/android/` references anything under `apps/ios/` or vice versa. Generated artifacts flow *from* `api/` and `design/` *into* the apps, never sideways.
+[Monorepo rules](../.agents/rules/monorepo.md#layout-and-ownership) own directory responsibilities,
+platform separation and workflow ownership. Add directories and tooling with their first real
+consumer. Shared inputs are the API/design contracts and tooling; no shared runtime code or
+cross-platform source references are permitted.
 
 ---
 
@@ -476,9 +401,9 @@ Configurations own triggers and commands. [CI ownership](../.agents/rules/monore
 
 - `pr-hygiene` enforces repository hygiene, REUSE, history secret scanning, commit/DCO checks, tooling tests and platform separation. Its prek job owns screen/API import checks.
 - `codegen-check` validates contract pairing/coverage and upstream bytes, plus independent client generation and synthetic compile/serialization/redaction checks.
-- `tokens-check` validates theme drift.
+- `tokens-check` validates theme drift and typechecks iOS primitives.
 
-Phase 3 adds independent Android/iOS app builds, lint, graph and UI smoke checks. Phase 11 adds real-server contracts, performance/egress checks and weekly upstream discovery; Phase 12 adds release builds, SBOM, bundled notices and store upload. Add each lane with meaningful assertions; do not create passing placeholders. Transfer an existing assertion when its replacement becomes authoritative rather than running duplicate CI steps.
+Phase 3 adds independent Android/iOS app builds, lint, graph and UI smoke checks. Real-server checks grow with consuming flows; Phase 11 completes contract coverage and adds performance/egress audits and weekly upstream discovery; Phase 12 adds release builds, SBOM, bundled notices and store upload. Add each lane with meaningful assertions; do not create passing placeholders. Transfer an existing assertion when its replacement becomes authoritative rather than running duplicate CI steps.
 
 Preserve required status checks and inspect branch protection/rulesets before removing or renaming jobs. `main` remains protected; use Conventional Commits and DCO sign-off, with squash merges.
 
@@ -524,8 +449,8 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 ## 16. Localization
 
 - Source language: English (US). Catalogs: `strings.xml` per locale on Android, `Localizable.xcstrings` on iOS.
-- With real catalogs, Phase 11 enables Crowdin and catalog validity/key-parity enforcement between platforms.
-- Seerr's own translation catalogs (`server/i18n/locale/`, MIT) may be used as a **seed** for UI strings that are identical in meaning (status names, permission labels, settings section titles), with attribution in `docs/THIRD_PARTY.md`. Seeding is a one-time import, not an ongoing dependency.
+- With real catalogs, Phase 11 enables Crowdin, catalog validation and shared semantic coverage across platforms, allowing platform-specific keys and strings.
+- Seerr's own translation catalogs (`src/i18n/locale/`, MIT) may be used as a **seed** for UI strings that are identical in meaning (status names, permission labels, settings section titles), with attribution in `docs/THIRD_PARTY.md`. Seeding is a one-time import, not an ongoing dependency.
 - Both apps honour the user's Seerr locale setting for server-provided content and the device locale for UI, matching Seerr's behaviour.
 
 ---
@@ -543,13 +468,13 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 
 | # | Risk / question | Mitigation or owner |
 |---|---|---|
-| 1 | **Settings surface size.** 62 `/settings` paths and every notification agent form is the majority of the screen count. | Screen inventory sized before Phase 2; settings sections implemented in Seerr's sidebar order so partial progress is coherent; sections use folders within Settings initially and feature-sized PRs. |
+| 1 | **Settings surface size.** The pinned `/settings` surface and every notification agent form account for much of the screen count; derive counts from the effective contract. | Screen inventory sized before Phase 2; settings sections implemented in Seerr's sidebar order so partial progress is coherent; sections use folders within Settings initially and feature-sized PRs. |
 | 2 | **Spec drift from real behaviour.** Upstream's hand-maintained spec may not match the server. | Overlays (§4.1) plus contract tests against a real container (§4.5). |
 | 3 | **Maintainer bandwidth per platform.** Two native codebases. | CODEOWNERS; each app buildable alone; screen specs let one platform lead. |
 | 4 | **Apple review of an AGPL app.** | Exception (§15.2); precedent exists for GPL-family apps with such exceptions. |
 | 5 | **Auth edge cases** (proxies, self-signed TLS, Plex token expiry, Quick Connect timing). | Dedicated test matrix in `design/screens/auth/`; per-profile trust modes (§6). |
 | 6 | **Android minSdk.** A floor of 30 covers ~87% of active devices (April 2026), roughly parity with the iOS 18 floor; the remaining ~13% are Android 8–10 devices. | Decided: 30. The rule file is amended to match. Revisit only by amending the rule file first. |
-| 7 | **iOS image pipeline.** Own `URLSession` loader vs. a third-party library. | Decide in TECH_SPEC after measuring against §9 targets. |
+| 7 | **iOS image pipeline.** Own `URLSession` loader vs. a third-party library. | Record the decision with the image-loading implementation after measuring against §9 targets. |
 | 8 | **Seerr's Overseerr/Jellyseerr merge is ongoing** (`server/lib/overseerrMerge.ts`); endpoints may be renamed with `Deprecation` headers. | §4.3 and §4.4. |
 | 9 | **Webhook JSON editor.** Native editing of Seerr's templated JSON is fiddly. | Monospaced editor with variable-insertion palette and server-side validation via `/settings/notifications/webhook/test`. |
 | 10 | **Notifications (deferred).** Users will ask. | Greyed-out entry, §7 explanation in About, roadmap statement in README. |
@@ -590,6 +515,6 @@ Settled decisions. Changing one is a PR that edits this table with a rationale, 
 | **Server profile** | Gauja's record of one Seerr server plus how to reach and authenticate to it (§6). |
 | **Content component** | A named, spec'd UI element shared across platforms by behaviour, not code (§8). |
 | **Contract** | The shared inputs to both apps: API spec, overlays, fixtures, compat manifest, tokens, screen specs. |
-| **Generated / leaf module** | Code produced by a generator, isolated, never edited, verified in CI (§12.2 rule 6). |
+| **Generated / leaf module** | Code produced by a generator, isolated, never edited, verified in CI (§12.2). |
 | **Rule file** | A normative guideline in `.agents/rules/` (§12.1). |
 | **DCO** | Developer Certificate of Origin, the sign-off-based contribution certification (§15.3). |

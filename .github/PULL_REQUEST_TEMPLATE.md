@@ -5,19 +5,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 ## Summary
 
-<!-- What changes and why. Link the implementation-plan task (e.g. §4.3) where one applies. -->
+<!-- Explain the problem, resulting behavior and rationale. Link the implementation-plan task where applicable. -->
 
-## Checklist
+## Behavior and scope
 
-- [ ] PR title is a Conventional Commit subject (it becomes the squash-merge commit)
-- [ ] Every commit is signed off (`git commit -s`, DCO)
-- [ ] The rule files in `.agents/rules/` were followed (platform file, `modularity.md`, `api-contract.md`, `monorepo.md`)
-- [ ] UI changes link their screen spec in `design/screens/` (written first if it did not exist)
-- [ ] Tests mirror sources folder-for-folder and cover the change
-- [ ] No generated code was hand-edited (`core/api`, `SeerrAPI/Generated`, generated themes)
-- [ ] `prek run --all-files` passes locally
-- [ ] One module / one screen / one hook per PR where practical
+<!-- For UI changes, link the owning behavior contract (a document or section). Explain meaningful tradeoffs, compatibility changes and remaining limitations. -->
 
 ## Validation
 
-<!-- Commands run and their results (gradle / xcodebuild / tools/tests/run.sh / reuse lint). -->
+<!-- Commands run and results. For checks not run, explain why. CI verifies commit conventions/sign-off, repository rules and generated drift; do not repeat its checklist here. -->
