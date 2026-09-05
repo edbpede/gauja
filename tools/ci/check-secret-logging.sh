@@ -6,10 +6,11 @@
 # value from the secrets layer. The symbol list below is confirmed in Phase 4 when
 # core/datastore / Persistence name the real types; the scan itself is complete.
 #
-# A log call is scanned from the line it starts on until its parentheses balance, following
-# chained `.method(` continuations, so a call split across lines cannot hide a secret on a later
-# line. Parentheses inside string literals and comments are not counted. Comments outside a call
-# (`//`, `/* ... */`) are skipped so documentation may show what not to do.
+# Sources are walked character by character with string, comment and parenthesis state, so a log
+# call is scanned from its first token to the parenthesis that closes it (following chained
+# `.method(` continuations), wherever line breaks fall. Parentheses and quotes inside string
+# literals (`"..."`, `"""..."""`, Swift `#"..."#`), char literals and comments do not count, and a
+# log call inside a comment is not a log call.
 set -euo pipefail
 
 usage() {
@@ -57,52 +58,65 @@ status=0
 # Regexes reach awk through the environment: `-v` would reinterpret their backslashes.
 scan_file() {
   LOG_CALL="$log_call" SYMBOL_REGEX="$symbol_regex" awk '
-    BEGIN { log_call = ENVIRON["LOG_CALL"]; symbol_regex = ENVIRON["SYMBOL_REGEX"] }
-    # Index of the parenthesis that closes the call opened in text, following chained
-    # `.method(` continuations; 0 while the call is still open or may still be chained on the
-    # next line. Strings ("...", """...""") and comments are skipped so their parentheses do
-    # not count.
-    function call_end(text,   i, n, c, depth, str, raw, rest) {
-      n = length(text)
-      for (i = 1; i <= n; i++) {
+    BEGIN {
+      log_call = ENVIRON["LOG_CALL"]; symbol_regex = ENVIRON["SYMBOL_REGEX"]
+      chain = "^[.][A-Za-z_][A-Za-z0-9_]*[[:space:]]*[(]"
+    }
+    { text = text $0 "\n" }
+    END { walk() }
+
+    function report(call_end,   call) {
+      call = substr(text, call_start, call_end - call_start + 1)
+      if (call ~ symbol_regex && call_line != last_line) { print call_line; last_line = call_line }
+    }
+
+    # mode: code | str (closing delimiter in `closing`) | char | line (comment) | block (comment).
+    # in_call/depth track the current log call; pending means its parentheses just balanced and a
+    # chained `.method(` may still follow after whitespace or comments.
+    function walk(   n, i, c, two, line, mode, closing, escapes, depth, in_call, pending, next_cand) {
+      n = length(text); i = 1; line = 1; mode = "code"; next_cand = 0
+      while (i <= n) {
         c = substr(text, i, 1)
-        if (raw) { if (substr(text, i, 3) == "\"\"\"") { raw = 0; i += 2 }; continue }
-        if (str) { if (c == "\\") i++; else if (c == "\"") str = 0; continue }
-        if (substr(text, i, 3) == "\"\"\"") { raw = 1; i += 2; continue }
-        if (c == "\"") { str = 1; continue }
-        if (substr(text, i, 2) == "//") { rest = index(substr(text, i), "\n"); if (rest == 0) return 0; i += rest - 1; continue }
-        if (substr(text, i, 2) == "/*") { rest = index(substr(text, i + 2), "*/"); if (rest == 0) return 0; i += rest + 2; continue }
-        if (c == "(") depth++
-        else if (c == ")") {
-          depth--
-          if (depth <= 0) {
-            rest = substr(text, i + 1)
-            if (rest ~ /^[[:space:]]*\.[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\(/) continue
-            if (rest ~ /^[[:space:]]*$/) return 0   # a chained `.method(` may follow on the next line
-            return i
+        if (mode == "line") { if (c == "\n") { mode = "code"; line++ }; i++; continue }
+        if (mode == "block") { if (substr(text, i, 2) == "*/") { mode = "code"; i += 2 } else { if (c == "\n") line++; i++ }; continue }
+        if (mode == "str") {
+          if (substr(text, i, length(closing)) == closing) { mode = "code"; i += length(closing) }
+          else if (escapes && c == "\\") i += 2
+          else { if (c == "\n") line++; i++ }
+          continue
+        }
+        if (mode == "char") { if (c == "\\") i += 2; else { if (c == "\x27") mode = "code"; i++ }; continue }
+        if (c == "\n") { line++; i++; continue }
+        two = substr(text, i, 2)
+        if (pending) {
+          if (c ~ /[[:space:]]/) { i++; continue }
+          if (two != "//" && two != "/*") {
+            if (substr(text, i, 80) ~ chain) pending = 0
+            else { report(call_end); in_call = 0; pending = 0 }
           }
         }
+        if (two == "//") { mode = "line"; i += 2; continue }
+        if (two == "/*") { mode = "block"; i += 2; continue }
+        if (substr(text, i, 3) == "\"\"\"") { mode = "str"; closing = "\"\"\""; escapes = 0; i += 3; continue }
+        if (c == "\"") { mode = "str"; closing = "\""; escapes = 1; i++; continue }
+        if (c == "#" && match(substr(text, i, 64), /^#+"/)) {
+          # Swift extended string: #"..."# or #"""..."""#; the closing quote needs the same hashes.
+          closing = "\"" substr(text, i, RLENGTH - 1); escapes = 0; mode = "str"; i += RLENGTH
+          if (substr(text, i - 1, 3) == "\"\"\"") { closing = "\"\"" closing; i += 2 }
+          continue
+        }
+        if (c == "\x27") { mode = "char"; i++; continue }
+        if (in_call) {
+          if (c == "(") depth++
+          else if (c == ")") { depth--; if (depth <= 0) { pending = 1; call_end = i } }
+          i++; continue
+        }
+        if (next_cand < i) next_cand = match(substr(text, i), log_call) ? i + RSTART - 1 : n + 1
+        if (i == next_cand) { in_call = 1; depth = 0; call_start = i; call_line = line }
+        else i++
       }
-      return 0
+      if (in_call) report(pending ? call_end : n)
     }
-    # text begins at a log-call match. Reports the line once, keeps the call open across lines,
-    # and scans any further call on the same line.
-    function scan(text,   e) {
-      while (text != "") {
-        e = call_end(text)
-        if (e == 0) { open = text; return }
-        if (substr(text, 1, e) ~ symbol_regex) { print start; break }
-        text = substr(text, e + 1)
-        if (match(text, log_call)) text = substr(text, RSTART); else break
-      }
-      open = ""
-    }
-    open != "" { open = open "\n" $0; scan(open); next }
-    in_comment { if (index($0, "*/")) in_comment = 0; next }
-    /^[[:space:]]*(\/\/|\*)/ { next }
-    /^[[:space:]]*\/\*/ { if (!index($0, "*/")) in_comment = 1; next }
-    match($0, log_call) { start = NR; scan(substr($0, RSTART)) }
-    END { if (open != "" && open ~ symbol_regex) print start }
   ' "$1"
 }
 

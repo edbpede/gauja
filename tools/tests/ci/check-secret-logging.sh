@@ -110,3 +110,29 @@ func leak() {
 }
 SWIFT
 assert_exit 1 "multiline Logger initializer with a chained call is scanned" "$script" "$TEST_TMP/apps"
+rm "$ios/Chained.swift"
+
+printf '/* recorded */ Log.d(TAG, apiKey)\n' > "$src/AfterComment.kt"
+assert_exit 1 "code after a block comment on the same line is scanned" "$script" "$TEST_TMP/apps"
+rm "$src/AfterComment.kt"
+
+cat > "$ios/CommentedChain.swift" <<'SWIFT'
+func leak() {
+    Logger() // net
+        .debug("cookie \(sessionCookie)")
+}
+SWIFT
+assert_exit 1 "a comment before a chained call keeps the call open" "$script" "$TEST_TMP/apps"
+rm "$ios/CommentedChain.swift"
+
+cat > "$ios/Extended.swift" <<'SWIFT'
+func leak() { print(#"safe" )"#, sessionCookie) }
+SWIFT
+assert_exit 1 "a Swift extended string does not end the call" "$script" "$TEST_TMP/apps"
+rm "$ios/Extended.swift"
+
+cat > "$src/CharLiteral.kt" <<'KT'
+fun leak() { Log.d(TAG, '(' + tag,
+    apiKey) }
+KT
+assert_exit 1 "a Kotlin char literal parenthesis does not count" "$script" "$TEST_TMP/apps"
