@@ -62,6 +62,9 @@ def ios_keys(path: Path, errors: list[str]) -> set[str]:
     except (OSError, json.JSONDecodeError) as exc:
         errors.append(f"{path}: not valid JSON: {exc}")
         return set()
+    if not isinstance(data, dict):
+        errors.append(f"{path}: top-level JSON must be an object")
+        return set()
     strings = data.get("strings")
     if not isinstance(strings, dict):
         errors.append(f"{path}: missing top-level 'strings' object")

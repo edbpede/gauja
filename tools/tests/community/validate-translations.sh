@@ -52,3 +52,6 @@ assert_exit 0 "--no-parity skips the parity check" python3 "$script" --root "$TE
 
 printf '{not json' > "$ios/Localizable.xcstrings"
 assert_exit 1 "invalid xcstrings JSON fails" python3 "$script" --root "$TEST_TMP"
+
+printf '[]\n' > "$ios/Localizable.xcstrings"
+assert_exit 1 "xcstrings whose top level is not an object fails" python3 "$script" --root "$TEST_TMP"

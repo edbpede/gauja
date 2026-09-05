@@ -52,7 +52,7 @@ for entry in "${patterns[@]}"; do
   name="${entry%%|*}"
   regex="${entry#*|}"
   # -I skips binaries; -n gives line numbers; cut drops the matched text so no value is printed.
-  hits="$(grep -rEIin -e "$regex" "$dir" 2>/dev/null | cut -d: -f1,2 || true)"
+  hits="$(grep -rEIin -e "$regex" -- "$dir" 2>/dev/null | cut -d: -f1,2 || true)"
   if [[ -n "$hits" ]]; then
     status=1
     while IFS= read -r hit; do

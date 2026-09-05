@@ -24,7 +24,7 @@ manifests=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h) usage; exit 0 ;;
-    --deny) deny="$2"; shift 2 ;;
+    --deny) [[ $# -ge 2 ]] || { usage >&2; exit 2; }; deny="$2"; shift 2 ;;
     --deny=*) deny="${1#--deny=}"; shift ;;
     *) manifests+=("$1"); shift ;;
   esac

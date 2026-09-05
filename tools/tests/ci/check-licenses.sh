@@ -5,6 +5,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../assert.sh"
 script="$REPO_ROOT/tools/ci/check-licenses.sh"
 
+assert_exit 2 "--deny without a file is a usage error" "$script" --deny
 assert_exit 1 "missing deny.toml fails" "$script" --deny "$TEST_TMP/missing.toml"
 
 cat > "$TEST_TMP/empty.toml" <<'TOML'
