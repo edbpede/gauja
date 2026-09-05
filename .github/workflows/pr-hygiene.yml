@@ -81,7 +81,15 @@ jobs:
             tools/ci/check-commit-messages.sh --title "$PR_TITLE" \
               "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
           else
-            tools/ci/check-commit-messages.sh "${{ github.event.before }}" "${{ github.sha }}"
+            base='${{ github.event.before }}'
+            head='${{ github.sha }}'
+            # `before` names a commit that no longer exists after a force-push,
+            # and is all-zeros for a new branch. Either way it cannot open a
+            # range, so fall back to the pushed commit alone.
+            if ! git rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
+              base="$(git rev-parse --verify --quiet "$head^" || echo "$head")"
+            fi
+            tools/ci/check-commit-messages.sh "$base" "$head"
           fi
 
   tool-tests:
