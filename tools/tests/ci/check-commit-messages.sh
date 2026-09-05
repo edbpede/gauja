@@ -31,6 +31,14 @@ git -C "$repo" -c user.email=committer@example.com commit -q --allow-empty -m "f
 assert_exit 0 "sign-off matching the committer passes" bash -c "cd '$repo' && '$script' $base HEAD"
 git -C "$repo" reset -q --hard HEAD~1
 
+# The range itself is checked, not only HEAD: a bad commit under a good one still fails.
+git -C "$repo" commit -q --allow-empty -m "added stuff" -s
+git -C "$repo" commit -q --allow-empty -m "fix(auth): good on top" -s
+assert_exit 1 "non-conventional intermediate commit fails" bash -c "cd '$repo' && '$script' $base HEAD"
+git -C "$repo" reset -q --hard HEAD~2
+
+assert_exit 2 "unresolvable range ref fails" bash -c "cd '$repo' && '$script' no-such-ref HEAD"
+
 assert_exit 0 "conventional PR title passes" "$script" --title "feat: phase 1 tooling"
 assert_exit 1 "non-conventional PR title fails" "$script" --title "Phase 1 tooling"
 assert_exit 0 "breaking-change marker is accepted" "$script" --title "refactor(core)!: drop legacy blacklist"

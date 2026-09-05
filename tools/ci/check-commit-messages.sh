@@ -40,6 +40,11 @@ fi
 
 if [[ ${#positional[@]} -eq 2 ]]; then
   base="${positional[0]}"; head="${positional[1]}"
+  # Enumerate first: a failure inside `< <(...)` would be ignored and pass an unchecked range.
+  if ! commits="$(git rev-list --no-merges "$base..$head")"; then
+    echo "commit-messages: cannot enumerate ${base}..${head}" >&2
+    exit 2
+  fi
   while IFS= read -r sha; do
     [[ -z "$sha" ]] && continue
     subject="$(git log -1 --format=%s "$sha")"
@@ -59,7 +64,7 @@ if [[ ${#positional[@]} -eq 2 ]]; then
         status=1
       fi
     fi
-  done < <(git rev-list --no-merges "$base..$head")
+  done <<<"$commits"
 elif [[ ${#positional[@]} -ne 0 ]]; then
   usage >&2
   exit 2
