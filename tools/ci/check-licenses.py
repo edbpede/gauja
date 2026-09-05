@@ -37,7 +37,9 @@ def accepted(licenses, scope, policy, dependency=""):
         return False
     if scope == "build":
         permitted_exception = policy.get("build-exceptions", {}).get(dependency)
-        if permitted_exception and licenses == [permitted_exception]:
+        if isinstance(permitted_exception, str):
+            permitted_exception = [permitted_exception]
+        if permitted_exception and set(licenses) == set(permitted_exception):
             return True
     permitted = set(policy["allow"])
     if scope == "build":

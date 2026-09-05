@@ -32,6 +32,17 @@ class LicenseTests(unittest.TestCase):
     def test_unrecognized_license_text_is_not_guessed(self):
         self.assertEqual(licenses.swift_license("Consult our commercial license"), [])
 
+    def test_compound_exception_requires_exact_licenses_and_build_scope(self):
+        values = ["MIT", "LicenseRef-Example-Public-Domain"]
+        policy = dict(self.policy, **{"build-exceptions": {"example:tool:1": values}})
+        self.assertTrue(licenses.accepted(list(reversed(values)), "build", policy, "example:tool:1"))
+        self.assertFalse(licenses.accepted(values, "runtime", policy, "example:tool:1"))
+        self.assertFalse(licenses.accepted(values, "build", policy, "example:tool:2"))
+        self.assertFalse(licenses.accepted(values[1:], "build", policy, "example:tool:1"))
+        self.assertFalse(licenses.accepted(values + ["UNKNOWN"], "build", policy, "example:tool:1"))
+        policy["deny"] = [values[1]]
+        self.assertFalse(licenses.accepted(values, "build", policy, "example:tool:1"))
+
     def test_empty_and_partial_resolved_graphs_fail(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

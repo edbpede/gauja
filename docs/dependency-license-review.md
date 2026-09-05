@@ -24,11 +24,11 @@ to app runtime configurations or another dependency version.
 | `com.ibm.icu:icu4j:77.1` | Unicode-3.0 | Build tooling; [license](https://raw.githubusercontent.com/unicode-org/icu/maint/maint-77/LICENSE) |
 | `javax.annotation:javax.annotation-api:1.3.2` | CDDL-1.1 | Build tooling; the [license](https://github.com/javaee/javax.annotation/blob/master/LICENSE) offers CDDL 1.1 or GPLv2 with the Classpath exception; CDDL 1.1 is the selected alternative |
 
-## Pending maintainer decision
+## Additional approved build exceptions
 
-These two exact build dependencies remain rejected. Approval has been requested;
-Phase 3.4's license checklist item remains incomplete until the policy decision is
-recorded and the complete lane passes.
+The maintainer approved these two additional exact build dependencies on
+2026-09-06. Their exceptions have the same build-only and exact-version scope as
+the entries above. kXML's exception requires both applicable licenses together.
 
 | Coordinate | Applicable licenses | Evidence |
 |---|---|---|

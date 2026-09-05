@@ -247,7 +247,7 @@ apps/android/
 - [x] Wire `com.autonomousapps.dependency-analysis` and a `tools/ci/check-module-graph.sh` (or a Gradle task) that asserts the PRD §12.3 graph: `feature/*` never depends on another `feature/*`; only Data imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `core/model` has no Android deps; nothing depends on `app`.
 - [x] *(depends on working modules above)* Smoke tests of real consumers: one JVM unit test (JUnit4 + coroutines-test + Turbine), one Robolectric Compose test, one Hilt instrumentation test with `HiltTestRunner`, all green.
 - [ ] Add baseline profiles with the measurable start-up/Discover path in Phase 11; do not benchmark a placeholder.
-- [ ] *(depends on working §3.2 app/build/tests)* `android.yml` real: `assembleDebug`, `testDebugUnitTest`, `detekt`, `ktfmtCheck`, `lint`, module-graph check, `tools/codegen/generate.sh --check --platform android` (transfer ownership from codegen-check), emulator smoke (`connectedDebugAndroidTest` on API 30 and API 37), per-ABI split size report.
+- [x] *(depends on working §3.2 app/build/tests)* `android.yml` real: `assembleDebug`, `testDebugUnitTest`, `detekt`, `ktfmtCheck`, `lint`, module-graph check, `tools/codegen/generate.sh --check --platform android` (transfer ownership from codegen-check), emulator smoke (`connectedDebugAndroidTest` on API 30 and API 37), per-ABI split size report.
 
 ### 3.3 iOS skeleton (`apps/ios/`)
 
@@ -294,7 +294,7 @@ apps/ios/
 
 ### 3.4 Cross-platform checks
 
-- [ ] With each platform’s first real manifests, resolve the actual runtime/build/test dependency graph (including transitives), review applicable licenses against `deny.toml`, and enforce the result in that platform’s lane. A Gradle version catalog alone is not a resolved graph; use resolved configurations and SwiftPM resolution. Report unknown metadata as a failure. Do not create an allow-list-only success placeholder or require the other platform’s toolchain.
+- [x] With each platform’s first real manifests, resolve the actual runtime/build/test dependency graph (including transitives), review applicable licenses against `deny.toml`, and enforce the result in that platform’s lane. A Gradle version catalog alone is not a resolved graph; use resolved configurations and SwiftPM resolution. Report unknown metadata as a failure. Do not create an allow-list-only success placeholder or require the other platform’s toolchain.
 - [x] Retire each platform’s duplicated smoke manifests/locks only after real API modules independently compile and pass equivalent serialization/redaction tests. Use one dependency/build source per platform. Transfer checks and path filters to their replacement owner in the same PR; keep platform lint/build work out of the Linux shared-hygiene job.
 - [x] Measure clean/incremental API-module builds and IDE indexing using representative changes and a recorded machine/toolchain baseline. Retain supported generator structure unless measurements justify a trial; follow the coverage/shared-schema checks in [codegen setup](../tools/codegen/README.md#generated-file-structure).
 - [x] Add egress enforcement with the first real transport flow (Phase 4/11), without a passing skeleton.
