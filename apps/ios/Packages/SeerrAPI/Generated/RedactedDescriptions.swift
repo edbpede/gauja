@@ -26,6 +26,12 @@ extension Components.Schemas.NetworkSettings.proxyPayload: CustomStringConvertib
     public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
 }
 
+extension Components.Schemas.NotificationEmailSettings.optionsPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String { "[REDACTED]" }
+    public var debugDescription: String { "[REDACTED]" }
+    public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
+}
+
 extension Components.Schemas.NtfySettings.optionsPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var description: String { "[REDACTED]" }
     public var debugDescription: String { "[REDACTED]" }
@@ -81,6 +87,12 @@ extension Components.Schemas.User: CustomStringConvertible, CustomDebugStringCon
 }
 
 extension Components.Schemas.UserSettingsNotifications: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var description: String { "[REDACTED]" }
+    public var debugDescription: String { "[REDACTED]" }
+    public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }
+}
+
+extension Components.Schemas.WebhookSettings.optionsPayload: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var description: String { "[REDACTED]" }
     public var debugDescription: String { "[REDACTED]" }
     public var customMirror: Mirror { Mirror(reflecting: "[REDACTED]") }

@@ -50,6 +50,14 @@ class GenerationTests(unittest.TestCase):
             self.assertIn('override fun toString(): String = "[REDACTED]"', path.read_text())
             self.assertIn("GENERATED", path.read_text())
 
+    def test_swift_admin_credentials_are_redacted(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            for field in ["adminPass", "authPass", "authHeader", "pushoverUserKey"]:
+                (directory / "Types.swift").write_text(f"public struct Settings {{\n    public var {field}: String\n}}\n")
+                swift_descriptions(directory)
+                self.assertIn("extension Settings:", (directory / "RedactedDescriptions.swift").read_text())
+
     def test_swift_nested_namespaces_and_frozen_enums(self):
         with tempfile.TemporaryDirectory() as temp:
             directory = Path(temp)

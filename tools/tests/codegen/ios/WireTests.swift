@@ -27,3 +27,9 @@ import Testing
     let encoded = try #require(String(bytes: data, encoding: .utf8))
     #expect(encoded.contains("synthetic-password"))
 }
+
+@Test func notificationCredentialsAreRedacted() throws {
+    let data = Data(#"{"authHeader":"synthetic-webhook-credential"}"#.utf8)
+    let value = try JSONDecoder().decode(Components.Schemas.WebhookSettings.optionsPayload.self, from: data)
+    #expect(!String(reflecting: value).contains("synthetic-webhook-credential"))
+}
