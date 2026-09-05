@@ -74,7 +74,7 @@ jobs:
           test -f "$ANDROID_AVD_HOME/gauja-smoke.ini"
           adb start-server
           test -f "$ANDROID_USER_HOME/adbkey"
-          "$ANDROID_HOME/emulator/emulator" -avd gauja-smoke -no-window -no-audio -no-snapshot -no-metrics -no-boot-anim -memory 2048 -cores 2 -show-kernel -gpu swiftshader_indirect > /tmp/emulator.log 2>&1 &
+          "$ANDROID_HOME/emulator/emulator" -avd gauja-smoke -no-window -no-audio -no-snapshot -no-metrics -no-boot-anim -memory 2048 -cores 2 -show-kernel -gpu software > /tmp/emulator.log 2>&1 &
           trap 'adb emu kill || true' EXIT
           timeout 180 adb wait-for-device
           timeout 180 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done'
