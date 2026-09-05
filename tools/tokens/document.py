@@ -15,20 +15,23 @@ def load(path):
                 raise ValueError(f"Duplicate token key: {key}")
             result[key] = value
         return result
-    document = json.loads(path.read_text(), object_pairs_hook=pairs)
+    document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=pairs)
     tokens = {}
 
-    def collect(node, prefix):
+    def collect(node, prefix, inherited_type=None):
         if not isinstance(node, dict):
             raise ValueError(f"Invalid token group: {prefix}")
+        kind = node.get("$type", inherited_type)
         if "$value" in node:
-            if not node.get("$description") or not node.get("$extensions", {}).get("app.gauja.provenance"):
+            if not node.get("$description") or not isinstance(node.get("$extensions"), dict) or not node["$extensions"].get("app.gauja.provenance"):
                 raise ValueError(f"Token lacks provenance: {prefix}")
-            tokens[prefix] = node
+            if not isinstance(kind, str):
+                raise ValueError(f"Token lacks a valid type: {prefix}")
+            tokens[prefix] = {**node, "$type": kind}
         else:
             for key, child in node.items():
                 if not key.startswith("$"):
-                    collect(child, f"{prefix}.{key}" if prefix else key)
+                    collect(child, f"{prefix}.{key}" if prefix else key, kind)
     collect(document, "")
 
     def resolve(name, chain=()):
@@ -54,7 +57,7 @@ def validate(kind, value):
     valid = False
     if kind == "color" and isinstance(value, dict):
         components = value.get("components", [])
-        valid = value.get("colorSpace") == "srgb" and len(components) == 3 and all(number(v) and 0 <= v <= 1 for v in components) and number(value.get("alpha", 1)) and 0 <= value.get("alpha", 1) <= 1
+        valid = isinstance(components, list) and value.get("colorSpace") == "srgb" and len(components) == 3 and all(number(v) and 0 <= v <= 1 for v in components) and number(value.get("alpha", 1)) and 0 <= value.get("alpha", 1) <= 1
     elif kind in {"dimension", "duration"} and isinstance(value, dict):
         valid = number(value.get("value")) and value["value"] >= 0 and value.get("unit") == ("px" if kind == "dimension" else "ms")
     elif kind == "typography" and isinstance(value, dict):

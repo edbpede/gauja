@@ -3,81 +3,65 @@
 // GENERATED — do not edit. Run tools/tokens/generate.sh.
 
 import SwiftUI
-import UIKit
 
 public extension Font {
     static var gaujaBodyLarge: Font {
-        Font(UIFontMetrics(forTextStyle: .body).scaledFont(for:
-            UIFont.systemFont(ofSize: 16, weight: .regular)))
+        GaujaTypographyStyle.bodyLarge.font
     }
 
     static var gaujaBodyMedium: Font {
-        Font(UIFontMetrics(forTextStyle: .body).scaledFont(for:
-            UIFont.systemFont(ofSize: 14, weight: .regular)))
+        GaujaTypographyStyle.bodyMedium.font
     }
 
     static var gaujaBodySmall: Font {
-        Font(UIFontMetrics(forTextStyle: .body).scaledFont(for:
-            UIFont.systemFont(ofSize: 12, weight: .regular)))
+        GaujaTypographyStyle.bodySmall.font
     }
 
     static var gaujaDisplayLarge: Font {
-        Font(UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for:
-            UIFont.systemFont(ofSize: 60, weight: .regular)))
+        GaujaTypographyStyle.displayLarge.font
     }
 
     static var gaujaDisplayMedium: Font {
-        Font(UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for:
-            UIFont.systemFont(ofSize: 48, weight: .regular)))
+        GaujaTypographyStyle.displayMedium.font
     }
 
     static var gaujaDisplaySmall: Font {
-        Font(UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for:
-            UIFont.systemFont(ofSize: 36, weight: .regular)))
+        GaujaTypographyStyle.displaySmall.font
     }
 
     static var gaujaHeadlineLarge: Font {
-        Font(UIFontMetrics(forTextStyle: .title1).scaledFont(for:
-            UIFont.systemFont(ofSize: 32, weight: .regular)))
+        GaujaTypographyStyle.headlineLarge.font
     }
 
     static var gaujaHeadlineMedium: Font {
-        Font(UIFontMetrics(forTextStyle: .title1).scaledFont(for:
-            UIFont.systemFont(ofSize: 28, weight: .regular)))
+        GaujaTypographyStyle.headlineMedium.font
     }
 
     static var gaujaHeadlineSmall: Font {
-        Font(UIFontMetrics(forTextStyle: .title1).scaledFont(for:
-            UIFont.systemFont(ofSize: 24, weight: .regular)))
+        GaujaTypographyStyle.headlineSmall.font
     }
 
     static var gaujaLabelLarge: Font {
-        Font(UIFontMetrics(forTextStyle: .caption1).scaledFont(for:
-            UIFont.systemFont(ofSize: 14, weight: .medium)))
+        GaujaTypographyStyle.labelLarge.font
     }
 
     static var gaujaLabelMedium: Font {
-        Font(UIFontMetrics(forTextStyle: .caption1).scaledFont(for:
-            UIFont.systemFont(ofSize: 12, weight: .semibold)))
+        GaujaTypographyStyle.labelMedium.font
     }
 
     static var gaujaLabelSmall: Font {
-        Font(UIFontMetrics(forTextStyle: .caption1).scaledFont(for:
-            UIFont.systemFont(ofSize: 11, weight: .semibold)))
+        GaujaTypographyStyle.labelSmall.font
     }
 
     static var gaujaTitleLarge: Font {
-        Font(UIFontMetrics(forTextStyle: .headline).scaledFont(for:
-            UIFont.systemFont(ofSize: 22, weight: .medium)))
+        GaujaTypographyStyle.titleLarge.font
     }
 
     static var gaujaTitleMedium: Font {
-        Font(UIFontMetrics(forTextStyle: .headline).scaledFont(for:
-            UIFont.systemFont(ofSize: 16, weight: .medium)))
+        GaujaTypographyStyle.titleMedium.font
     }
 
     static var gaujaTitleSmall: Font {
-        Font(UIFontMetrics(forTextStyle: .headline).scaledFont(for:
-            UIFont.systemFont(ofSize: 14, weight: .medium)))
+        GaujaTypographyStyle.titleSmall.font
     }
 }

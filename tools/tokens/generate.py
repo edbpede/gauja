@@ -19,13 +19,16 @@ def main():
     root = Path(__file__).resolve().parents[2]
     try:
         with tempfile.TemporaryDirectory(prefix="gauja-tokens-") as directory:
+            staged = []
             for name, destination in [
                 ("compose", "apps/android/core/designsystem/src/main/kotlin/app/gauja/core/designsystem/generated"),
                 ("swiftui", "apps/ios/Packages/DesignSystem/Sources/DesignSystem/Generated"),
             ]:
                 output = Path(directory) / name
                 subprocess.run([sys.executable, str(root / f"tools/tokens/generate-{name}.py"), "--tokens", str(args.tokens or root / "design/tokens.json"), "--output", str(output)], check=True)
-                publish(output, root / destination, args.check)
+                staged.append((output, root / destination))
+            for output, destination in staged:
+                publish(output, destination, args.check)
         print("tokens: both themes " + ("match" if args.check else "generated"))
     except (ValueError, OSError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"tokens: {error}\n")
