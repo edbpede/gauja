@@ -282,7 +282,7 @@ Governed by `.agents/rules/kotlin-2_4-android-app.md`.
 | Concern | Choice |
 |---|---|
 | Language / build | Kotlin 2.4 (K2), AGP 9.x with built-in Kotlin, KSP2, Gradle version catalog |
-| SDK | minSdk 30 (Android 11; fixed by the guideline — build behind availability checks, do not raise), targetSdk/compileSdk 36 |
+| SDK | minSdk 30 (Android 11; fixed by the guideline — build behind availability checks, do not raise), targetSdk/compileSdk 37 (per the Kotlin rule file) |
 | UI | Jetpack Compose (BOM-governed), Material 3, Material 3 Adaptive |
 | Navigation | Navigation 3, single Activity, owned back stack |
 | DI | Hilt via KSP |
@@ -291,7 +291,7 @@ Governed by `.agents/rules/kotlin-2_4-android-app.md`.
 | Images | Coil 3 with the OkHttp network fetcher |
 | Concurrency | Coroutines + Flow, structured; no `GlobalScope` |
 | Testing | JUnit, Turbine, Compose UI tests, Robolectric for units, an emulator smoke lane |
-| Quality | ktlint, detekt (with the Compose ruleset), Android Lint, baseline profiles |
+| Quality | ktfmt, detekt (with the Compose ruleset), Android Lint, baseline profiles |
 
 One build flavour. No Google Play Services, no Firebase.
 
@@ -334,7 +334,7 @@ Normative coding guidelines live in `.agents/rules/` and **must be followed** fo
 | `.agents/rules/api-contract.md` | How generated clients are produced, isolated and wrapped; how overlays and fixtures are maintained |
 | `.agents/rules/monorepo.md` | Directory ownership, CI lanes, what may and may not cross the `apps/` boundary |
 
-The three project-level files are written during Phase 0 of the implementation plan and are treated as living documents; a change to a rule file is a PR with a rationale, reviewed like code.
+The three project-level files are written during Phase 1 of the implementation plan (the plan's numbering; this document's earlier "Phase 0") and are treated as living documents; a change to a rule file is a PR with a rationale, reviewed like code.
 
 ### 12.2 Single purpose, everywhere
 
@@ -435,7 +435,7 @@ gauja/
     android/                    Gradle project (§12.4)
     ios/                        XcodeGen project + SPM packages (§12.5)
   design/                       tokens.json · screens/<area>/<screen>.md · assets/ (icons, SVG sources, store art)
-  docs/                         PRD.md · TECH_SPEC.md · IMPLEMENTATION_PLAN.md · adr/ · CONTRIBUTING.md · SECURITY.md
+  docs/                         gauja-prd.md · TECH_SPEC.md · gauja-implementation-plan.md · adr/ · THIRD_PARTY.md
   tools/
     codegen/                    generator configs and wrapper scripts (android, ios)
     tokens/                     tokens.json → Compose theme / SwiftUI theme
@@ -444,7 +444,7 @@ gauja/
     community/                  translation validation
   LICENSE                       AGPL-3.0-or-later text + the note in §15.2
   APPSTORE_EXCEPTION.md         Appendix A
-  REUSE.toml · prek.toml · crowdin.yml · deny.toml (license allow-list) · README.md
+  REUSE.toml · prek.toml · crowdin.yml · deny.toml (license allow-list) · renovate.json · README.md · CONTRIBUTING.md · SECURITY.md
 ```
 
 - **Ownership:** `CODEOWNERS` assigns `apps/android/` and `apps/ios/` to their platform maintainers, `api/` and `design/` to both, `docs/` and root config to the project leads. A change under `apps/android/` needs no iOS reviewer and vice versa.
@@ -468,7 +468,7 @@ Local, path-scoped:
 | Hook | Scope | Purpose |
 |---|---|---|
 | `dco-signoff` | commit-msg | Requires a `Signed-off-by:` trailer; fast mirror of the GitHub DCO check (§15.3) |
-| `ktlint`, `detekt` | `apps/android/` Kotlin, excluding `core/api/` generated | Gradle-driven so detekt loads the Compose ruleset |
+| `ktfmt`, `detekt` | `apps/android/` Kotlin, excluding `core/api/` generated | Gradle-driven so detekt loads the Compose ruleset; ktfmt is the formatter named by the Kotlin rule file |
 | `swift-format`, `swiftlint --strict` | `apps/ios/` Swift, excluding `Packages/SeerrAPI/Generated/` | Toolchain swift-format; SwiftLint strict |
 | `api-drift` | `api/seerr-api.yml`, `api/UPSTREAM_COMMIT` | Fails if the spec changed without the commit file, or vice versa |
 | `tokens-check` | `design/tokens.json`, generated themes | Regenerates themes and fails on diff |
@@ -553,7 +553,7 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 
 | # | Risk / question | Mitigation or owner |
 |---|---|---|
-| 1 | **Settings surface size.** 62 `/settings` paths and every notification agent form is the majority of the screen count. | Screen inventory sized before Phase 1; settings sections implemented in Seerr's sidebar order so partial progress is coherent; each section is its own module and PR. |
+| 1 | **Settings surface size.** 62 `/settings` paths and every notification agent form is the majority of the screen count. | Screen inventory sized before Phase 2; settings sections implemented in Seerr's sidebar order so partial progress is coherent; each section is its own module and PR. |
 | 2 | **Spec drift from real behaviour.** Upstream's hand-maintained spec may not match the server. | Overlays (§4.1) plus contract tests against a real container (§4.5). |
 | 3 | **Maintainer bandwidth per platform.** Two native codebases. | CODEOWNERS; each app buildable alone; screen specs let one platform lead. |
 | 4 | **Apple review of an AGPL app.** | Exception (§15.2); precedent exists for GPL-family apps with such exceptions. |
@@ -602,7 +602,7 @@ Adapted from the Spidola configuration. Differences: no Rust lanes; generated-co
 #
 # Setup: `prek install` (installs both the pre-commit and commit-msg shims).
 # Run everything: `prek run --all-files` (do this after changing this file).
-# See docs/IMPLEMENTATION_PLAN.md — Phase 0, and docs/PRD.md §14.
+# See docs/gauja-implementation-plan.md — Phase 1, and docs/gauja-prd.md §14.
 
 default_install_hook_types = ["pre-commit", "commit-msg"]
 
@@ -668,9 +668,10 @@ hooks = [
   { id = "swift-format", name = "swift-format", entry = "swift format --in-place", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
   { id = "swiftlint", name = "swiftlint", entry = "swiftlint lint --strict", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
 
-  # Android — apps/android/ (ktlint + detekt with the Compose ruleset; PRD §14 android lane).
+  # Android — apps/android/ (ktfmt + detekt with the Compose ruleset; PRD §14 android lane).
+  # ktfmt, not ktlint: the Kotlin rule file names ktfmt as the formatter and is authoritative (PRD §12.1).
   # Gradle-driven so detekt loads the Compose ruleset; fires only when Kotlin under apps/android/ is staged.
-  { id = "ktlint", name = "ktlint", entry = "apps/android/gradlew --project-dir apps/android ktlintCheck", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
+  { id = "ktfmt", name = "ktfmt", entry = "apps/android/gradlew --project-dir apps/android ktfmtCheck", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
   { id = "detekt", name = "detekt", entry = "apps/android/gradlew --project-dir apps/android detekt", language = "system", types = ["kotlin"], files = "^apps/android/", exclude = "^apps/android/core/(api|designsystem/.*/generated)/", pass_filenames = false },
 ]
 ```

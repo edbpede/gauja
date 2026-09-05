@@ -25,8 +25,11 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 - **Apply the project rules in `.agents/rules/*.md` wherever relevant:**
   - `.agents/rules/kotlin-2_4-android-app.md`
   - `.agents/rules/swift-6_3-ios-app.md`
+  - `.agents/rules/modularity.md`
+  - `.agents/rules/api-contract.md`
+  - `.agents/rules/monorepo.md`
 
-  These rule files are authoritative over the PRD and over this plan on language, framework and library usage (PRD §12.1). Where this plan and a rule file disagree, the rule file wins and this plan gets a fix-up PR. The three project-level rule files written in Phase 1 (`modularity.md`, `api-contract.md`, `monorepo.md`) join this list once merged.
+  These rule files are authoritative over the PRD and over this plan on language, framework and library usage (PRD §12.1). Where this plan and a rule file disagree, the rule file wins and this plan gets a fix-up PR. The three project-level rule files (`modularity.md`, `api-contract.md`, `monorepo.md`) were written in Phase 1.
 - Numbering note: the PRD refers to rule-file authoring and prek setup as "Phase 0". In this plan that work is **Phase 1**, because tooling is the first thing that lands and the phase numbers here are the ones the repository uses from now on.
 - Checkbox conventions: `- [ ]` open, `- [x]` done. Do not delete finished items; the history is the point.
 
