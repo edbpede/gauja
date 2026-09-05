@@ -39,6 +39,59 @@ class DriftTests(unittest.TestCase):
     def test_clean_index_validates(self):
         self.check(0)
 
+    def test_custom_directory_in_index_worktree_and_range(self):
+        self.git("mv", "api", "custom-api")
+        self.git("commit", "-qm", "test: relocate contract", "-s")
+        self.check(0, "custom-api")
+        self.check(0, str(self.root / "custom-api"), "--working-tree")
+        base = self.git("rev-parse", "HEAD")
+        path = self.root / "custom-api/seerr-api.yml"
+        path.write_text(path.read_text() + "\n")
+        self.git("add", "custom-api/seerr-api.yml")
+        self.check(1, "custom-api")
+        self.git("commit", "-qm", "test: unpaired custom spec", "-s")
+        self.check(1, "custom-api", "--range", base, "HEAD")
+
+    def test_external_directory_supports_working_tree_validation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            api = Path(temp) / "api"
+            shutil.copytree(self.root / "api", api)
+            self.check(0, str(api), "--working-tree")
+            (api / "compat.json").write_text("{}")
+            self.check(1, str(api), "--working-tree")
+
+    def test_custom_directory_from_nested_working_directory(self):
+        directory = self.root / "nested"
+        directory.mkdir()
+        result = subprocess.run([str(SCRIPT), "../api"], cwd=directory, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        pin = self.root / "api/UPSTREAM_COMMIT"
+        self.change("UPSTREAM_COMMIT", pin.read_text() + "\n")
+        result = subprocess.run([str(SCRIPT), "../api"], cwd=directory, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("must change together", result.stderr)
+
+    def test_help_without_contract_environment(self):
+        wrapper = self.root / "tools/api-drift/check-local.sh"
+        wrapper.parent.mkdir(parents=True)
+        shutil.copy2(SCRIPT, wrapper)
+        for option in ["--help", "-h"]:
+            result = subprocess.run([str(wrapper), option], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Usage:", result.stdout)
+
+    def test_schema_errors_have_controlled_diagnostics(self):
+        for filename, invalid in [("compat.json", "{}"), ("compat.schema.json", '{"type": "invalid"}')]:
+            path = self.root / "api" / filename
+            original = path.read_text()
+            path.write_text(invalid)
+            result = subprocess.run([str(SCRIPT), "--working-tree"], cwd=self.root, capture_output=True, text=True)
+            path.write_text(original)
+            with self.subTest(filename=filename):
+                self.assertEqual(result.returncode, 1)
+                self.assertTrue(result.stderr.startswith("api-drift: "), result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+
     def test_spec_or_pin_alone_rejected(self):
         for name in ["seerr-api.yml", "UPSTREAM_COMMIT"]:
             with self.subTest(name=name):
