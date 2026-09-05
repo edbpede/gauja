@@ -17,7 +17,11 @@ def violations(root):
             relative = path.relative_to(tree).as_posix()
             if any(part in {"build", ".build", ".gradle", "DerivedData"} for part in path.parts):
                 continue
-            source = re.sub(r"/\*.*?\*/|//[^\n]*", "", path.read_text(), flags=re.S)
+            source = re.sub(
+                r'"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|/\*[\s\S]*?\*/|//[^\n]*',
+                lambda match: " " if match[0].startswith(("//", "/*")) else match[0],
+                path.read_text(),
+            )
             if re.search(r"(?:@_exported\s+|public\s+)import\s+SeerrAPI", source):
                 yield path, "Data must not re-export SeerrAPI"
             elif re.search(expression, source) and not relative.startswith(allowed):

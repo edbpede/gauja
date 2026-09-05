@@ -22,10 +22,30 @@ class ScreenTests(unittest.TestCase):
             shutil.copytree(ROOT / "design/screens", root / "design/screens")
             path = root / "design/screens/auth/local.md"
             original = path.read_text()
-            for change in [original.replace("**Offline:**", "**Unavailable:**"), original.replace("A04", "A99")]:
+            for change, message in [
+                (original.replace("**Offline:**", "**Unavailable:**"), "missing state Offline"),
+                (original.replace("A04", "A99"), "unknown matrix row"),
+                (original.replace("## Content components", "## Components"), "missing Content components"),
+            ]:
                 path.write_text(change)
-                with self.assertRaises(ValueError):
+                with self.assertRaisesRegex(ValueError, message):
                     module.check(root)
+
+    def test_inventory_deletion_and_duplicate_matrix_ids_fail(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            shutil.copytree(ROOT / "design/screens", root / "design/screens")
+            inventory = root / "design/screens/INVENTORY.md"
+            original = inventory.read_text()
+            row = next(line for line in original.splitlines(keepends=True) if line.startswith("| `auth/local.md`"))
+            inventory.write_text(original.replace(row, "").replace("**50** | **31** | **95**", "**49** | **31** | **94**"))
+            with self.assertRaisesRegex(ValueError, "Inventory sizing differs from Phase 2 contract"):
+                module.check(root)
+            inventory.write_text(original)
+            matrix = root / "design/screens/auth/MATRIX.md"
+            matrix.write_text(matrix.read_text() + "\n| A01 | conflicting outcome |\n")
+            with self.assertRaisesRegex(ValueError, "Duplicate auth matrix IDs"):
+                module.check(root)
 
 
 if __name__ == "__main__":

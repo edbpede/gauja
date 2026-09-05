@@ -17,13 +17,21 @@ class BoundaryTests(unittest.TestCase):
             root = Path(temp)
             for name, source in [
                 ("apps/android/core/data/Mapper.kt", "import app.gauja.core.api.models.User"),
-                ("apps/android/feature/discover/Screen.kt", "val user: app.gauja.core.api.models.User"),
+                ("apps/android/feature/discover/Screen.kt", 'val url = "https://example.invalid"; val user: app.gauja.core.api.models.User'),
+                ("apps/android/feature/discover/Comment.kt", '// app.gauja.core.api.models.User\n/* app.gauja.core.api */ val safe = 1'),
                 ("apps/ios/Packages/Data/Mapper.swift", "import SeerrAPI"),
                 ("apps/ios/Packages/Features/Discover/View.swift", "import SeerrAPI"),
                 ("apps/ios/Packages/Data/Export.swift", "@_exported import SeerrAPI"),
             ]:
                 path = root / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_text(source)
-            self.assertEqual(len(list(module.violations(root))), 3)
+            self.assertEqual(
+                {(path.relative_to(root).as_posix(), reason) for path, reason in module.violations(root)},
+                {
+                    ("apps/android/feature/discover/Screen.kt", "generated API reference outside API/Data/test support"),
+                    ("apps/ios/Packages/Features/Discover/View.swift", "generated API reference outside API/Data/test support"),
+                    ("apps/ios/Packages/Data/Export.swift", "Data must not re-export SeerrAPI"),
+                },
+            )
 
 
 if __name__ == "__main__":

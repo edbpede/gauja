@@ -20,12 +20,17 @@ def check(root):
     if not {"auth", "servers", "discover", "search", "media", "requests", "issues", "watchlist", "profile", "users", "settings", "about"} <= areas:
         raise ValueError("Inventory omits a required area")
     totals = [sum(row[2] == size for row in rows) for size in "SML"] + [len(rows)]
+    if totals != [14, 50, 31, 95]:
+        raise ValueError("Inventory sizing differs from Phase 2 contract")
     expected = "| **Total** | " + " | ".join(f"**{n}**" for n in totals) + " |"
     if expected not in inventory:
         raise ValueError("Inventory sizing totals differ from rows")
     components = (screens / "components/INVENTORY.md").read_text()
     matrix = (screens / "auth/MATRIX.md").read_text()
-    cases = set(re.findall(r"^\| ([AS]\d+) \|", matrix, re.M))
+    case_ids = re.findall(r"^\| ([AS]\d+) \|", matrix, re.M)
+    if len(case_ids) != len(set(case_ids)):
+        raise ValueError("Duplicate auth matrix IDs")
+    cases = set(case_ids)
     referenced = set()
     paths = [screens / "components" / (name + ".md") for name in COMPONENTS]
     paths += [screens / row[0] for row in rows if row[0].startswith(("auth/", "servers/"))]
@@ -34,7 +39,8 @@ def check(root):
             raise ValueError(f"Missing component inventory link: {name}")
     for path in paths:
         text = path.read_text()
-        for section in SECTIONS:
+        sections = SECTIONS + ([] if path.parent.name == "components" else ["Content components"])
+        for section in sections:
             if f"## {section}\n" not in text:
                 raise ValueError(f"{path.name}: missing {section}")
         for state in ("Loading", "Empty", "Error", "Offline", "Permission-denied"):
