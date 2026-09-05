@@ -37,7 +37,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 | Phase | Name | Output | Blocks |
 |---|---|---|---|
-| 1 | Developer tooling and repository hygiene | prek, CI skeleton, licensing, rule files, ADR stubs | everything |
+| 1 | Developer tooling and repository hygiene | prek, CI skeleton, licensing, rule files | everything |
 | 2 | Shared contract | `api/`, `design/`, `tools/codegen`, `tools/tokens` | 3, 4 |
 | 3 | Modular monorepo skeleton | both apps build empty with every module in place | 4–12 |
 | 4 | Core platform layers | `core/*` and `Packages/*` non-feature code | 5–10 |
@@ -103,13 +103,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 - [x] Amend `docs/gauja-prd.md` in a follow-up PR: §11.2 quality tools (ktfmt, not ktlint), §11.2 SDK line (compileSdk/targetSdk 37 per the Kotlin rule file), §14.1 hook table, Appendix B hook entry, and the companion-document filenames (`gauja-prd.md`, `gauja-implementation-plan.md`). Record the reason in the PR body: rule files are authoritative (§12.1).
 - [x] Add the new rule files to the rule-file list in this plan's "How to use this plan" section.
 
-### 1.5 ADR stubs
-
-- [x] `docs/adr/README.md` — ADR format (context, decision, consequences) and numbering.
-- [x] `docs/adr/0001-native-only-no-kmp.md` through `docs/adr/0009-name.md`, one per row of PRD Appendix C, each with the decision statement and a link to the PRD section.
-- [x] `docs/adr/0002-notifications-deferred.md` carries the investigated design (web push channel, UnifiedPush on Android, APNs relay on iOS, RFC 8291 end-to-end encryption) so v2 starts from a decided architecture.
-
-### 1.6 CI skeleton (`.github/workflows/`)
+### 1.5 CI skeleton (`.github/workflows/`)
 
 - [x] `pr-hygiene.yml` — runs on every PR: `prek run --all-files`, REUSE lint (`reuse lint`), gitleaks. Mark REUSE and the GitHub DCO app as required status checks; protect `main`; squash-merge only.
 - [x] Placeholder workflows that succeed with a "not yet wired" step and correct `paths:` filters: `android.yml`, `ios.yml`, `contract.yml`, `api-sync.yml` (schedule: weekly), `tokens-check.yml`, `release.yml` (on tag).
@@ -191,7 +185,7 @@ gauja/
     tokens.json
     screens/<area>/<screen>.md · screens/components/<Component>.md · INVENTORY.md · TEMPLATE.md
     assets/                     icons/ · svg/ · store/
-  docs/                         gauja-prd.md · gauja-implementation-plan.md · TECH_SPEC.md · THIRD_PARTY.md · adr/
+  docs/                         gauja-prd.md · gauja-implementation-plan.md · TECH_SPEC.md · THIRD_PARTY.md
   tools/
     codegen/                    android/ · ios/ · generate.sh
     tokens/                     generate-compose.py · generate-swiftui.py · check.sh
@@ -488,7 +482,7 @@ apps/ios/
 ### 8.2 App settings (in `app` / `App`)
 
 - [ ] Theme (dark default, light, follow system), image cache limits (defaults 64 MB memory / 256 MB disk), clear caches per profile and in bulk, diagnostics export (redacted).
-- [ ] **Notifications** entry greyed out and labelled "Coming later", one-line explanation, link to ADR 0002 from About.
+- [ ] **Notifications** entry greyed out and labelled "Coming later", one-line explanation, repeated in About (PRD §7).
 
 ---
 
@@ -627,9 +621,9 @@ apps/ios/
 - [ ] Reproducible Android release build (fixed timestamps, deterministic zip, per-ABI splits); F-Droid metadata in `fastlane/metadata/android/` and a `metadata/<applicationId>.yml` template for the F-Droid data repo.
 - [ ] Signing: Android upload key and iOS certificates in CI secrets; fastlane lanes for Play internal track and TestFlight.
 - [ ] *(depends on §11.4 smoke lanes for screenshots)* Store listings: unaffiliated-with-Seerr statement, "Seerr" used only descriptively, none of Seerr's marks or artwork; screenshots generated from the emulator/simulator smoke lanes so they track the UI.
-- [ ] *(can start early: after §1.6)* `CHANGELOG.md` generated from Conventional Commits, sectioned per app; supported Seerr range and `api/compat.json` updated in every release.
+- [ ] *(can start early: after §1.5)* `CHANGELOG.md` generated from Conventional Commits, sectioned per app; supported Seerr range and `api/compat.json` updated in every release.
 - [ ] GitHub Releases: signed APKs and the iOS source archive; SBOM attached.
-- [ ] Post-release: README supported-range update, ADR for any deviation discovered during store review (PRD §18 risk 4).
+- [ ] Post-release: README supported-range update, record in PRD Appendix C any deviation discovered during store review (PRD §18 risk 4).
 
 ---
 
@@ -650,7 +644,7 @@ apps/ios/
 | §5.10 Admin: server settings | 10 |
 | §5.11 Cross-cutting (permissions, deep links, offline, a11y, l10n) | 4.1, 4.4, 5.2, 11.1–11.3 |
 | §6 Authentication and server model | 4.3, 4.6, 5.1 |
-| §7 Notifications deferred | 1.5 (ADR 0002), 8.2, 10.7 |
+| §7 Notifications deferred | 8.2, 10.7 |
 | §8 UX principles (IA, tokens, content components, adaptive) | 2.3, 2.4, 4.8, 4.9, 11.2 |
 | §9 Performance targets | 3.2 (baseline profile), 11.4 |
 | §10 Privacy and security | 1.1, 1.2, 4.3, 4.6, 11.5 |
@@ -667,7 +661,7 @@ apps/ios/
 
 Carried from PRD §2.2 and §7 so that no phase quietly grows to include them:
 
-- Push notifications, background polling, UnifiedPush, APNs relay, any `push` module (ADR 0002).
+- Push notifications, background polling, UnifiedPush, APNs relay, any `push` module (PRD §7).
 - Kotlin Multiplatform or any shared runtime code between the apps.
 - Web views of any kind; media playback; the Seerr first-run setup wizard (`/settings/initialize`).
 - Telemetry, analytics, crash-reporting SDKs, Google Play Services, Firebase.

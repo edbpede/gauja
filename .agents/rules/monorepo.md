@@ -5,7 +5,7 @@ description: "Gauja monorepo rules: directory ownership, CI lane triggers, the a
 
 # Monorepo
 
-Gauja is two independent native apps plus a shared contract in one repository (PRD §13, ADR 0001). This file is normative for what lives where, what triggers which CI lane, and what may cross the `apps/` boundary.
+Gauja is two independent native apps plus a shared contract in one repository (PRD §13, Appendix C decision 1). This file is normative for what lives where, what triggers which CI lane, and what may cross the `apps/` boundary.
 
 ## Layout and ownership
 
@@ -16,7 +16,7 @@ Gauja is two independent native apps plus a shared contract in one repository (P
 | `apps/android/` | Gradle project (`app`, `core/*`, `feature/*`, `build-logic/`) | Android maintainers |
 | `apps/ios/` | `project.yml`, `App/`, `Packages/*` | iOS maintainers |
 | `tools/` | `codegen/`, `tokens/`, `api-drift/`, `ci/`, `community/`, `tests/` | Project leads |
-| `docs/` | PRD, implementation plan, `adr/`, `THIRD_PARTY.md` | Project leads |
+| `docs/` | PRD, implementation plan, `THIRD_PARTY.md` | Project leads |
 | `.agents/rules/` | Normative rule files | Project leads |
 | root | `LICENSE`, `APPSTORE_EXCEPTION.md`, `REUSE.toml`, `prek.toml`, `deny.toml`, `renovate.json`, `CONTRIBUTING.md`, `SECURITY.md`, `README.md` | Project leads |
 
@@ -59,7 +59,7 @@ Rules:
 | Wrong | Why | Right |
 |---|---|---|
 | `apps/ios/Packages/Model` reads `apps/android/core/model` fixtures | Sideways dependency | Fixtures live in `api/fixtures/` |
-| A `shared/` directory with Kotlin and Swift side by side | Runtime sharing by the back door (ADR 0001) | Put the fact in `api/` or `design/`; generate per platform |
+| A `shared/` directory with Kotlin and Swift side by side | Runtime sharing by the back door (PRD Appendix C decision 1) | Put the fact in `api/` or `design/`; generate per platform |
 | Hand-copying a token value into a Swift theme | Drifts from `design/tokens.json` | Run `tools/tokens/`; the theme is generated |
 | `uses: actions/checkout@v7` | Unpinned; supply-chain risk (PRD §10) | `uses: actions/checkout@<sha> # v7.x.y` |
 | Installing Xcode in the Android lane to run a shared script | Breaks build-one-platform independence | Keep shared scripts in `tools/` and dependency-free (bash, python3 stdlib) |

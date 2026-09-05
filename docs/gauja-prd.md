@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 | Date | 2026-09-05 |
 | Product | Gauja — native Android and iOS companion apps for Seerr |
 | License | AGPL-3.0-or-later, with the App Store Distribution Exception (Appendix A) |
-| Companion documents | `docs/TECH_SPEC.md` (how), `docs/IMPLEMENTATION_PLAN.md` (order), `docs/adr/` (decisions), `docs/screens/` (screen inventory) |
+| Companion documents | `docs/TECH_SPEC.md` (how), `docs/gauja-implementation-plan.md` (order), `design/screens/` (screen inventory); decisions are logged in Appendix C |
 | Normative coding guidelines | `.agents/rules/kotlin-2_4-android-app.md`, `.agents/rules/swift-6_3-ios-app.md` (see §12.1) |
 
 This document states **what** Gauja is and **why** each decision was made. It deliberately carries some material that a conventional PRD would push elsewhere — the licensing exception, the quality-gate configuration, the codebase doctrine — because losing those details is a bigger risk to this project than an over-long PRD.
@@ -208,15 +208,24 @@ Settings screens are **adaptive**: a list/detail layout on tablets and foldables
 
 ## 7. Notifications — deferred
 
-**Decision:** push notifications are out of scope for v1. The design that was investigated is recorded in `docs/adr/0002-notifications-deferred.md` so that the eventual implementation starts from a decided architecture.
+**Decision:** push notifications are out of scope for v1. The design that was investigated is recorded at the end of this section so that the eventual implementation starts from a decided architecture.
 
 What v1 ships:
 
-- A greyed-out **Notifications** entry in Gauja's app settings labelled "Coming later", with a one-line explanation and a link to the ADR in the About screen.
+- A greyed-out **Notifications** entry in Gauja's app settings labelled "Coming later", with a one-line explanation, repeated in the About screen.
 - The per-user **notification preferences** screen (§5.8), because it is an ordinary Seerr settings endpoint and works today for every agent the admin has enabled.
 - The admin **notification agent** configuration screens (§5.10), for the same reason.
 
-What v1 deliberately does not ship: any background polling worker, any push subscription, any relay, any `push` module. The ADR captures why: Seerr's per-user, multi-device channel is web push; on Android the Google-free path is UnifiedPush; on iOS the only wake-up path is APNs, which requires project-operated infrastructure; end-to-end encryption via RFC 8291 holds on every tier. That is a v2 conversation.
+What v1 deliberately does not ship: any background polling worker, any push subscription, any relay, any `push` module. That is a v2 conversation.
+
+**Investigated design (the starting point for v2).** Seerr's per-user, multi-device channel is **web push** (`/user/{id}/settings/notifications` with the `webpush` agent and `/user/{id}/pushSubscription`): VAPID-signed RFC 8030 requests to a push-service endpoint, payload encrypted end-to-end with RFC 8291 (aes128gcm, RFC 8188). Gauja would register a push subscription per profile exactly as the web UI does, so the server needs no change.
+
+- **Android without Google:** [UnifiedPush](https://unifiedpush.org). The app registers with a user-chosen distributor (ntfy, NextPush, …), receives an endpoint URL and hands it to Seerr as the subscription endpoint. The distributor relays opaque bytes; the app decrypts with the RFC 8291 keys it generated (an ECDH P-256 keypair and auth secret per subscription, stored in `SecretStore`). No Play Services, no Firebase, no project-run server.
+- **iOS:** the only wake-up path is APNs, which Seerr cannot address directly. It needs a project-operated **relay**: an HTTPS endpoint that accepts web push ciphertext and forwards it to APNs as a Notification Service Extension payload; the extension decrypts on device. The relay never sees plaintext, but it is project-hosted infrastructure with availability, abuse and privacy obligations, and the one component the AGPL network clause would govern.
+- **Encryption** holds end-to-end on every tier: the server encrypts to the device's public key; distributors and the relay forward ciphertext only.
+- **Background execution:** Android decrypts and posts the notification in a short worker triggered by the UnifiedPush broadcast; the iOS service extension runs for the notification only. No background polling anywhere.
+
+What blocks v1: the iOS path requires project-hosted infrastructure (§2.2), UnifiedPush needs a distributor-chooser UX and a fallback story, and both need a privacy-statement update. None of it changes Seerr.
 
 ---
 
@@ -435,7 +444,7 @@ gauja/
     android/                    Gradle project (§12.4)
     ios/                        XcodeGen project + SPM packages (§12.5)
   design/                       tokens.json · screens/<area>/<screen>.md · assets/ (icons, SVG sources, store art)
-  docs/                         gauja-prd.md · TECH_SPEC.md · gauja-implementation-plan.md · adr/ · THIRD_PARTY.md
+  docs/                         gauja-prd.md · TECH_SPEC.md · gauja-implementation-plan.md · THIRD_PARTY.md
   tools/
     codegen/                    generator configs and wrapper scripts (android, ios)
     tokens/                     tokens.json → Compose theme / SwiftUI theme
@@ -562,7 +571,7 @@ Gauja is unaffiliated with the Seerr project. Store listings say so, use the nam
 | 7 | **iOS image pipeline.** Own `URLSession` loader vs. a third-party library. | Decide in TECH_SPEC after measuring against §9 targets. |
 | 8 | **Seerr's Overseerr/Jellyseerr merge is ongoing** (`server/lib/overseerrMerge.ts`); endpoints may be renamed with `Deprecation` headers. | §4.3 and §4.4. |
 | 9 | **Webhook JSON editor.** Native editing of Seerr's templated JSON is fiddly. | Monospaced editor with variable-insertion palette and server-side validation via `/settings/notifications/webhook/test`. |
-| 10 | **Notifications (deferred).** Users will ask. | Greyed-out entry, ADR link, roadmap statement in README. |
+| 10 | **Notifications (deferred).** Users will ask. | Greyed-out entry, §7 explanation in About, roadmap statement in README. |
 
 ---
 
@@ -678,19 +687,21 @@ hooks = [
 
 ---
 
-## Appendix C — Decision log (ADR index)
+## Appendix C — Decision log
 
-| ADR | Decision |
+Settled decisions. Changing one is a PR that edits this table with a rationale, reviewed like code.
+
+| # | Decision |
 |---|---|
-| 0001 | Pure Kotlin + pure Swift in one repository; no KMP; contract-only sharing |
-| 0002 | Notifications deferred; investigated design recorded (web push channel, UnifiedPush on Android, APNs relay on iOS, RFC 8291 end-to-end encryption) |
-| 0003 | AGPL-3.0-or-later with App Store Distribution Exception; DCO, no CLA |
-| 0004 | Single Android build; no Google Play Services / Firebase; F-Droid eligible |
-| 0005 | Vendored OpenAPI spec pinned by upstream commit; overlays; contract tests against a real container |
-| 0006 | Same IA / tokens / content components; platform-native chrome |
-| 0007 | Full native admin configuration in v1 |
-| 0008 | Android minSdk 30 (Android 11): parity with the iOS 18 floor, modern insets APIs, system dark theme; rule file amended to match |
-| 0009 | Name: Gauja |
+| 1 | Pure Kotlin + pure Swift in one repository; no KMP; contract-only sharing |
+| 2 | Notifications deferred; investigated design recorded (web push channel, UnifiedPush on Android, APNs relay on iOS, RFC 8291 end-to-end encryption) |
+| 3 | AGPL-3.0-or-later with App Store Distribution Exception; DCO, no CLA |
+| 4 | Single Android build; no Google Play Services / Firebase; F-Droid eligible |
+| 5 | Vendored OpenAPI spec pinned by upstream commit; overlays; contract tests against a real container |
+| 6 | Same IA / tokens / content components; platform-native chrome |
+| 7 | Full native admin configuration in v1 |
+| 8 | Android minSdk 30 (Android 11): parity with the iOS 18 floor, modern insets APIs, system dark theme; rule file amended to match |
+| 9 | Name: Gauja |
 
 ---
 

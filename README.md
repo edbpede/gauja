@@ -22,7 +22,7 @@ Pre-release. The repository is in Phase 1 of `docs/gauja-implementation-plan.md`
 
 ## Roadmap note on notifications
 
-Push notifications are deferred beyond v1. The investigated design (web push, UnifiedPush on Android, an APNs relay on iOS, RFC 8291 end-to-end encryption) is recorded in [`docs/adr/0002-notifications-deferred.md`](docs/adr/0002-notifications-deferred.md). v1 ships a greyed-out "Coming later" entry, the per-user notification preferences screen and the admin notification-agent settings, all of which work against Seerr today.
+Push notifications are deferred beyond v1. The investigated design (web push, UnifiedPush on Android, an APNs relay on iOS, RFC 8291 end-to-end encryption) is recorded in [`docs/gauja-prd.md` §7](docs/gauja-prd.md#7-notifications--deferred). v1 ships a greyed-out "Coming later" entry, the per-user notification preferences screen and the admin notification-agent settings, all of which work against Seerr today.
 
 ## Building
 
@@ -37,6 +37,5 @@ Both trees land in Phase 3 of the plan. See [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 - [`docs/gauja-prd.md`](docs/gauja-prd.md): product requirements
 - [`docs/gauja-implementation-plan.md`](docs/gauja-implementation-plan.md): phased plan with checkboxes
-- [`docs/adr/`](docs/adr/): architecture decision records
 - [`.agents/rules/`](.agents/rules/): normative coding guidelines
 - [`SECURITY.md`](SECURITY.md): reporting vulnerabilities
