@@ -9,9 +9,8 @@ import subprocess
 import sys
 import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contract"))
-from endpoints import render
 from jsonschema.exceptions import SchemaError, ValidationError
-from validate import load_contract
+from validate import load_contract, validate_coverage
 
 
 def git(*args, cwd=None):
@@ -26,9 +25,7 @@ def paired(names, api):
 
 def check(api):
     spec = load_contract(api)
-    expected = render(spec, json.loads((api / "coverage.json").read_text()))
-    if (api / "ENDPOINTS.md").read_text() != expected:
-        raise ValueError("ENDPOINTS.md differs; regenerate the endpoint index")
+    validate_coverage(spec, json.loads((api / "coverage.json").read_text()))
 
 
 def main():
@@ -60,8 +57,8 @@ def main():
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_bytes(git("show", ":" + name, cwd=root))
                 check(snapshot / api)
-        print("api-drift: pairing, provenance, effective contract and index valid")
-    except (SchemaError, ValidationError, ValueError, OSError, KeyError, subprocess.CalledProcessError) as error:
+        print("api-drift: pairing, provenance, effective contract and coverage valid")
+    except (SchemaError, ValidationError, ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"api-drift: {error}\n")
 
 

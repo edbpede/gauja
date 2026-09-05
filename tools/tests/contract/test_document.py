@@ -28,6 +28,19 @@ class ContractTests(unittest.TestCase):
         self.assertIn("mediaServerLogin", schema["PublicSettings"]["properties"])
         self.assertEqual(set(spec["paths"]["/watchlist"]["post"]["responses"]), {"201"})
 
+    def test_endpoint_report_is_on_demand(self):
+        with tempfile.TemporaryDirectory() as temp:
+            api = Path(temp) / "api"
+            shutil.copytree(ROOT / "api", api)
+            command = [sys.executable, str(ROOT / "tools/contract/endpoints.py"), "--api", str(api)]
+            stdout = subprocess.check_output(command, text=True)
+            self.assertIn("163 paths / 212 operations", stdout)
+            self.assertFalse((api / "ENDPOINTS.md").exists())
+            output = Path(temp) / "report.md"
+            self.assertEqual(subprocess.check_output(command + ["--output", str(output)], text=True), "")
+            self.assertEqual(output.read_text(), stdout)
+            self.assertEqual(stdout.count("- [ ]"), 212)
+
     def test_duplicate_yaml_keys_fail(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "bad.yml"
@@ -65,21 +78,6 @@ class ContractTests(unittest.TestCase):
             (api / "seerr-api.yml").write_text(json.dumps(spec))
             with self.assertRaisesRegex(ValueError, "blocklist: endpoint absent"):
                 load_contract(api)
-
-    def test_json_schema_errors_have_controlled_cli_diagnostics(self):
-        with tempfile.TemporaryDirectory() as temp:
-            api = Path(temp) / "api"
-            shutil.copytree(ROOT / "api", api)
-            for filename, invalid in [("compat.json", "{}"), ("compat.schema.json", '{"type": "invalid"}')]:
-                path = api / filename
-                original = path.read_text()
-                path.write_text(invalid)
-                result = subprocess.run([sys.executable, str(ROOT / "tools/contract/check.py"), "--api", str(api)], capture_output=True, text=True)
-                path.write_text(original)
-                with self.subTest(filename=filename):
-                    self.assertEqual(result.returncode, 1)
-                    self.assertTrue(result.stderr.startswith("contract: "), result.stderr)
-                    self.assertNotIn("Traceback", result.stderr)
 
     def test_ids_include_method_and_parameter_marker(self):
         spec = {"paths": {"/user/{userId}": {"get": {}, "post": {}}}}

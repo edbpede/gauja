@@ -63,7 +63,7 @@ Phase 3; server recordings and container contract tests begin in Phase 11.
 
 Update the verbatim spec and pin together. Add source-backed overlays for shape
 corrections, update `api/coverage.json` for added/removed operations, regenerate
-`api/ENDPOINTS.md`, then regenerate both clients. The effective spec stays
+`api/coverage.json`, then regenerate both clients. The effective spec stays
 temporary. Stable operation identifiers come from method and path when upstream
 omits them. Generation lowers wire enums to primitives and unspecified numeric
 formats to doubles; it does not alter the canonical contract. Domain unknown
@@ -81,3 +81,5 @@ smoke lock deliberately. For Gradle, run the rendered smoke project with
 For SPM, resolve the relevant package with the new exact versions and copy the
 smoke project's `Package.resolved` back to `tools/codegen/ios/smoke/`. Review transitive license
 changes, regenerate, and run both smoke builds and `prek run --all-files`.
+
+Keep the isolated smoke manifests and locks until the real API modules compile independently and run equivalent serialization/redaction tests. At that point remove the duplicate harness inputs and use each platform’s build configuration. Measure clean/incremental builds and indexing before changing generator structure.

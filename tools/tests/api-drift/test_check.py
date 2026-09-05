@@ -114,12 +114,29 @@ class DriftTests(unittest.TestCase):
             self.change("compat.json", json.dumps(content))
             self.check(1)
 
-    def test_bad_pin_and_missing_output_fail(self):
+    def test_bad_pin_fails(self):
         self.change("UPSTREAM_COMMIT", "short\n")
         self.check(1, "--working-tree")
-        self.git("reset", "--hard", "HEAD")
-        (self.root / "api/ENDPOINTS.md").unlink()
-        self.check(1, "--working-tree")
+
+    def test_coverage_is_required_without_endpoint_report(self):
+        report = self.root / "api/ENDPOINTS.md"
+        report.unlink(missing_ok=True)
+        self.check(0, "--working-tree")
+        report.write_text("stale optional report")
+        self.check(0, "--working-tree")
+        original = json.loads((self.root / "api/coverage.json").read_text())
+        name = next(iter(original))
+        for invalid in [
+            {key: value for key, value in original.items() if key != name},
+            dict(original, invented={"status": "planned", "phase": "4", "note": "invalid"}),
+            dict(original, **{name: {"status": "invalid", "phase": "4", "note": "invalid"}}),
+            dict(original, **{name: {"status": "planned", "phase": "4"}}),
+            dict(original, **{name: None}),
+        ]:
+            with self.subTest(invalid=invalid.get(name)):
+                self.change("coverage.json", json.dumps(invalid))
+                self.check(1)
+                self.check(1, "--working-tree")
 
     def test_ci_checks_each_commit_not_only_final_diff(self):
         base = self.git("rev-parse", "HEAD")

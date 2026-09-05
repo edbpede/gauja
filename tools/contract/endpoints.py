@@ -7,18 +7,15 @@ from collections import defaultdict
 import json
 from pathlib import Path
 from operations import operations
-from validate import load_contract
+from validate import load_contract, validate_coverage
 
 
 def render(spec, coverage):
+    validate_coverage(spec, coverage)
     groups = defaultdict(list)
     ids = {op["operationId"] for _, _, op in operations(spec)}
-    if set(coverage) != ids:
-        raise ValueError("coverage.json must cover exactly the effective operation IDs")
     for path, method, op in operations(spec):
         entry = coverage[op["operationId"]]
-        if entry.get("status") not in {"planned", "implemented", "excluded"} or not entry.get("phase") or not entry.get("note"):
-            raise ValueError(f"Invalid coverage metadata: {op['operationId']}")
         groups[op["tags"][0]].append((path, method, op, entry))
     lines = ["<!--", "SPDX-FileCopyrightText: 2026 Gauja contributors",
              "SPDX-License-" + "Identifier: AGPL-3.0-or-later", "-->", "", "# Endpoint inventory", "",
@@ -46,16 +43,14 @@ def render(spec, coverage):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--output", type=Path, help="Write a local report instead of stdout")
     parser.add_argument("--api", type=Path, default=Path(__file__).resolve().parents[2] / "api")
     args = parser.parse_args()
     output = render(load_contract(args.api), json.loads((args.api / "coverage.json").read_text()))
-    path = args.api / "ENDPOINTS.md"
-    if args.check:
-        if not path.exists() or path.read_text() != output:
-            parser.exit(1, "endpoints: index differs; regenerate it\n")
+    if args.output:
+        args.output.write_text(output)
     else:
-        path.write_text(output)
+        print(output, end="")
 
 
 if __name__ == "__main__":
