@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+build:
+  maxIssues: 0
+config:
+  validation: true
+complexity:
+  active: false
+style:
+  ReturnCount:
+    active: false
+  UnusedPrivateMember:
+    ignoreAnnotated: [Preview, PreviewScreenSizes]
+  MaxLineLength:
+    active: false
+  MagicNumber:
+    active: false
+Compose:
+  ComposableNaming:
+    active: true
+  ComposableParamOrder:
+    active: true
+  ModifierMissing:
+    active: true
+  ModifierNotUsedAtRoot:
+    active: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: [Composable]

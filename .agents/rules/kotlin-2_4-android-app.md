@@ -329,7 +329,7 @@ fun FieldNavDisplay(modifier: Modifier = Modifier) {
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
-        onBack = { count -> repeat(count) { backStack.removeLastOrNull() } },
+        onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
@@ -362,7 +362,7 @@ fun FieldNavDisplay(modifier: Modifier = Modifier) {
 
 Key behaviours to respect:
 
-- `onBack` receives the number of entries the gesture requests popping; pop that many, do not assume one. Predictive back is handled by `NavDisplay` automatically once you pop from the list.
+- Navigation 3 1.1.7 uses `onBack: () -> Unit`. For a single-pane stack, remove its last entry. Adaptive scene navigation must apply the scene’s intended back behavior; do not invent an entry-count callback. Predictive-back progress is handled by `NavDisplay`. Verified against the [published 1.1.7 source](https://dl.google.com/dl/android/maven2/androidx/navigation3/navigation3-ui-android/1.1.7/navigation3-ui-android-1.1.7-sources.jar); 1.1.7 is the latest stable release as of 2026-09-05 (1.2.0-beta01 is a prerelease).
 - `hiltViewModel()` inside an `entry` block resolves against the entry's `ViewModelStore` because of the decorator — you never pass a `key`.
 - To survive process death, keep using `rememberNavBackStack`; a bare `remember { mutableStateListOf(...) }` only survives recomposition.
 
@@ -385,7 +385,7 @@ fun SitesListDetail(modifier: Modifier = Modifier) {
         backStack = backStack,
         modifier = modifier,
         sceneStrategy = sceneStrategy,
-        onBack = { count -> repeat(count) { backStack.removeLastOrNull() } },
+        onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
@@ -473,7 +473,7 @@ class MainActivity : ComponentActivity() {
             FieldTheme {
                 NavDisplay(
                     backStack = navigator.backStack,
-                    onBack = { count -> repeat(count) { navigator.goBack() } },
+                    onBack = { navigator.goBack() },
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
                         rememberViewModelStoreNavEntryDecorator(),

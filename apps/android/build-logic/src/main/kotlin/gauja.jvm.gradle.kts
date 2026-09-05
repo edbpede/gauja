@@ -1,0 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gauja contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+plugins { id("org.jetbrains.kotlin.jvm") }
+
+kotlin { jvmToolchain(17) }
+
+tasks.withType<Test>().configureEach { useJUnit() }

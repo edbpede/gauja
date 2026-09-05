@@ -28,8 +28,7 @@ No Seerr artwork or logos are imported.
 
 These are development inputs, not an application dependency manifest. Exact
 versions and transitive resolution are recorded in `tools/contract/requirements.txt`,
-`tools/codegen/versions.env`, the two tooling `Package.resolved` files and the
-Gradle smoke `gradle.lockfile`.
+`tools/codegen/versions.env`, the generator `Package.resolved`, and the app Gradle/SwiftPM locks.
 
 | Dependency family | License | Scope |
 |---|---|---|
@@ -42,9 +41,7 @@ Gradle smoke `gradle.lockfile`.
 | JUnit 4.13.2 | EPL-1.0 | Tests only; narrow build-only allowance in `deny.toml` |
 | Hamcrest Core 1.3 | BSD-3-Clause | Tests only |
 
-No resolved-dependency license gate exists yet. Add enforcement with real app manifests
-in Phase 3 and release SBOMs in Phase 12. An allow-list-only success must never
-stand in for artifact validation.
+Resolved-dependency checks now run per platform. [The license review](dependency-license-review.md) records exact build-only exceptions and evidence-backed metadata corrections. Unknown metadata fails closed. Release SBOMs and complete bundled notices remain Phase 12 work.
 
 ## Distribution responsibility
 

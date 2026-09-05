@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+included:
+  - App
+  - AppTests
+  - AppUITests
+  - Packages
+excluded:
+  - "**/Generated"
+  - "**/.build"
+  - "**/Package.swift"
+opt_in_rules:
+  - force_unwrapping
+  - empty_count
+  - first_where
+disabled_rules:
+  - todo
+  - trailing_comma
+  - opening_brace
+  - file_length
+  - function_body_length
+  - type_body_length
+  - cyclomatic_complexity
+line_length:
+  warning: 120
+  error: 160
+identifier_name:
+  min_length: 2
+  excluded: [id, x, y]

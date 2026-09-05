@@ -626,8 +626,9 @@
     "status": "planned"
   },
   "getSettingsPublic": {
-    "phase": "5.1",
-    "status": "planned"
+    "phase": "3",
+    "status": "implemented",
+    "note": "Initial unauthenticated server check; authentication and saved profiles remain Phase 5."
   },
   "getSettingsRadarr": {
     "phase": "10.4",
@@ -682,8 +683,9 @@
     "status": "planned"
   },
   "getStatus": {
-    "phase": "5.1",
-    "status": "planned"
+    "phase": "3",
+    "status": "implemented",
+    "note": "Initial unauthenticated server check; authentication and saved profiles remain Phase 5."
   },
   "getStatusAppdata": {
     "phase": "5.1",

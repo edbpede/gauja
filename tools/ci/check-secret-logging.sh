@@ -21,7 +21,7 @@ Usage: tools/ci/check-secret-logging.sh [--help] [--symbols A,B,C] [PATH...]
 Scans Kotlin and Swift sources under PATH... (default: apps) for log calls
 (Log.*, Timber.*, Logger.*, logger.*, print(, println(, debugPrint(, NSLog(, os_log()
 that mention a secret-layer symbol, including calls split across lines.
-Generated directories are skipped.
+Generated directories and local build/dependency caches are skipped.
   --symbols  comma-separated identifiers
              (default: SecretStore,apiKey,sessionCookie,plexToken,basicAuthPassword)
 Exits 0 when there are no sources yet; 1 on any offending line.
@@ -58,7 +58,7 @@ symbol_regex="(^|[^A-Za-z0-9_])(${symbol_alt})([^A-Za-z0-9_]|$)"
 status=0
 # Regexes reach awk through the environment: `-v` would reinterpret their backslashes.
 scan_file() {
-  LOG_CALL="$log_call" SYMBOL_REGEX="$symbol_regex" awk '
+  LC_ALL=C LOG_CALL="$log_call" SYMBOL_REGEX="$symbol_regex" awk '
     BEGIN {
       log_call = ENVIRON["LOG_CALL"]; symbol_regex = ENVIRON["SYMBOL_REGEX"]
       chain = "^[.][A-Za-z_][A-Za-z0-9_]*[[:space:]]*[(]"
@@ -129,7 +129,8 @@ while IFS= read -r file; do
       echo "check-secret-logging: $file:$line: log call formats a secret-layer symbol" >&2
     done <<<"$hits"
   fi
-done < <(find "${existing[@]}" -type f \( -name '*.kt' -o -name '*.swift' \) | grep -Ev "$generated_regex" || true)
+done < <(find "${existing[@]}" \( -type d \( -name .build -o -name .gradle -o -name build -o -name DerivedData \) -prune \) -o \
+  \( -type f \( -name '*.kt' -o -name '*.swift' \) -print \) | grep -Ev "$generated_regex" || true)
 
 if [[ $status -ne 0 ]]; then
   echo "check-secret-logging: secrets never touch logs; redact through core/common / Common (PRD §10)." >&2

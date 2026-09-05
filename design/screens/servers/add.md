@@ -49,4 +49,31 @@ Native form, secure field, progress indicator, alert and action button primitive
 
 ## Acceptance criteria
 
+The initial check and the later profile setup have separate acceptance scopes.
+
+### Initial server-check slice (Phase 3)
+
+The initial app opens this form with a server address and a **Check server** action. It
+checks `GET /status?checkUpdateAvailable=false`, then `GET /settings/public`, and displays
+the application title, server version, initialization state, restart warning and reported
+sign-in capabilities. These capabilities are informational; profile saving and sign-in
+are not part of this slice. A successful probe is never described as authentication.
+
+- Empty/invalid addresses never start requests. Preserve ports and proxy prefixes; reject
+  userinfo, queries, fragments and malformed hosts. Omitted schemes default to HTTPS.
+- Checking disables duplicate submission and permits cancellation. Changing the address,
+  leaving the screen or starting another attempt cancels old work; late results are ignored.
+- Offline, denied (401/403), TLS and malformed-response failures show distinct, actionable
+  messages without raw response bodies. Preserve the address for retry.
+- Use system trust. Explain that Basic-auth credentials and fingerprint approval arrive
+  with profile setup; never silently bypass either. Explicit HTTP shows a persistent warning.
+- Results remain associated with their address, including during compact/regular resizing.
+  Refresh on foreground only after an explicit successful check; no background polling.
+- The app performs no persistence and sends no credentials or cookies. Each attempt owns
+  an ephemeral transport. Cross-origin redirects and HTTPS downgrades fail closed.
+- Verify unknown wire values, unsupported/untested versions, cancellation, both themes,
+  largest text, native touch targets and screen-reader order on both platforms.
+
+The broader profile/auth requirements below remain Phase 5 work.
+
 Pass auth matrix rows **S04, S05, S06, S07, S08, S09** on Android and iOS. Exercise all five states, cancellation/late responses, a second profile with different credentials, compact/expanded resizing, largest text and screen-reader traversal. A successful auth result is not activated until auth/me succeeds. Existing cached reads meet the ≤300 ms offline target; no background work is introduced. Implementation tests belong to phase 5.1; this specification does not claim those runtime tests have passed.

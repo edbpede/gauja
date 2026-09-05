@@ -50,12 +50,15 @@ Workflow configurations own executable commands and triggers. [prek.toml](../../
 | Active workflow | Responsibility |
 |---|---|
 | [pr-hygiene.yml](../../.github/workflows/pr-hygiene.yml) | Hygiene hooks (including screen and API import boundaries), REUSE, history secret scan, commit/DCO checks, all tooling test suites, platform separation |
-| [codegen-check.yml](../../.github/workflows/codegen-check.yml) | Contract pairing/coverage and upstream bytes; separate Android/iOS client regeneration and compile/serialization/redaction checks |
+| [codegen-check.yml](../../.github/workflows/codegen-check.yml) | Contract pairing/coverage and upstream bytes |
+| [android.yml](../../.github/workflows/android.yml) | Android build, JVM/Robolectric/Hilt tests, lint, dependency/license graph, client regeneration, public fixture replay, transport egress and per-ABI size report |
+| [ios.yml](../../.github/workflows/ios.yml) | iOS build, Swift Testing/XCUITest, lint, package/license graph, client regeneration, public fixture replay, transport egress and device size report |
+| [contract.yml](../../.github/workflows/contract.yml) | Initial public status/settings responses against the pinned upstream container; full authenticated scenarios remain Phase 11 |
 | [tokens-check.yml](../../.github/workflows/tokens-check.yml) | Theme regeneration, byte comparison and iOS primitive typechecking |
 
-Local contract/theme hooks mirror their dedicated CI owners and are skipped in CI's prek job. Tool tests exercise validators with fixtures; they do not rerun production assertions as extra steps. Staged secret checks and history scanning have different scopes.
+Local contract/theme and platform lint hooks mirror their dedicated CI owners and are skipped in CI's prek job. Tool tests exercise validators with fixtures; they do not rerun production assertions as extra steps. Staged secret checks and history scanning have different scopes.
 
-Planned gates: independent Android/iOS app build, lint and graph checks in Phase 3; container contracts and upstream discovery in Phase 11; release/SBOM/bundled notices in Phase 12. Transfer existing checks to their replacement owner when equivalent real app checks land; retire smoke manifests and locks only after each platform independently compiles and passes serialization/redaction tests.
+Planned gates: authenticated container contracts and upstream discovery in Phase 11; release/SBOM/bundled notices in Phase 12. Transfer existing checks to their replacement owner when equivalent real app checks land; retire smoke manifests and locks only after each platform independently compiles and passes serialization/redaction tests.
 
 - Every action is pinned by commit SHA; Renovate keeps the pins current.
 - Add shared inputs and tooling dependencies to every affected lane’s filters in the same PR. Each platform lane installs only its own toolchain.

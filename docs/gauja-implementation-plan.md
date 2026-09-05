@@ -168,7 +168,7 @@ This document is the **order** in which Gauja is built. The PRD says *what* and 
 
 ### 3.1 Repository layout
 
-- [ ] Add the following planned paths only with working consumers. Do not create empty directories, purpose-only READMEs or future workflow placeholders.
+- [x] Add the following planned paths only with working consumers. Do not create empty directories, purpose-only READMEs or future workflow placeholders.
 
 ```
 gauja/
@@ -204,12 +204,12 @@ Pin only consumed libraries in the actual version catalog; use `tools/codegen/ve
 for the existing API smoke dependencies until the real modules take ownership. Keep the
 Android deployment floor and native stack specified by the guidelines.
 
-- [ ] `settings.gradle.kts` with `pluginManagement`, `dependencyResolutionManagement` (`FAIL_ON_PROJECT_REPOS`), `includeBuild("build-logic")`, and working modules included by path.
-- [ ] `gradle/libs.versions.toml` pins consumed libraries from the initial selection; add the following only with their consumers: `dependency-analysis`, `kotlinx-collections-immutable`, `androidx.sqlite` driver, `datastore-core`/`protobuf-javalite` (encrypted Proto DataStore), `androidx.browser` (Custom Tabs), `androidx.security` (Keystore-backed key), `okhttp-tls`, `robolectric`, `hilt-android-testing`.
-- [ ] Extract shared Gradle convention plugins when multiple working modules need the same configuration. Add Compose, Hilt, Room and lint conventions with their consumers.
-- [ ] Root `build.gradle.kts` declaring `kotlin-compose`, `kotlin-serialization`, `ksp`, `hilt`, `detekt` with `apply false` so KGP 2.4.10 overrides AGP's bundled 2.2.10.
-- [ ] `config/detekt.yml` (Compose ruleset active; complexity/length rules set to **warn**), `config/lint.xml`, ktfmt via the `com.ncorti.ktfmt.gradle` plugin with `ktfmtCheck`/`ktfmtFormat` tasks.
-- [ ] Working modules, each with its required manifest/build configuration and meaningful behavior tests. The responsibility map below grows incrementally; it does not require a module per folder:
+- [x] `settings.gradle.kts` with `pluginManagement`, `dependencyResolutionManagement` (`FAIL_ON_PROJECT_REPOS`), `includeBuild("build-logic")`, and working modules included by path.
+- [x] `gradle/libs.versions.toml` pins consumed libraries from the initial selection; add the following only with their consumers: `dependency-analysis`, `kotlinx-collections-immutable`, `androidx.sqlite` driver, `datastore-core`/`protobuf-javalite` (encrypted Proto DataStore), `androidx.browser` (Custom Tabs), `androidx.security` (Keystore-backed key), `okhttp-tls`, `robolectric`, `hilt-android-testing`.
+- [x] Extract shared Gradle convention plugins when multiple working modules need the same configuration. Add Compose, Hilt, Room and lint conventions with their consumers.
+- [x] Root `build.gradle.kts` declaring `kotlin-compose`, `kotlin-serialization`, `ksp`, `hilt`, `detekt` with `apply false` so KGP 2.4.10 overrides AGP's bundled 2.2.10.
+- [x] `config/detekt.yml` (Compose ruleset active; complexity/length rules set to **warn**), `config/lint.xml`, ktfmt via the `com.ncorti.ktfmt.gradle` plugin with `ktfmtCheck`/`ktfmtFormat` tasks.
+- [x] Working modules, each with its required manifest/build configuration and meaningful behavior tests. The responsibility map below grows incrementally; it does not require a module per folder:
 
 ```
 apps/android/
@@ -244,8 +244,8 @@ apps/android/
 
   As needed within a working feature module: `ui/<screen>/` (screen composable, `UiState`, `ViewModel`), `domain/` (use cases), `navigation/` (keys + Hilt `@IntoSet` `EntryProviderInstaller`), `di/`.
 
-- [ ] Wire `com.autonomousapps.dependency-analysis` and a `tools/ci/check-module-graph.sh` (or a Gradle task) that asserts the PRD §12.3 graph: `feature/*` never depends on another `feature/*`; only Data imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `core/model` has no Android deps; nothing depends on `app`.
-- [ ] *(depends on working modules above)* Smoke tests of real consumers: one JVM unit test (JUnit4 + coroutines-test + Turbine), one Robolectric Compose test, one Hilt instrumentation test with `HiltTestRunner`, all green.
+- [x] Wire `com.autonomousapps.dependency-analysis` and a `tools/ci/check-module-graph.sh` (or a Gradle task) that asserts the PRD §12.3 graph: `feature/*` never depends on another `feature/*`; only Data imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `core/model` has no Android deps; nothing depends on `app`.
+- [x] *(depends on working modules above)* Smoke tests of real consumers: one JVM unit test (JUnit4 + coroutines-test + Turbine), one Robolectric Compose test, one Hilt instrumentation test with `HiltTestRunner`, all green.
 - [ ] Add baseline profiles with the measurable start-up/Discover path in Phase 11; do not benchmark a placeholder.
 - [ ] *(depends on working §3.2 app/build/tests)* `android.yml` real: `assembleDebug`, `testDebugUnitTest`, `detekt`, `ktfmtCheck`, `lint`, module-graph check, `tools/codegen/generate.sh --check --platform android` (transfer ownership from codegen-check), emulator smoke (`connectedDebugAndroidTest` on API 30 and API 37), per-ABI split size report.
 
@@ -256,9 +256,9 @@ Keep the iOS 18 floor, Swift 6 strict concurrency and generated Xcode project. U
 use MainActor default isolation; networking/domain targets remain nonisolated. Put exact
 executable dependency pins in package manifests/locks, not another prose version table.
 
-- [ ] `project.yml` with `options.deploymentTarget.iOS: "18.0"`, guideline build settings under `settings.base`, one `application` target, one `bundle.unit-test` target, one `bundle.ui-testing` target, local packages by path, `swift-dependencies` and `SwiftLintPlugins` by URL, schemes with coverage and randomised parallel tests.
-- [ ] `.swiftlint.yml` (strict; `excluded: "**/Generated"`; line length 120/160; length/complexity rules at **warning**) and `.swift-format` (JSON, 4 spaces, 120 columns).
-- [ ] Working packages with `Package.swift`, sources and meaningful tests. Add only targets required by current consumers; the following is the eventual responsibility map:
+- [x] `project.yml` with `options.deploymentTarget.iOS: "18.0"`, guideline build settings under `settings.base`, one `application` target, one `bundle.unit-test` target, one `bundle.ui-testing` target, local packages by path, `swift-dependencies` and `SwiftLintPlugins` by URL, schemes with coverage and randomised parallel tests.
+- [x] `.swiftlint.yml` (strict; `excluded: "**/Generated"`; line length 120/160; length/complexity rules at **warning**) and `.swift-format` (JSON, 4 spaces, 120 columns).
+- [x] Working packages with `Package.swift`, sources and meaningful tests. Add only targets required by current consumers; the following is the eventual responsibility map:
 
 ```
 apps/ios/
@@ -288,17 +288,17 @@ apps/ios/
 
   Every feature package exposes exactly one public entry view and one public route type; everything else is `internal`. Non-UI packages (`SeerrAPI`, `Common`, `Compat`, `Model`, `Network`, `Data`, `Persistence`) do **not** set `.defaultIsolation(MainActor.self)`; UI packages do. All packages enable `NonisolatedNonsendingByDefault` and `InferIsolatedConformances`.
 
-- [ ] `tools/ci/check-package-graph.sh` — uses SwiftPM’s evaluated package description plus `project.yml` to assert the PRD §12.3 graph (feature packages never import each other; only `Data` imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `Model` imports nothing in-repo).
-- [ ] *(depends on working packages above)* Test real serialization/redaction and app behavior with Swift Testing, plus an XCUITest launching the initial root on phone and tablet simulators. No empty stub suites.
-- [ ] *(depends on every other §3.3 task)* `ios.yml` real: `xcodegen generate`, build, `xcodebuild test` (Swift Testing), `swift format lint --strict`, `swiftlint --strict`, package-graph check, `tools/codegen/generate.sh --check --platform ios` (transfer ownership from codegen-check), simulator smoke, thinned-size report.
+- [x] `tools/ci/check-package-graph.sh` — uses SwiftPM’s evaluated package description plus `project.yml` to assert the PRD §12.3 graph (feature packages never import each other; only `Data` imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `Model` imports nothing in-repo).
+- [x] *(depends on working packages above)* Test real serialization/redaction and app behavior with Swift Testing, plus an XCUITest launching the initial root on phone and tablet simulators. No empty stub suites.
+- [x] *(depends on every other §3.3 task)* `ios.yml` real: `xcodegen generate`, build, `xcodebuild test` (Swift Testing), `swift format lint --strict`, `swiftlint --strict`, package-graph check, `tools/codegen/generate.sh --check --platform ios` (transfer ownership from codegen-check), simulator smoke, thinned-size report.
 
 ### 3.4 Cross-platform checks
 
 - [ ] With each platform’s first real manifests, resolve the actual runtime/build/test dependency graph (including transitives), review applicable licenses against `deny.toml`, and enforce the result in that platform’s lane. A Gradle version catalog alone is not a resolved graph; use resolved configurations and SwiftPM resolution. Report unknown metadata as a failure. Do not create an allow-list-only success placeholder or require the other platform’s toolchain.
-- [ ] Retire each platform’s duplicated smoke manifests/locks only after real API modules independently compile and pass equivalent serialization/redaction tests. Use one dependency/build source per platform. Transfer checks and path filters to their replacement owner in the same PR; keep platform lint/build work out of the Linux shared-hygiene job.
-- [ ] Measure clean/incremental API-module builds and IDE indexing using representative changes and a recorded machine/toolchain baseline. Retain supported generator structure unless measurements justify a trial; follow the coverage/shared-schema checks in [codegen setup](../tools/codegen/README.md#generated-file-structure).
-- [ ] Add egress enforcement with the first real transport flow (Phase 4/11), without a passing skeleton.
-- [ ] Verify the cross-boundary rule with a grep in `pr-hygiene.yml`: no path under `apps/android/` mentions `apps/ios/` and vice versa.
+- [x] Retire each platform’s duplicated smoke manifests/locks only after real API modules independently compile and pass equivalent serialization/redaction tests. Use one dependency/build source per platform. Transfer checks and path filters to their replacement owner in the same PR; keep platform lint/build work out of the Linux shared-hygiene job.
+- [x] Measure clean/incremental API-module builds and IDE indexing using representative changes and a recorded machine/toolchain baseline. Retain supported generator structure unless measurements justify a trial; follow the coverage/shared-schema checks in [codegen setup](../tools/codegen/README.md#generated-file-structure).
+- [x] Add egress enforcement with the first real transport flow (Phase 4/11), without a passing skeleton.
+- [x] Verify the cross-boundary rule with a grep in `pr-hygiene.yml`: no path under `apps/android/` mentions `apps/ios/` and vice versa.
 
 ---
 

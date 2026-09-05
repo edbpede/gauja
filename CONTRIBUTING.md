@@ -39,11 +39,11 @@ checks. The platform hooks become applicable with handwritten app sources.
 
 Formatting and lint hooks for one platform need that platform's toolchain. If you only work on Android, the iOS hooks skip because no Swift files are staged, and vice versa.
 
-The scripts under `tools/` have tests: `tools/tests/run.sh`. Translation and resolved-dependency license tooling lands with real catalogs and app manifests; neither is an active gate today.
+The scripts under `tools/` have tests: `tools/tests/run.sh`. Translation tooling lands with real catalogs. Resolved-dependency license checks run in each app lane; the policy is in `deny.toml` and the review procedure in `docs/dependency-license-review.md`.
 
 ## Licensing headers (REUSE)
 
-Files carry SPDX copyright and license information, either as headers or through `REUSE.toml`. Gauja contributions retain AGPL-3.0-or-later with the App Store permission; inherited material retains its upstream attribution and notices. See [third-party provenance and distribution responsibilities](docs/THIRD_PARTY.md). CI runs `reuse lint`; run it locally with `pipx install reuse` / `brew install reuse`. Resolved-dependency license enforcement against `deny.toml` is a separate planned check.
+Files carry SPDX copyright and license information, either as headers or through `REUSE.toml`. Gauja contributions retain AGPL-3.0-or-later with the App Store permission; inherited material retains its upstream attribution and notices. See [third-party provenance and distribution responsibilities](docs/THIRD_PARTY.md). CI runs `reuse lint`; run it locally with `pipx install reuse` / `brew install reuse`. Resolved-dependency license enforcement against `deny.toml` is separate from REUSE.
 
 ## Branches, commits and pull requests
 
@@ -62,7 +62,15 @@ Each app is a complete, standalone build. Only `api/`, `design/` and `tools/` ar
 - **Android only:** JDK 17 and Android SDK 37. `cd apps/android && ./gradlew assembleDebug testDebugUnitTest detekt ktfmtCheck lint`. No Xcode needed.
 - **iOS only:** Xcode 26 with the Swift 6.3 toolchain, XcodeGen 2.46.x, SwiftLint 0.65.x. `cd apps/ios && xcodegen generate` then build and test from Xcode or `xcodebuild`. No JDK needed.
 
-Until Phase 3, the app trees contain generated artifacts only. See [the contract tooling guide](tools/codegen/README.md) for the independent client smoke builds available now.
+The initial apps check `/status` and `/settings/public` without saving profiles or signing in.
+For Android, install the SDK package `platforms;android-37.0` and set `ANDROID_HOME`
+or ignored `apps/android/local.properties`. For iOS, copy `Package.resolved` into
+`Gauja.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/` after XcodeGen generation.
+Command-line builds use `-skipPackagePluginValidation` for the pinned SwiftLint plugin.
+See the platform workflows for complete commands and [contract tooling](tools/codegen/README.md)
+for independent generated-client tests. With one toolchain installed, use `SKIP=swift-format,swiftlint`
+(Android) or `SKIP=ktfmt,detekt` (iOS) for a repository-wide hook run; staged platform work
+skips the other platform naturally.
 
 ## Reporting security issues
 

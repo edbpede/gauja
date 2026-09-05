@@ -38,26 +38,22 @@ output: missing, changed and extra files all fail. Normal generation replaces
 only the owned generated output directories, including removing stale files.
 
 Android generation requires JDK 17+. It downloads the pinned OpenAPI Generator
-JAR into `.cache/` and verifies its SHA-256 before every execution. The isolated
-JVM smoke build requires Gradle 9.7.1 and JDK 17+; CI uses JDK 17.
+JAR into `.cache/` and verifies its SHA-256 before every execution. The real Android API module is built with its committed Gradle wrapper and JDK 17.
 
 iOS generation requires Swift 6.3 (Xcode 26.6 in CI). Its tooling package and
 transitive dependencies are pinned in `tools/codegen/ios/Package.swift` and
 `tools/codegen/ios/Package.resolved`.
-CI installs the checksum-pinned SwiftLint 0.65.1 archive rather than relying on
-the runner PATH. The generator is invoked as an SPM executable with automatic resolution disabled;
-Phase 3 integrates the committed output into the application package without adding build-time regeneration. Smoke compilation
-uses OpenAPIURLSession and the locked runtime dependencies.
+The app lane installs SwiftLint through Homebrew; the build plugin is pinned in the application manifest. The generator is invoked as an SPM executable with automatic resolution disabled;
+Phase 3 integrates the committed output into the application package without adding build-time regeneration. Serialization and redaction tests live in the real API modules:
 
 ```bash
-python3 tools/codegen/smoke.py --platform android
-python3 tools/codegen/smoke.py --platform ios
+apps/android/gradlew --project-dir apps/android :core:api:test
+swift test --package-path apps/ios/Packages/SeerrAPI
 ```
 
-These compile committed clients and run synthetic optional-field, unknown-enum
-and secret-description tests. They are independent: Android requires no Xcode,
-and iOS requires no JVM or Android SDK. App builds and graph checks begin in
-Phase 3; the first container recordings can accompany the initial app flow under plan §11.6.
+Android requires no Xcode; iOS requires no JVM or Android SDK. The application
+lanes own regeneration, compilation and these tests. The duplicate smoke manifests,
+locks and copied source trees were retired after equivalent suites passed.
 
 ## Contract changes
 
@@ -79,14 +75,11 @@ Swift uses the locked URLSession transport. Kotlin DTO descriptions and Swift se
 descriptions/reflection are redacted; persistent credentials still belong in SecretStore/Keychain.
 Outgoing domain enum choices must be validated against the effective contract.
 
-When updating tool versions, refresh the Python hashes, SPM locks and Gradle
-smoke lock deliberately. For Gradle, run the rendered smoke project with
-`--write-locks` and copy its `gradle.lockfile` back to `tools/codegen/android/smoke/`.
-For SPM, resolve the relevant package with the new exact versions and copy the
-smoke project's `Package.resolved` back to `tools/codegen/ios/smoke/`. Review transitive license
-changes, regenerate, and run both smoke builds and `prek run --all-files`.
-
-Keep the isolated smoke manifests and locks until the real API modules compile independently and run equivalent serialization/redaction tests. At that point remove the duplicate harness inputs and use each platform’s build configuration. Measure clean/incremental builds and indexing before changing generator structure.
+When updating tool versions, refresh the Python hashes and generator SPM lock,
+then resolve each affected app's manifests and review its dependency licenses.
+Android locks are written with `exportResolvedDependencies --write-locks`; iOS
+has a canonical application `Package.resolved` plus package test locks. Regenerate,
+run the real API module suites, and run the affected app lane before committing.
 
 ## Generated file structure
 
@@ -105,3 +98,61 @@ schemas without conflicting types. Android generation-only tag grouping is anoth
 but introduces a maintained interface mapping. Compare indexing, clean/incremental builds,
 serialization/redaction tests and API coverage before adopting either. Never manually split
 output, fork templates or replace a generator solely to satisfy a line-count preference.
+
+
+### Phase 3 measurement baseline (2026-09-06)
+
+Machine: Apple M5 (10 CPU cores), 24 GiB memory, macOS 26.6.2, arm64;
+Homebrew JDK 17.0.20.1, Gradle 9.7.1, Kotlin compiler 2.4.10, Swift 6.3.3 /
+Xcode 26.6. These are single local wall-clock samples with dependencies already
+resolved and a warm Gradle daemon, not release performance budgets or statistical
+comparisons. No generated structure was changed for these measurements.
+
+| API build | Clean outputs | No-op | Additive schema change |
+|---|---:|---:|---:|
+| Android `:core:api:compileKotlin`, build cache disabled | 4.00 s | 0.60 s | 0.98 s |
+| SwiftPM `SeerrAPI`, debug with index store enabled | 14.42 s | 0.38 s | 11.06 s |
+
+Reproduce the build baseline with `:core:api:clean :core:api:compileKotlin
+--no-build-cache` through the app wrapper, and `swift package --package-path
+apps/ios/Packages/SeerrAPI clean` followed by `swift build --package-path
+apps/ios/Packages/SeerrAPI --disable-automatic-resolution --target SeerrAPI
+--enable-index-store`. Repeat each build unchanged for the no-op measurement.
+For the representative edit, add one optional string property to the effective
+`/status` 200 response in temporary generator input, generate normally, and apply
+only the changed generated files. This changed `GetStatus200Response.kt` and
+`Types+Operations.swift`. Restore the original generated output and run `--check`
+after measuring; never edit the vendored specification or generated source by hand.
+
+Android Studio Quail 4 (2026.1.4, build AI-261.26222.65.2614.16204760; bundled JBR
+25.0.3, separate from the Gradle JDK) indexed an isolated API module using its real
+source root and resolved runtime JARs. With fresh IDE index storage, its diagnostic
+reported 2,377 indexed files, including all 208 generated Kotlin files, in 1.050 s
+of index processing after a 0.567 s completed scan. The whole command-line
+inspection took 15.42 s; reopening after the additive schema edit took 11.32 s,
+including startup and inspections. This is an API source/library indexing sample,
+not a full Android Gradle import or a measure of editor completion latency. The
+IDE's inspection report exporter logged missing bundled inspection descriptions;
+the indexing diagnostic itself completed without cancellation. A full-project
+first-run import also failed in the IDE's welcome panel, so that attempt is not
+reported as a successful indexing measurement.
+
+The [documented inspection CLI](https://www.jetbrains.com/help/idea/command-line-code-inspector.html)
+accepts a temporary `.ipr`/`.iml` project with the API source root and runtime JAR
+class roots. Run `inspect.sh PROJECT PROFILE OUTPUT -v2` using separate
+`STUDIO_PROPERTIES` config/system/log directories; read completed `Scanning` and
+`DumbIndexing` entries in `logs/indexing-diagnostic`, not just process exit status.
+
+Xcode's `SeerrAPI` scheme built a fresh simulator index store in 26.77 s and rebuilt
+it after the same additive change in 22.93 s, including both simulator architectures
+and normal build work. The cold run produced 1,131 index-store files. Reproduce with
+`xcodebuild -project apps/ios/Gauja.xcodeproj -scheme SeerrAPI -destination
+'generic/platform=iOS Simulator' -derivedDataPath TEMP -skipPackagePluginValidation
+-onlyUsePackageVersionsFromResolvedFile build COMPILER_INDEX_STORE_ENABLE=YES
+CODE_SIGNING_ALLOWED=NO`. This measures Xcode build/index production; it does not
+claim a separate interactive Xcode latency measurement.
+
+Retain the supported Kotlin and Swift namespace output. This baseline does not
+justify maintaining a custom API split or generator fork. Repeat it when contract
+growth produces a measurable build or navigation problem; preserve coverage and
+shared-schema checks for any proposed trial.
