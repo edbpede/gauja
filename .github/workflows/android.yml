@@ -45,7 +45,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: ['30', '37.0']
+        # The 37.0 x86_64 image restarts SurfaceFlinger; use the maintained API 37 minor image.
+        api: ['30', '37.1']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -69,26 +70,26 @@ jobs:
         run: |
           export ANDROID_USER_HOME="$HOME/.android"
           mkdir -p "$ANDROID_USER_HOME" "$ANDROID_AVD_HOME"
-          sdkmanager 'emulator' 'platforms;android-37.0' "system-images;android-$API;google_apis;x86_64"
-          echo no | avdmanager create avd --force --name gauja-smoke --device pixel_4 --package "system-images;android-$API;google_apis;x86_64"
+          image_tag=google_apis
+          if [[ "$API" == "37.1" ]]; then image_tag=google_apis_ps16k; fi
+          system_image="system-images;android-$API;$image_tag;x86_64"
+          sdkmanager 'emulator' 'platforms;android-37.0' "$system_image"
+          echo no | avdmanager create avd --force --name gauja-smoke --device pixel_4 --package "$system_image"
           test -f "$ANDROID_AVD_HOME/gauja-smoke.ini"
           # Older runner command-line tools default to an 800 MB data partition.
           sed -i '/^disk.dataPartition.size=/d' "$ANDROID_AVD_HOME/gauja-smoke.avd/config.ini"
           echo 'disk.dataPartition.size=10G' >> "$ANDROID_AVD_HOME/gauja-smoke.avd/config.ini"
           adb start-server
           test -f "$ANDROID_USER_HOME/adbkey"
-          emulator_features=()
-          if [[ "$API" == "37.0" ]]; then
-            # API 37's x86_64 mapper asserts on DMA readback; retain its copy path.
-            # https://github.com/edbpede/gauja/actions/runs/33999258443/job/101395075710
-            emulator_features=(-feature -GLDirectMem)
-          fi
-          "$ANDROID_HOME/emulator/emulator" -avd gauja-smoke -no-window -no-audio -no-snapshot -no-metrics -no-boot-anim -memory 2048 -cores 2 -show-kernel -gpu software "${emulator_features[@]}" > /tmp/emulator.log 2>&1 &
-          trap 'adb emu kill || true' EXIT
+          "$ANDROID_HOME/emulator/emulator" -avd gauja-smoke -no-window -no-audio -no-snapshot -no-metrics -no-boot-anim -memory 2048 -cores 2 -show-kernel -gpu software > /tmp/emulator.log 2>&1 &
+          trap 'adb logcat -d -b crash > /tmp/android-crash.log 2>&1 || true; adb emu kill || true' EXIT
           timeout 180 adb wait-for-device
           timeout 180 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done'
           adb shell df -h /data
           apps/android/gradlew --project-dir apps/android connectedDebugAndroidTest
       - name: Emulator startup log
         if: failure()
-        run: test ! -f /tmp/emulator.log || cat /tmp/emulator.log
+        run: |
+          for log in /tmp/emulator.log /tmp/android-crash.log; do
+            if [[ -f "$log" ]]; then cat "$log"; fi
+          done
