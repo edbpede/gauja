@@ -1,0 +1,31 @@
+{
+  "upstreamCommit": "69f73a6f1486fdb51b8ddae9a94a8dfb629f461c",
+  "recordedAt": "2026-09-05T21:37:22.082553+00:00",
+  "scenario": "uninitialized-public-probe",
+  "scrubbedFields": [
+    "plexClientIdentifier",
+    "vapidPublic"
+  ],
+  "responses": [
+    {
+      "operationId": "getStatus",
+      "method": "GET",
+      "path": "/api/v1/status?checkUpdateAvailable=false",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "public/getStatus.json"
+    },
+    {
+      "operationId": "getSettingsPublic",
+      "method": "GET",
+      "path": "/api/v1/settings/public",
+      "status": 200,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "settings/getSettingsPublic.json"
+    }
+  ]
+}

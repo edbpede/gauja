@@ -31,8 +31,8 @@ jobs:
       - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
         env:
           # Branch guard is local; codegen-check owns contract validation and
-          # tokens-check owns theme drift. Other hooks remain authoritative here.
-          SKIP: no-commit-to-branch,api-drift,tokens-check
+          # tokens-check owns theme drift; native lanes own platform lint.
+          SKIP: no-commit-to-branch,api-drift,tokens-check,ktfmt,detekt,swift-format,swiftlint
         with:
           extra-args: --all-files
 

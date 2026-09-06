@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Gauja contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Read the shared generator and smoke-build version pins."""
+"""Read the generator version pins."""
 from pathlib import Path
 
 

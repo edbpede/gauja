@@ -1,0 +1,81 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Gauja
+options:
+  bundleIdPrefix: app.gauja
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    GENERATE_INFOPLIST_FILE: YES
+    CODE_SIGNING_ALLOWED: NO
+    OTHER_SWIFT_FLAGS: "$(inherited) -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-upcoming-feature InferIsolatedConformances"
+packages:
+  Servers:
+    path: Packages/Features/Servers
+  DesignSystem:
+    path: Packages/DesignSystem
+  Navigation:
+    path: Packages/Navigation
+  Dependencies:
+    url: https://github.com/pointfreeco/swift-dependencies
+    exactVersion: 1.17.1
+  SwiftLintPlugins:
+    url: https://github.com/SimplyDanny/SwiftLintPlugins
+    exactVersion: 0.65.1
+targets:
+  Gauja:
+    type: application
+    platform: iOS
+    sources: [App]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.gauja
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+    info:
+      path: build/Info.plist
+      properties:
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        NSLocalNetworkUsageDescription: Gauja connects to the Seerr server address you enter.
+    dependencies:
+      - package: Servers
+      - package: DesignSystem
+      - package: Navigation
+    buildToolPlugins:
+      - plugin: SwiftLintBuildToolPlugin
+        package: SwiftLintPlugins
+  GaujaTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [AppTests]
+    dependencies:
+      - target: Gauja
+      - package: Navigation
+  GaujaUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [AppUITests]
+    dependencies:
+      - target: Gauja
+schemes:
+  Gauja:
+    build:
+      targets:
+        Gauja: all
+        GaujaTests: [test]
+        GaujaUITests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - name: GaujaTests
+          parallelizable: true
+          randomExecutionOrder: true
+        - name: GaujaUITests
+          parallelizable: false

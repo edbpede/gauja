@@ -69,7 +69,7 @@ hooks = [
 
   # iOS — apps/ios/ (toolchain swift-format + SwiftLint; PRD §14 ios lane). Generated client excluded.
   { id = "swift-format", name = "swift-format", entry = "swift format --in-place", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
-  { id = "swiftlint", name = "swiftlint", entry = "swiftlint lint --strict", language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
+  { id = "swiftlint", name = "swiftlint", entry = "tools/ci/check-swift.sh", pass_filenames = false, language = "system", types = ["swift"], files = "^apps/ios/", exclude = "^apps/ios/Packages/(SeerrAPI/Generated|DesignSystem/Sources/DesignSystem/Generated)/" },
 
   # Android — apps/android/ (ktfmt + detekt with the Compose ruleset; PRD §14 android lane).
   # ktfmt, not ktlint: the Kotlin rule file names ktfmt as the formatter and is authoritative (PRD §12.1).

@@ -39,7 +39,7 @@ class ContractTests(unittest.TestCase):
             output = Path(temp) / "report.md"
             self.assertEqual(subprocess.check_output(command + ["--output", str(output)], text=True), "")
             self.assertEqual(output.read_text(), stdout)
-            self.assertEqual(stdout.count("- [ ]"), 212)
+            self.assertEqual(stdout.count("- ["), 212)
             self.assertIn("Sign in using a Jellyfin username and password.", stdout)
             self.assertIn("Legacy alias; Sunset 2026-06-01. Use /blocklist.", stdout)
 
@@ -50,8 +50,12 @@ class ContractTests(unittest.TestCase):
         operation = spec["paths"]["/auth/local"]["post"]
         operation["summary"] = "Updated upstream description"
         coverage[operation["operationId"]]["note"] = "Additional implementation constraint"
+        coverage[operation["operationId"]]["status"] = "implemented"
         report = render(spec, coverage)
         self.assertIn("Updated upstream description. Additional implementation constraint.", report)
+        self.assertIn("- [x] `POST /auth/local`", report)
+        coverage[operation["operationId"]]["status"] = "planned"
+        self.assertIn("- [ ] `POST /auth/local`", render(spec, coverage))
 
     def test_duplicate_yaml_keys_fail(self):
         with tempfile.TemporaryDirectory() as temp:

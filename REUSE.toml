@@ -46,3 +46,10 @@ path = ["design/LICENSE.tailwind"]
 precedence = "override"
 SPDX-FileCopyrightText = "Tailwind Labs, Inc."
 SPDX-License-Identifier = "MIT"
+
+# Unmodified Gradle wrapper scripts/JAR retain the upstream Apache notice.
+[[annotations]]
+path = ["apps/android/gradlew", "apps/android/gradlew.bat", "apps/android/gradle/wrapper/gradle-wrapper.jar"]
+precedence = "override"
+SPDX-FileCopyrightText = "2015 the original authors"
+SPDX-License-Identifier = "Apache-2.0"

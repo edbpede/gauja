@@ -1,0 +1,33 @@
+<!-- SPDX-FileCopyrightText: 2026 Gauja contributors
+SPDX-License-Identifier: AGPL-3.0-or-later -->
+<resources>
+    <string name="server_title">Add server</string>
+    <string name="server_intro">Connect Gauja to your Seerr server.</string>
+    <string name="server_address">Server address</string>
+    <string name="server_http">HTTP is unencrypted. Use it only on a trusted network.</string>
+    <string name="server_check">Check server</string>
+    <string name="server_cancel">Cancel</string>
+    <string name="server_connected">Server reached</string>
+    <string name="server_version">Version %1$s</string>
+    <string name="server_tested">This Seerr release is the tested baseline.</string>
+    <string name="server_old">This server is older than the supported Seerr 3.4.1 baseline.</string>
+    <string name="server_untested">This release has not yet been tested with Gauja.</string>
+    <string name="server_unknown_version">The server version could not be verified.</string>
+    <string name="server_initialized">Server setup is complete.</string>
+    <string name="server_not_initialized">Complete server setup in Seerr before signing in.</string>
+    <string name="server_restart">Seerr reports that a restart is required.</string>
+    <string name="server_local">Local sign-in: %1$s</string>
+    <string name="server_media_login">Media-server sign-in: %1$s</string>
+    <string name="server_no_session">This checks the connection. It does not save a profile or sign you in.</string>
+    <string name="server_enabled">Enabled</string>
+    <string name="server_disabled">Disabled</string>
+    <string name="server_unknown">Not reported</string>
+    <string name="server_invalid">Enter a valid HTTP or HTTPS address without credentials, query or fragment.</string>
+    <string name="server_offline">Cannot reach the server. Check your connection and address, then retry.</string>
+    <string name="server_tls">The certificate is not trusted. Fingerprint approval will be available with profile setup.</string>
+    <string name="server_denied">The server denied access. Basic-auth entry will be available with profile setup.</string>
+    <string name="server_redirect">The server redirected this request. Enter its direct address instead.</string>
+    <string name="server_response">The response is not a valid Seerr response. Check the server address.</string>
+    <string name="server_failure">Seerr could not complete the check. Retry when the server is ready.</string>
+    <string name="server_network">The connection failed. Check the address and retry.</string>
+</resources>

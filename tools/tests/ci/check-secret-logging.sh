@@ -43,6 +43,15 @@ mkdir -p "$gen"
 echo 'print(apiKey)' > "$gen/Client.swift"
 assert_exit 0 "generated directories are skipped" "$script" "$TEST_TMP/apps"
 
+for cache in .build .gradle build DerivedData; do
+  mkdir -p "$TEST_TMP/apps/ios/$cache/checkouts"
+  printf 'print(apiKey)\n' > "$TEST_TMP/apps/ios/$cache/checkouts/Dependency.swift"
+done
+assert_exit 0 "downloaded dependency and build caches are skipped" "$script" "$TEST_TMP/apps"
+printf 'print("ā", apiKey)\n' > "$ios/Unicode.swift"
+assert_exit 1 "handwritten Unicode sources still reject secrets" "$script" "$TEST_TMP/apps"
+rm "$ios/Unicode.swift"
+
 cat > "$ios/Custom.swift" <<'SWIFT'
 func leak() { Logger().debug("plex \(plexAuth)") }
 SWIFT

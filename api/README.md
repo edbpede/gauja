@@ -31,10 +31,12 @@ On each sync, compare every correction with the new upstream document. Delete ov
 
 ## Recorded server fixtures
 
-Record against an initialized, seeded upstream container. Plan §11.6 permits the first recordings alongside the initial app flow; extend them with consuming features. No response fixtures were recorded or hand-authored in Phase 2.
+The initial server-check fixtures record an uninitialized upstream container, the state required by this flow. Record authenticated operations against an initialized, seeded container. Plan §11.6 permits the first recordings alongside the initial app flow; extend them with consuming features. No response fixtures were recorded or hand-authored in Phase 2.
 
 Layout: `<seerr-version>/<tag>/<operationId>.json` for the default scenario; `<operationId>-<scenario>.json` for alternatives such as `page1`, `empty`, `forbidden`, or `restart-required`. Use the effective operation IDs keyed in `coverage.json`. Create fixture directories with the first actual recordings. One file holds one recorded response body. The recorder tracks method, path, status and selected non-secret headers separately; it must not save raw auth headers.
 
 Before committing, scrub credentials to `REDACTED` and run `tools/ci/check-fixture-secrets.sh` plus gitleaks. Never record cookies, API keys, Basic passwords, Plex/Jellyfin tokens, Quick Connect secrets, VAPID private material or PEM keys. Do not print rejected values. Private server recordings use ignored `*.local.*` names and are never uploaded to CI.
 
-Both platforms consume these files from the shared contract. Decode failures become evidence for an overlay; they are never solved by editing the recording or weakening a mapper. Replay source-backed overlays against the container as their consumers land; Phase 11 must cover every retained overlay. Synthetic generator tests remain in `tools/tests/codegen/`.
+Both platforms consume these files from the shared contract. Decode failures become evidence for an overlay; they are never solved by editing the recording or weakening a mapper. Replay source-backed overlays against the container as their consumers land; Phase 11 must cover every retained overlay. Synthetic serialization tests now live in each app’s API module; generator-transform tests remain in `tools/tests/codegen/`.
+
+Re-record the initial public scenario with `tools/contract/python.sh tools/ci/public-contract.py --base http://127.0.0.1:5057 --record`. The container must use the pinned upstream Dockerfile. `recording.json` stores the request/status/header provenance separately; instance identifiers are scrubbed. Each app lane replays these responses through its real Data client with `python3 tools/ci/replay-contract.py android|ios`. `contract.yml` validates the live public responses and sunset headers; the complete initialized/seeded audit remains Phase 11.

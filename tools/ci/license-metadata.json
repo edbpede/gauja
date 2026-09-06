@@ -1,0 +1,59 @@
+{
+  "com.ncorti.ktfmt.gradle:plugin:0.23.0": {
+    "licenses": [
+      "MIT"
+    ],
+    "pom_sha256": "addaef87020bb617ac62647508306e1774691b8f7dcecad038feeaa2d84d5e52",
+    "evidence": "https://github.com/cortinico/ktfmt-gradle/blob/0.23.0/LICENSE",
+    "note": "Missing POM license; marker resolves the same MIT implementation."
+  },
+  "com.ncorti.ktfmt.gradle:com.ncorti.ktfmt.gradle.gradle.plugin:0.23.0": {
+    "licenses": [
+      "MIT"
+    ],
+    "pom_sha256": "54f124a0fc90526641c289309983ca05c10edb589d1cd957ecb646fd56ea79f6",
+    "evidence": "https://github.com/cortinico/ktfmt-gradle/blob/0.23.0/LICENSE",
+    "note": "Missing POM license; marker resolves the same MIT implementation."
+  },
+  "net.java.dev.jna:jna:5.6.0": {
+    "licenses": [
+      "Apache-2.0"
+    ],
+    "pom_sha256": "5fe81b0255978f24616d37b10608b79498a5f3073e1d9b2038d8736a831f2608",
+    "evidence": "https://github.com/java-native-access/jna/blob/5.6.0/LICENSE",
+    "note": "Upstream explicitly offers alternative LGPL or Apache licenses; select Apache-2.0."
+  },
+  "net.java.dev.jna:jna-platform:5.6.0": {
+    "licenses": [
+      "Apache-2.0"
+    ],
+    "pom_sha256": "1beb35cb4184e6c906a7e32eaebd852dd3da0a263962e99134ab945832394e28",
+    "evidence": "https://github.com/java-native-access/jna/blob/5.6.0/LICENSE",
+    "note": "Upstream explicitly offers alternative LGPL or Apache licenses; select Apache-2.0."
+  },
+  "org.checkerframework:checker-compat-qual:2.5.3": {
+    "licenses": [
+      "MIT"
+    ],
+    "pom_sha256": "f7fcdac99eb33d169f6d52a35541c22ffd14f458abbcf56f9c49ee1486598c9c",
+    "evidence": "https://checkerframework.org/manual/#license",
+    "note": "Annotation classes carry the MIT license; this artifact contains only compatibility qualifier annotations."
+  },
+  "org.jdom:jdom2:2.0.6": {
+    "licenses": [
+      "JDOM"
+    ],
+    "pom_sha256": "47b23a79fe336b741b82434c6e049d68165256e405e75c10921fd72fa8a65d8d",
+    "evidence": "https://repo.maven.apache.org/maven2/org/jdom/jdom2/2.0.6/jdom2-2.0.6.pom",
+    "note": "POM embeds the full JDOM license, including its product naming restriction; do not misclassify as Apache-2.0 or BSD-3-Clause."
+  },
+  "net.sf.kxml:kxml2:2.3.0": {
+    "licenses": [
+      "MIT",
+      "LicenseRef-XmlPull-Public-Domain"
+    ],
+    "pom_sha256": "31ce606f4e9518936299bb0d27c978fa61e185fd1de7c9874fe959a53e34a685",
+    "evidence": "https://repo.maven.apache.org/maven2/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.pom",
+    "note": "Source JAR KXmlParser.java carries MIT; POM dedicates bundled org.xmlpull.v1 classes to public domain. Both apply, not a dual-license choice."
+  }
+}

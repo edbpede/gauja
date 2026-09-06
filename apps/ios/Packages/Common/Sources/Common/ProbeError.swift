@@ -1,0 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gauja contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+public enum ProbeError: Error, Sendable, Equatable {
+    case address, offline, tls, denied, redirect, response, server, network
+}

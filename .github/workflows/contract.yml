@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Gauja contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Initial public flow only; Phase 11 adds initialized/seeding/auth and complete operation coverage.
+name: contract
+on:
+  pull_request:
+    paths: ['api/**', 'tools/ci/public-contract.py', 'tools/codegen/**', '.github/workflows/contract.yml']
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.13'
+      - run: tools/contract/python.sh --install
+      - name: Build pinned upstream Dockerfile and probe public operations
+        run: |
+          pin="$(head -n 1 api/UPSTREAM_COMMIT)"
+          mkdir -p .cache/seerr-source
+          curl --fail --location "https://api.github.com/repos/seerr-team/seerr/tarball/$pin" | tar -xz --strip-components=1 -C .cache/seerr-source
+          docker build --build-arg COMMIT_TAG="$pin" -t gauja-contract .cache/seerr-source
+          docker run -d --name gauja-contract -p 127.0.0.1:5057:5055 -e LOG_LEVEL=error gauja-contract
+          trap 'docker rm -f gauja-contract' EXIT
+          timeout 180 bash -c 'until curl --silent --fail "http://127.0.0.1:5057/api/v1/status?checkUpdateAvailable=false" >/dev/null; do sleep 2; done'
+          tools/contract/python.sh tools/ci/public-contract.py --base http://127.0.0.1:5057
