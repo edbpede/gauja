@@ -12,13 +12,13 @@ concurrency:
   cancel-in-progress: false
 jobs:
   api37-investigation:
-    name: API 37 A0 diagnostics
+    name: API 37 A1 supported RAM
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
       EMULATOR_BUILD: '15917651'
       EMULATOR_SHA256: 95771e0ae431897b2a4bd2d97fa095f29a8b0624a7b216baf529f9306161c266
-      MEMORY_MIB: '2048'
+      MEMORY_MIB: '4096'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
