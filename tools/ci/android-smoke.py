@@ -87,7 +87,7 @@ class Smoke:
             output.write(json.dumps(entry) + "\n")
         print(message, flush=True)
 
-    def command(self, command, *, timeout=15, output=None, monitor=False):
+    def command(self, command, *, timeout=15, output=None, monitor=False, watch_boot=False):
         remaining = min(timeout, self.deadline - time.monotonic())
         if remaining <= 0:
             raise TimeoutError("Android smoke deadline exhausted")
@@ -103,6 +103,8 @@ class Smoke:
                         raise TimeoutError("Command timed out: " + str(command[0]))
                     if monitor:
                         self.health()
+                    elif watch_boot:
+                        self.crashes()
                     time.sleep(min(2 if monitor else 0.1, max(0, end - time.monotonic())))
                 if process.returncode:
                     raise subprocess.CalledProcessError(process.returncode, command,
@@ -148,8 +150,8 @@ class Smoke:
         if not self.adb("shell", "cmd", "activity", "get-current-user").isdigit():
             raise RuntimeError("Activity manager is unresponsive")
         # Check the failing mount itself as well as an ordinary shell-writable external directory.
-        self.adb("shell", "ls -ld /sdcard/Android /sdcard/Download")
-        for directory in ("/data/local/tmp", "/sdcard/Download"):
+        self.adb("shell", "ls -ld /sdcard/Android /sdcard")
+        for directory in ("/data/local/tmp", "/sdcard"):
             path = directory + "/" + self.sentinel
             result = self.adb("shell", f"printf gauja > {path} && cat {path} && rm {path}")
             if result != "gauja":
@@ -179,6 +181,7 @@ class Smoke:
         avd_home = Path(os.environ["ANDROID_AVD_HOME"]).resolve()
         config = avd_home / (self.args.avd + ".avd/config.ini")
         shutil.copy2(config, self.evidence / "avd.ini")
+        shutil.copy2(avd_home / (self.args.avd + ".ini"), self.evidence / "root-avd.ini")
         self.command([str(self.args.emulator), "-no-window", "-version"], output="emulator-version.txt")
         self.command([str(self.args.emulator), "-accel-check"], output="acceleration.txt")
         self.command(["adb", "start-server"])
@@ -193,7 +196,7 @@ class Smoke:
         with (self.evidence / "emulator.log").open("wb") as output:
             self.emulator = subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
         self.stage = "boot"
-        self.adb("wait-for-device", timeout=180, output="wait-for-device.txt")
+        self.adb("wait-for-device", timeout=180, output="wait-for-device.txt", watch_boot=True)
         with (self.evidence / "logcat.log").open("wb") as output:
             self.logcat = subprocess.Popen(["adb", "-s", self.args.serial, "logcat", "-b", "all", "-v", "epoch"],
                                           stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
@@ -280,6 +283,7 @@ class Smoke:
         while time.monotonic() < end:
             self.health()
             time.sleep(2)
+        self.crashes()
         self.record("PASS: real Hilt test and activity recreation, with sustained guest health")
 
     def collect(self):
@@ -328,7 +332,7 @@ class Smoke:
             self.failure = f"{type(error).__name__}: {error}"
             self.record("FAIL: " + self.failure)
         finally:
-            for name, operation in (("collect", self.collect), ("cleanup", self.cleanup)):
+            for name, operation in (("collect", self.collect), ("final crash check", self.crashes), ("cleanup", self.cleanup)):
                 try:
                     operation()
                 except Exception as error:

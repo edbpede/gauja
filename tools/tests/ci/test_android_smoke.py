@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from unittest.mock import Mock
 
 spec = importlib.util.spec_from_file_location("android_smoke", Path(__file__).resolve().parents[2] / "ci/android-smoke.py")
 smoke = importlib.util.module_from_spec(spec)
@@ -97,6 +98,20 @@ class AndroidSmokeTests(unittest.TestCase):
     def test_hanging_adb_command_is_bounded(self):
         with self.assertRaises(TimeoutError):
             self.runner.command([sys.executable, "-c", "import time; time.sleep(60)"], timeout=0.1)
+
+    def test_emulator_exit_interrupts_device_wait(self):
+        self.runner.emulator = Mock()
+        self.runner.emulator.poll.return_value = 1
+        with self.assertRaisesRegex(RuntimeError, "Emulator exited"):
+            self.runner.command([sys.executable, "-c", "import time; time.sleep(60)"], watch_boot=True)
+
+    def test_fresh_guest_need_not_have_a_download_directory(self):
+        def adb(*command, **kwargs):
+            if any("/sdcard/Download" in part for part in command):
+                raise subprocess.CalledProcessError(1, command, "No such file or directory")
+            return self.healthy_adb(*command, **kwargs)
+        with patch.object(self.runner, "adb", side_effect=adb):
+            self.runner.health()
 
     def test_boot_failure_and_cleanup_failure_preserve_primary_error(self):
         self.runner.evidence = self.directory / "result"
