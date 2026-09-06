@@ -42,6 +42,7 @@ nonisolated final class ServerCheckTests: XCTestCase {
             let observed = ProcessInfo.processInfo.systemUptime
             if !appeared {
                 // Late observation is diagnostic only; this test must still fail.
+                XCTFail("Validation error did not appear within the original observation window")
                 attachState(app, address: address, button: button, error: error)
                 let diagnosticStart = ProcessInfo.processInfo.systemUptime
                 let appearedLater = error.waitForExistence(timeout: 7)
@@ -53,7 +54,6 @@ nonisolated final class ServerCheckTests: XCTestCase {
                 timing.lifetime = .keepAlways
                 activity.add(timing)
                 attachState(app, address: address, button: button, error: error)
-                XCTFail("Validation error did not appear within the original observation window")
                 return
             }
             XCTAssertEqual(error.label, expectedError)

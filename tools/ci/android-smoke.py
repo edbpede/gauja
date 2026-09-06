@@ -19,7 +19,9 @@ ANDROID = ROOT / "apps/android"
 EXPECTED_TEST = ("app.gauja.ServerCheckTest", "injectedProbeRendersDomainResult")
 NAMESPACE = "{http://schemas.android.com/apk/res/android}"
 CRITICAL = re.compile(r"hasReadColorBufferDma|Transport endpoint is not connected|"
-                      r"Fatal signal[^\n]*surfaceflinger|>>> /system/bin/surfaceflinger <<<", re.I)
+                      r"Fatal signal[^\n]*surfaceflinger|>>> /system/bin/surfaceflinger <<<|"
+                      r"Service 'surfaceflinger'[^\n]*(?:exited|killed|received signal)|"
+                      r"FATAL EXCEPTION IN SYSTEM PROCESS", re.I)
 
 
 def prepare_avd_target(path, api):
@@ -42,10 +44,11 @@ def validate_results(directory):
     cases = []
     for path in files:
         root = ET.parse(path).getroot()
-        for suite in root.iter("testsuite"):
+        suites = [node for node in root.iter() if node.tag in ("testsuite", "testsuites")]
+        for suite in suites:
             if int(suite.get("tests", "-1")) != len(list(suite.iter("testcase"))):
                 raise ValueError("JUnit suite count does not match its test cases")
-        if any(int(suite.get(key, "0")) for suite in root.iter("testsuite")
+        if any(int(suite.get(key, "0")) for suite in suites
                for key in ("failures", "errors", "skipped")):
             raise ValueError("Android suite reports failures, errors or skips")
         cases.extend(root.iter("testcase"))

@@ -47,6 +47,14 @@ class AndroidSmokeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "count"):
             smoke.validate_results(self.directory)
 
+    def test_aggregate_xml_cannot_hide_failures_or_zero_tests(self):
+        path = self.directory / "TEST-result.xml"
+        suite = '<testsuite tests="1">' + CASE.format("") + '</testsuite>'
+        for attributes in ('tests="0"', 'tests="1" failures="1"', 'tests="1" skipped="1"'):
+            path.write_text('<testsuites ' + attributes + '>' + suite + '</testsuites>')
+            with self.assertRaises(ValueError):
+                smoke.validate_results(self.directory)
+
     def test_api37_metadata_repair_preserves_image_path(self):
         path = self.directory / "gauja.ini"
         content = "avd.ini.encoding=UTF-8\npath=/task/gauja.avd\ntarget=android-0\n"
@@ -120,7 +128,9 @@ class AndroidSmokeTests(unittest.TestCase):
 
     def test_early_crash_and_disconnected_storage_are_latched(self):
         for message in ("Assertion failed: !rcEnc->featureInfo()->hasReadColorBufferDma",
-                        "Transport endpoint is not connected"):
+                        "Transport endpoint is not connected",
+                        "init: Service 'surfaceflinger' (pid 491) received signal 6",
+                        "FATAL EXCEPTION IN SYSTEM PROCESS: main"):
             (self.directory / "logcat.log").write_text(message)
             with self.assertRaisesRegex(RuntimeError, "Critical"):
                 self.runner.crashes()
