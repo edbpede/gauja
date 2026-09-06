@@ -247,7 +247,7 @@ apps/android/
 - [x] Wire `com.autonomousapps.dependency-analysis` and a `tools/ci/check-module-graph.sh` (or a Gradle task) that asserts the PRD §12.3 graph: `feature/*` never depends on another `feature/*`; only Data imports generated DTOs; storage/network dependencies follow the allowed modularity tables; `core/model` has no Android deps; nothing depends on `app`.
 - [x] *(depends on working modules above)* Smoke tests of real consumers: one JVM unit test (JUnit4 + coroutines-test + Turbine), one Robolectric Compose test, one Hilt instrumentation test with `HiltTestRunner`, all green.
 - [ ] Add baseline profiles with the measurable start-up/Discover path in Phase 11; do not benchmark a placeholder.
-- [x] *(depends on working §3.2 app/build/tests)* `android.yml` real: `assembleDebug`, `testDebugUnitTest`, `detekt`, `ktfmtCheck`, `lint`, module-graph check, `tools/codegen/generate.sh --check --platform android` (transfer ownership from codegen-check), emulator smoke (`connectedDebugAndroidTest` on API 30 and API 37), per-ABI split size report.
+- [ ] *(depends on working §3.2 app/build/tests)* `android.yml` real: `assembleDebug`, `testDebugUnitTest`, `detekt`, `ktfmtCheck`, `lint`, module-graph check, `tools/codegen/generate.sh --check --platform android` (transfer ownership from codegen-check), emulator smoke (`connectedDebugAndroidTest` on API 30 and API 37), per-ABI split size report.
 
 ### 3.3 iOS skeleton (`apps/ios/`)
 

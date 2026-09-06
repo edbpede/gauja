@@ -45,8 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The 37.0 x86_64 image restarts SurfaceFlinger; use the maintained API 37 minor image.
-        api: ['30', '37.1']
+        api: ['30', '37.0']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -70,9 +69,7 @@ jobs:
         run: |
           export ANDROID_USER_HOME="$HOME/.android"
           mkdir -p "$ANDROID_USER_HOME" "$ANDROID_AVD_HOME"
-          image_tag=google_apis
-          if [[ "$API" == "37.1" ]]; then image_tag=google_apis_ps16k; fi
-          system_image="system-images;android-$API;$image_tag;x86_64"
+          system_image="system-images;android-$API;google_apis;x86_64"
           sdkmanager 'emulator' 'platforms;android-37.0' "$system_image"
           echo no | avdmanager create avd --force --name gauja-smoke --device pixel_4 --package "$system_image"
           test -f "$ANDROID_AVD_HOME/gauja-smoke.ini"
