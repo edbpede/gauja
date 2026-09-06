@@ -179,7 +179,7 @@ class Smoke:
         avd_home = Path(os.environ["ANDROID_AVD_HOME"]).resolve()
         config = avd_home / (self.args.avd + ".avd/config.ini")
         shutil.copy2(config, self.evidence / "avd.ini")
-        self.command([str(self.args.emulator), "-version"], output="emulator-version.txt")
+        self.command([str(self.args.emulator), "-no-window", "-version"], output="emulator-version.txt")
         self.command([str(self.args.emulator), "-accel-check"], output="acceleration.txt")
         self.command(["adb", "start-server"])
         port = self.args.serial.removeprefix("emulator-")
@@ -283,6 +283,9 @@ class Smoke:
         self.record("PASS: real Hilt test and activity recreation, with sustained guest health")
 
     def collect(self):
+        if self.emulator is None:
+            self.record("Guest evidence unavailable: emulator startup was not reached")
+            return
         self.deadline = time.monotonic() + 180
         self.snapshot("final")
         for name, command, timeout in [
