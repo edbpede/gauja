@@ -22,6 +22,19 @@ CRITICAL = re.compile(r"hasReadColorBufferDma|Transport endpoint is not connecte
                       r"Fatal signal[^\n]*surfaceflinger|>>> /system/bin/surfaceflinger <<<", re.I)
 
 
+def prepare_avd_target(path, api):
+    """Repair older AVD Manager's API 37.0 -> android-0 metadata conversion."""
+    content = path.read_text()
+    targets = re.findall(r"^target=(.+)$", content, re.M)
+    if api == "37.0" and targets == ["android-0"]:
+        content = re.sub(r"^target=android-0$", "target=android-37", content, flags=re.M)
+        path.write_text(content)
+        return True
+    if len(targets) != 1 or targets[0] not in {"android-" + api, "android-" + api.split(".")[0]}:
+        raise ValueError("AVD target does not match the selected system image: " + repr(targets))
+    return False
+
+
 def validate_results(directory):
     files = sorted(directory.rglob("TEST-*.xml"))
     if not files:
@@ -29,6 +42,9 @@ def validate_results(directory):
     cases = []
     for path in files:
         root = ET.parse(path).getroot()
+        for suite in root.iter("testsuite"):
+            if int(suite.get("tests", "-1")) != len(list(suite.iter("testcase"))):
+                raise ValueError("JUnit suite count does not match its test cases")
         if any(int(suite.get(key, "0")) for suite in root.iter("testsuite")
                for key in ("failures", "errors", "skipped")):
             raise ValueError("Android suite reports failures, errors or skips")
@@ -177,11 +193,21 @@ class Smoke:
         properties = (image / "source.properties").read_text()
         if not re.search(r"^Pkg.Revision=" + re.escape(self.args.image_revision) + r"$", properties, re.M):
             raise ValueError("System image revision changed; review the pairing")
+        if not re.search(r"^AndroidVersion.ApiLevel=" + re.escape(self.args.api) + r"$", properties, re.M):
+            raise ValueError("SDK image API metadata does not match the selected API")
         (self.evidence / "image.properties").write_text(properties)
         avd_home = Path(os.environ["ANDROID_AVD_HOME"]).resolve()
         config = avd_home / (self.args.avd + ".avd/config.ini")
         shutil.copy2(config, self.evidence / "avd.ini")
-        shutil.copy2(avd_home / (self.args.avd + ".ini"), self.evidence / "root-avd.ini")
+        root_ini = avd_home / (self.args.avd + ".ini")
+        shutil.copy2(root_ini, self.evidence / "root-avd-before.ini")
+        if prepare_avd_target(root_ini, self.args.api):
+            self.record("Corrected AVD Manager's android-0 target to android-37; system image unchanged")
+        shutil.copy2(root_ini, self.evidence / "root-avd.ini")
+        with (self.evidence / "emulator-binaries.sha256").open("w") as output:
+            for executable in (self.args.emulator, self.args.emulator.parent / "qemu/linux-x86_64/qemu-system-x86_64-headless"):
+                with executable.open("rb") as source:
+                    output.write(hashlib.file_digest(source, "sha256").hexdigest() + "  " + str(executable) + "\n")
         self.command([str(self.args.emulator), "-no-window", "-version"], output="emulator-version.txt")
         self.command([str(self.args.emulator), "-accel-check"], output="acceleration.txt")
         self.command(["adb", "start-server"])
@@ -190,8 +216,6 @@ class Smoke:
                    "-no-window", "-no-audio", "-no-snapshot", "-no-metrics", "-no-boot-anim",
                    "-memory", str(self.args.memory_mib), "-cores", "2", "-show-kernel", "-gpu", "software",
                    "-verbose", "-debug", "init,gles,avd_config,ini,time"]
-        if self.args.gl_direct_mem:
-            command += ["-feature", "GLDirectMem"]
         self.record("Emulator: " + " ".join(command))
         with (self.evidence / "emulator.log").open("wb") as output:
             self.emulator = subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
@@ -218,6 +242,17 @@ class Smoke:
         page_size = self.adb("shell", "getconf", "PAGE_SIZE", output="page-size.txt")
         if not page_size.isdigit() or int(page_size) <= 0:
             raise ValueError("Could not measure guest page size")
+        trace = (self.evidence / "emulator.log").read_text(errors="replace")
+        parsed_api = re.search(r"API level: (\d+)", trace)
+        if parsed_api is None or parsed_api[1] != api:
+            raise ValueError("Emulator's parsed API does not match the running guest")
+        memory = self.adb("shell", "cat", "/proc/meminfo", output="memory.txt")
+        total = re.search(r"^MemTotal:\s+(\d+) kB", memory, re.M)
+        if total is None or int(total[1]) < (self.args.memory_mib - 512) * 1024:
+            raise ValueError("Effective guest RAM is below the requested allocation, allowing for reserved memory")
+        (self.evidence / "guest-identity.json").write_text(json.dumps(
+            {"requested_api": self.args.api, "parsed_api": parsed_api[1], "guest_api": api, "abi": abi,
+             "fingerprint": fingerprint, "page_size": int(page_size), "mem_total_kib": int(total[1])}, indent=2) + "\n")
         self.snapshot("boot")
         self.stage = "readiness"
         start = time.monotonic()
@@ -305,6 +340,8 @@ class Smoke:
                 self.record(f"Collection {name}: {error}")
         for source, name in [(ANDROID / "app/build/outputs/androidTest-results/connected", "junit"),
                              (ANDROID / "app/build/reports/androidTests/connected", "html")]:
+            if self.failure is None and (not source.is_dir() or not any(source.rglob("*.xml" if name == "junit" else "index.html"))):
+                raise ValueError("Successful instrumentation is missing its " + name + " report")
             if source.exists():
                 shutil.copytree(source, self.evidence / name)
         # Preserve raw traces; absence of a printed feature value is not an enabled/disabled result.
@@ -354,7 +391,6 @@ def main():
     parser.add_argument("--image-revision", required=True)
     parser.add_argument("--memory-mib", type=int, required=True)
     parser.add_argument("--evidence-dir", type=Path, required=True)
-    parser.add_argument("--gl-direct-mem", action="store_true")
     args = parser.parse_args()
     if not re.fullmatch(r"gauja-[a-zA-Z0-9-]+", args.avd) or not re.fullmatch(r"emulator-\d+", args.serial):
         parser.error("Use a task-owned gauja-* AVD and an explicit emulator serial")

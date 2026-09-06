@@ -35,12 +35,42 @@ class AndroidSmokeTests(unittest.TestCase):
         for body in ("", CASE.format('<skipped/>'), CASE.format('<failure/>'), CASE.format('<error/>'),
                      CASE.format("").replace("injectedProbeRendersDomainResult", "anotherTest"), CASE.format("") * 2):
             with self.subTest(body=body):
-                path.write_text('<testsuite>' + body + '</testsuite>')
+                path.write_text('<testsuite tests="1">' + body + '</testsuite>')
                 with self.assertRaises(ValueError):
                     smoke.validate_results(self.directory)
-        path.write_text('<testsuite failures="1">' + CASE.format("") + '</testsuite>')
+        path.write_text('<testsuite tests="1" failures="1">' + CASE.format("") + '</testsuite>')
         with self.assertRaises(ValueError):
             smoke.validate_results(self.directory)
+
+    def test_inconsistent_xml_counts_fail(self):
+        (self.directory / "TEST-result.xml").write_text('<testsuite tests="0">' + CASE.format("") + '</testsuite>')
+        with self.assertRaisesRegex(ValueError, "count"):
+            smoke.validate_results(self.directory)
+
+    def test_api37_metadata_repair_preserves_image_path(self):
+        path = self.directory / "gauja.ini"
+        content = "avd.ini.encoding=UTF-8\npath=/task/gauja.avd\ntarget=android-0\n"
+        path.write_text(content)
+        self.assertTrue(smoke.prepare_avd_target(path, "37.0"))
+        self.assertEqual(path.read_text(), content.replace("android-0", "android-37"))
+        self.assertFalse(smoke.prepare_avd_target(path, "37.0"))
+
+    def test_valid_avd_metadata_is_unchanged(self):
+        path = self.directory / "gauja.ini"
+        for api, target in (("30", "android-30"), ("37.0", "android-37"), ("37.0", "android-37.0")):
+            content = "target=" + target + "\n"
+            path.write_text(content)
+            self.assertFalse(smoke.prepare_avd_target(path, api))
+            self.assertEqual(path.read_text(), content)
+
+    def test_unexpected_avd_metadata_is_not_silently_repaired(self):
+        path = self.directory / "gauja.ini"
+        for api, content in (("30", "target=android-0\n"), ("37.0", "target=android-36\n"),
+                             ("37.0", ""), ("37.0", "target=android-0\ntarget=android-37\n")):
+            path.write_text(content)
+            with self.assertRaises(ValueError):
+                smoke.prepare_avd_target(path, api)
+            self.assertEqual(path.read_text(), content)
 
     def test_missing_and_malformed_results_fail(self):
         with self.assertRaises(ValueError):
