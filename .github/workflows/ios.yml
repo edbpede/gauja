@@ -5,7 +5,7 @@ on:
   pull_request:
     paths: ['apps/ios/**', 'api/**', 'design/**', 'tools/**', 'deny.toml', '.agents/rules/**', '.github/workflows/ios.yml']
   push:
-    branches: [main]
+    branches: [main, fix/phase-3-ci-stability]
     paths: ['apps/ios/**', 'api/**', 'design/**', 'tools/**', 'deny.toml', '.agents/rules/**', '.github/workflows/ios.yml']
 permissions:
   contents: read
@@ -15,8 +15,22 @@ concurrency:
 jobs:
   build:
     runs-on: macos-26
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Record runner and checkout
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-ci"
+          {
+            date -u
+            git show -s --format=fuller HEAD
+            printf 'PR head=%s\nPR base=%s\nRun=%s\nAttempt=%s\nImage=%s\n' "$PR_HEAD" "$PR_BASE" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$ImageVersion"
+            sw_vers
+            uname -m
+          } > "$RUNNER_TEMP/native-ci/host.txt"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.13'
@@ -48,9 +62,17 @@ jobs:
         run: |
           xcodebuild -downloadPlatform iOS
           xcodes runtimes install "iOS 18.6"
-          python3 tools/ci/ios-smoke.py
+          python3 tools/ci/ios-smoke.py --evidence-dir "$RUNNER_TEMP/native-ci/smoke"
       - name: Device architecture size report
         working-directory: apps/ios
         run: |
           xcodebuild -project Gauja.xcodeproj -scheme Gauja -configuration Release -destination 'generic/platform=iOS' -derivedDataPath DerivedData -skipPackagePluginValidation build CODE_SIGNING_ALLOWED=NO DEPLOYMENT_POSTPROCESSING=YES STRIP_INSTALLED_PRODUCT=YES
-          du -sk DerivedData/Build/Products/Release-iphoneos/Gauja.app
+          du -sk DerivedData/Build/Products/Release-iphoneos/Gauja.app | tee "$RUNNER_TEMP/native-ci/device-size.txt"
+      - name: Retain native test evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/native-ci
+          retention-days: 7
+          if-no-files-found: error
